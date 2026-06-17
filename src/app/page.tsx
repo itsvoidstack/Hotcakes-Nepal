@@ -1,101 +1,264 @@
-import Image from "next/image";
+import Link from 'next/link';
+import Image from 'next/image';
+import { supabase } from '@/lib/supabase/client';
 
-export default function Home() {
+export const revalidate = 0; // Disable static caching so edits display instantly
+
+export default async function Home() {
+  // 1. Fetch active campaign
+  const { data: campaignData } = await supabase
+    .from('campaigns')
+    .select('*')
+    .eq('is_active', true)
+    .single();
+
+  const now = new Date();
+  const campaign = campaignData && (!campaignData.end_date || new Date(campaignData.end_date) > now)
+    ? campaignData
+    : null;
+
+  // 2. Fetch featured menu items
+  const { data: featuredItems } = await supabase
+    .from('menu_items')
+    .select('*')
+    .eq('is_featured', true)
+    .eq('is_available', true)
+    .limit(5);
+
+  // 3. Fetch cafe open/closed settings
+  const { data: openSetting } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'open_status')
+    .single();
+  
+  const isOpen = (openSetting?.value as { is_open?: boolean })?.is_open ?? true;
+
+  // 4. Fetch contact links
+  const { data: contacts } = await supabase
+    .from('contact_info')
+    .select('*');
+
+  const getContact = (key: string) => contacts?.find(c => c.key === key)?.value ?? '';
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex flex-col min-h-screen">
+      {/* 1. Hero Section */}
+      <section className="relative h-[80vh] min-h-[500px] w-full flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/hero/hero-main.jpg"
+            alt="Hotcakes Nepal Hero"
+            fill
+            className="object-cover brightness-[0.45] scale-105"
+            priority
+            onError={(e) => {
+              // Fallback styling if local image doesn't exist
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          {/* Fallback solid color background */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-espresso to-dark-roast opacity-90 -z-10" />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="max-w-[1280px] w-full mx-auto px-4 md:px-6 z-10 flex justify-center md:justify-start">
+          <div className="max-w-xl p-8 md:p-12 glass-card rounded-[24px] animate-fade-up text-center md:text-left">
+            {isOpen ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-body bg-olive/15 text-olive mb-4">
+                <span className="w-2 h-2 rounded-full bg-olive animate-pulse" />
+                We are open
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-body bg-muted-red/15 text-muted-red mb-4">
+                <span className="w-2 h-2 rounded-full bg-muted-red" />
+                Closed for now
+              </span>
+            )}
+            
+            <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-espresso leading-tight mb-4">
+              cozy vibes, <br/>fresh hotcakes
+            </h1>
+            <p className="font-body text-mocha text-base md:text-lg mb-8 max-w-md">
+              Welcome to Lalitpur\'s premium coffee and hotcake boutique. Hand-drip brews, fluffy stacks, and quiet corners.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+              <Link
+                href="/menu"
+                className="px-8 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-medium rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-sm"
+              >
+                View Menu
+              </Link>
+              <Link
+                href="/order"
+                className="px-8 py-3 border border-roasted text-roasted hover:bg-roasted/5 text-sm font-medium rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Order Now
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Brew Streak Campaign Strip */}
+      {campaign && (
+        <section className="bg-roasted py-4 px-4 text-center z-10 shadow-md">
+          <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
+            <span className="text-white font-body text-sm md:text-base font-medium">
+              ☕ **{campaign.name}**: {campaign.tagline}
+            </span>
+            <Link
+              href="/streak"
+              className="px-4 py-1.5 bg-white text-roasted hover:bg-cream text-xs font-semibold rounded-full transition-colors duration-200"
+            >
+              Start Streak
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* 3. Featured Menu Items */}
+      <section className="py-24 max-w-[1280px] mx-auto px-4 md:px-6">
+        <div className="text-center max-w-xl mx-auto mb-16">
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-espresso mb-4">
+            highlights
+          </h2>
+          <p className="font-body text-mocha text-sm md:text-base">
+            Hand-picked customer favorites prepared fresh every single morning.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {featuredItems && featuredItems.length > 0 ? (
+            featuredItems.map((item) => (
+              <div
+                key={item.id}
+                className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+              >
+                <div className="relative h-64 w-full bg-latte/30 overflow-hidden">
+                  <Image
+                    src={item.image_url || '/images/menu/placeholder.jpg'}
+                    alt={item.name}
+                    fill
+                    className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    onError={(e) => {
+                      e.currentTarget.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22%23E8DED2%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%2210%22 fill%3D%22%235E5248%22%3E🥞%3C%2Ftext%3E%3C%2Fsvg%3E';
+                    }}
+                  />
+                </div>
+                <div className="p-6 flex flex-col flex-grow">
+                  <div className="flex items-baseline justify-between gap-2 mb-2">
+                    <h3 className="font-heading font-bold text-xl text-espresso">
+                      {item.name}
+                    </h3>
+                    <span className="font-heading text-roasted font-semibold">
+                      Rs. {item.price}
+                    </span>
+                  </div>
+                  <p className="font-body text-mocha text-sm leading-relaxed mb-6 flex-grow">
+                    {item.description || 'Prepared fresh with premium ingredients.'}
+                  </p>
+                  <Link
+                    href="/order"
+                    className="w-full text-center py-2.5 bg-roasted hover:bg-dark-roast text-white text-xs font-semibold rounded-full transition-colors duration-200"
+                  >
+                    Order Now
+                  </Link>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 text-mocha font-body">
+              No featured items available right now. View our menu below.
+            </div>
+          )}
+        </div>
+
+        <div className="text-center mt-12">
+          <Link
+            href="/menu"
+            className="inline-flex items-center gap-2 px-8 py-3 border border-roasted text-roasted hover:bg-roasted/5 text-sm font-medium rounded-full transition-all duration-200"
+          >
+            Explore Full Menu
+          </Link>
+        </div>
+      </section>
+
+      {/* 4. Location Teaser */}
+      <section className="py-24 bg-warm-white border-y border-latte">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="relative h-[400px] rounded-[24px] overflow-hidden bg-latte/30">
+            <Image
+              src="/images/location/location-exterior.jpg"
+              alt="Hotcakes Nepal Front Door"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              onError={(e) => {
+                e.currentTarget.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22%23E8DED2%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%2210%22 fill%3D%22%235E5248%22%3E📍%3C%2Ftext%3E%3C%2Fsvg%3E';
+              }}
+            />
+          </div>
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+            <h2 className="font-heading font-bold text-3xl md:text-4xl text-espresso mb-6">
+              find us
+            </h2>
+            <p className="font-body text-mocha text-base leading-relaxed mb-8 max-w-md">
+              Located in the heart of Patan, Lalitpur. Tucked away from the main streets, offering a quiet, rustic atmosphere for reading, meetings, or a morning stack.
+            </p>
+            <div className="space-y-3 mb-8">
+              <p className="font-body text-espresso text-sm">
+                **Address:** {getContact('address') || 'Patan, Lalitpur'}
+              </p>
+              <p className="font-body text-espresso text-sm">
+                **Hours:** 8:00 AM – 8:00 PM (Daily)
+              </p>
+            </div>
+            <Link
+              href="/location"
+              className="px-8 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-medium rounded-full transition-colors duration-200"
+            >
+              Get Directions
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Contact Strip */}
+      <section className="py-24 max-w-[1280px] mx-auto px-4 md:px-6 text-center">
+        <h2 className="font-heading font-bold text-3xl text-espresso mb-4">
+          let\'s connect
+        </h2>
+        <p className="font-body text-mocha text-sm md:text-base mb-8 max-w-md mx-auto">
+          Reach out for large group reservations, ordering queries, or just to say hi.
+        </p>
+        <div className="flex flex-wrap gap-4 justify-center">
+          {getContact('whatsapp') && (
+            <Link
+              href="/api/contact-info?redirect=whatsapp"
+              target="_blank"
+              className="px-6 py-2.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-semibold rounded-full transition-colors"
+            >
+              WhatsApp
+            </Link>
+          )}
+          {getContact('instagram') && (
+            <Link
+              href="/api/contact-info?redirect=instagram"
+              target="_blank"
+              className="px-6 py-2.5 bg-[#E1306C] hover:bg-[#c9265c] text-white text-xs font-semibold rounded-full transition-colors"
+            >
+              Instagram
+            </Link>
+          )}
+          <Link
+            href="/contact"
+            className="px-6 py-2.5 border border-roasted text-roasted hover:bg-roasted/5 text-xs font-semibold rounded-full transition-colors"
+          >
+            All Contact Info
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

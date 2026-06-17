@@ -1,0 +1,281 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export interface Database {
+  public: {
+    Tables: {
+      admin_users: {
+        Row: {
+          id: string
+          username: string
+          password_hash: string
+          role: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          username: string
+          password_hash: string
+          role?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          username?: string
+          password_hash?: string
+          role?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      menu_items: {
+        Row: {
+          id: string
+          category: string
+          name: string
+          slug: string
+          description: string | null
+          price: number
+          image_url: string | null
+          is_featured: boolean
+          is_available: boolean
+          display_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          category: string
+          name: string
+          slug: string
+          description?: string | null
+          price: number
+          image_url?: string | null
+          is_featured?: boolean
+          is_available?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          category?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          price?: number
+          image_url?: string | null
+          is_featured?: boolean
+          is_available?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      campaigns: {
+        Row: {
+          id: string
+          name: string
+          tagline: string | null
+          is_active: boolean
+          start_date: string | null
+          end_date: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          tagline?: string | null
+          is_active?: boolean
+          start_date?: string | null
+          end_date?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          tagline?: string | null
+          is_active?: boolean
+          start_date?: string | null
+          end_date?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      streak_records: {
+        Row: {
+          id: string
+          customer_code: string
+          phone_number: string
+          streak_count: number
+          last_stamp_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_code: string
+          phone_number: string
+          streak_count?: number
+          last_stamp_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_code?: string
+          phone_number?: string
+          streak_count?: number
+          last_stamp_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vacancies: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          google_form_link: string
+          image_url: string | null
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          google_form_link: string
+          image_url?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          google_form_link?: string
+          image_url?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          key: string
+          value: Json
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: Json
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      order_links: {
+        Row: {
+          platform: string
+          url: string | null
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          platform: string
+          url?: string | null
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          platform?: string
+          url?: string | null
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contact_info: {
+        Row: {
+          key: string
+          value: string
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          value: string
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          action: string
+          performed_by: string | null
+          details: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          action: string
+          performed_by?: string | null
+          details?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          action?: string
+          performed_by?: string | null
+          details?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          ip_address: string
+          request_count: number
+          last_request_at: string
+        }
+        Insert: {
+          ip_address: string
+          request_count?: number
+          last_request_at?: string
+        }
+        Update: {
+          ip_address?: string
+          request_count?: number
+          last_request_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
+}
