@@ -66,7 +66,7 @@ INSERT INTO contact_info (key, value) VALUES
 ('instagram', 'https://www.instagram.com/hotcakesnepal/'),
 ('tiktok', ''),
 ('phone', '+977 976-3687532'),
-('address', 'Patan, Lalitpur, Nepal');
+('address', 'Hattiban, Lalitpur, Nepal');
 
 -- 3. Seed Order Links
 INSERT INTO order_links (platform, url, is_active) VALUES

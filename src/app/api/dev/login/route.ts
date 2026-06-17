@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
     const clientIp = request.headers.get('x-forwarded-for') || '127.0.0.1';
+
+    if (!process.env.DEV_ADMIN_USERNAME || !process.env.DEV_ADMIN_PASSWORD) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
+    const correctUser = process.env.DEV_ADMIN_USERNAME;
+    const correctPass = process.env.DEV_ADMIN_PASSWORD;
+    const adminSupabase = getSupabaseAdmin();
 
     // General Rate Limit: 100 requests/minute
     const limit = await checkRateLimit(clientIp, 'general', 100, 60 * 1000);
@@ -18,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Check for lockout in rate_limits
-    const { data: limitData } = await supabase
+    const { data: limitData } = await adminSupabase
       .from('rate_limits')
       .select('*')
       .eq('ip_address', `dev_login_lock_${clientIp}`)
@@ -38,23 +49,20 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Validate developer credentials
-    const correctUser = process.env.DEV_ADMIN_USERNAME || 'admin-nitro';
-    const correctPass = process.env.DEV_ADMIN_PASSWORD || '#5050-165$';
-
     const isValidUser = username.toLowerCase().trim() === correctUser.toLowerCase().trim();
     const isValidPass = password === correctPass;
 
     if (isValidUser && isValidPass) {
       // Clear login attempts on success
       if (limitData) {
-        await supabase
+        await adminSupabase
           .from('rate_limits')
           .delete()
           .eq('ip_address', `dev_login_lock_${clientIp}`);
       }
 
       // Log audit action
-      await supabase.from('audit_logs').insert({
+      await adminSupabase.from('audit_logs').insert({
         action: 'Developer Login',
         performed_by: username,
         details: { ip: clientIp }
@@ -68,8 +76,8 @@ export async function POST(request: NextRequest) {
     } else {
       // Increment failed attempts
       const currentCount = limitData ? limitData.request_count + 1 : 1;
-      
-      await supabase
+
+      await adminSupabase
         .from('rate_limits')
         .upsert({
           ip_address: `dev_login_lock_${clientIp}`,
@@ -78,7 +86,7 @@ export async function POST(request: NextRequest) {
         });
 
       // Log failed attempt audit
-      await supabase.from('audit_logs').insert({
+      await adminSupabase.from('audit_logs').insert({
         action: 'Failed Developer Login Attempt',
         performed_by: username || 'unknown',
         details: { ip: clientIp, attempt_count: currentCount }

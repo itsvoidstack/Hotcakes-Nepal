@@ -135,60 +135,86 @@ ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
 -- ROW LEVEL SECURITY POLICIES
 -- ==========================================
 
--- Menu Items policies
-CREATE POLICY "Allow public read-only of active menu items" ON menu_items
-    FOR SELECT USING (is_available = true);
+-- Drop legacy permissive policies
+DROP POLICY IF EXISTS "Allow public read-only of active menu items" ON menu_items;
+DROP POLICY IF EXISTS "Allow admin full CRUD on menu_items" ON menu_items;
+DROP POLICY IF EXISTS "Allow public read of active campaigns" ON campaigns;
+DROP POLICY IF EXISTS "Allow admin full CRUD on campaigns" ON campaigns;
+DROP POLICY IF EXISTS "Allow public read of active vacancies" ON vacancies;
+DROP POLICY IF EXISTS "Allow admin full CRUD on vacancies" ON vacancies;
+DROP POLICY IF EXISTS "Allow public read of site_settings" ON site_settings;
+DROP POLICY IF EXISTS "Allow admin full CRUD on site_settings" ON site_settings;
+DROP POLICY IF EXISTS "Allow public read of active order_links" ON order_links;
+DROP POLICY IF EXISTS "Allow admin full CRUD on order_links" ON order_links;
+DROP POLICY IF EXISTS "Allow public read of contact_info" ON contact_info;
+DROP POLICY IF EXISTS "Allow admin full CRUD on contact_info" ON contact_info;
+DROP POLICY IF EXISTS "Allow admin full CRUD on streak_records" ON streak_records;
+DROP POLICY IF EXISTS "Allow admin full CRUD on admin_users" ON admin_users;
+DROP POLICY IF EXISTS "Allow admin full CRUD on audit_logs" ON audit_logs;
+DROP POLICY IF EXISTS "Allow admin full CRUD on rate_limits" ON rate_limits;
 
-CREATE POLICY "Allow admin full CRUD on menu_items" ON menu_items
-    FOR ALL USING (true) WITH CHECK (true);
+-- Public read + service_role full access
+CREATE POLICY "Public read menu_items"
+ON menu_items FOR SELECT
+TO anon USING (is_available = true);
 
--- Campaigns policies
-CREATE POLICY "Allow public read of active campaigns" ON campaigns
-    FOR SELECT USING (is_active = true);
+CREATE POLICY "Service role full access menu_items"
+ON menu_items FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow admin full CRUD on campaigns" ON campaigns
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public read campaigns"
+ON campaigns FOR SELECT
+TO anon USING (is_active = true);
 
--- Vacancies policies
-CREATE POLICY "Allow public read of active vacancies" ON vacancies
-    FOR SELECT USING (is_active = true);
+CREATE POLICY "Service role full access campaigns"
+ON campaigns FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow admin full CRUD on vacancies" ON vacancies
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public read vacancies"
+ON vacancies FOR SELECT
+TO anon USING (is_active = true);
 
--- Site Settings policies
-CREATE POLICY "Allow public read of site_settings" ON site_settings
-    FOR SELECT USING (true);
+CREATE POLICY "Service role full access vacancies"
+ON vacancies FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow admin full CRUD on site_settings" ON site_settings
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public read site_settings"
+ON site_settings FOR SELECT
+TO anon USING (true);
 
--- Order Links policies
-CREATE POLICY "Allow public read of active order_links" ON order_links
-    FOR SELECT USING (is_active = true);
+CREATE POLICY "Service role full access site_settings"
+ON site_settings FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow admin full CRUD on order_links" ON order_links
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public read order_links"
+ON order_links FOR SELECT
+TO anon USING (is_active = true);
 
--- Contact Info policies
-CREATE POLICY "Allow public read of contact_info" ON contact_info
-    FOR SELECT USING (true);
+CREATE POLICY "Service role full access order_links"
+ON order_links FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow admin full CRUD on contact_info" ON contact_info
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public read contact_info"
+ON contact_info FOR SELECT
+TO anon USING (true);
 
--- Streak Records policies (only server side with service role or admin authenticated can view/update)
-CREATE POLICY "Allow admin full CRUD on streak_records" ON streak_records
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access contact_info"
+ON contact_info FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
--- Admin Users policies (only admin or system can access)
-CREATE POLICY "Allow admin full CRUD on admin_users" ON admin_users
-    FOR ALL USING (true) WITH CHECK (true);
+-- Service role only (no public access)
+CREATE POLICY "Service role full access admin_users"
+ON admin_users FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
--- Audit Logs policies (only admin or system can access)
-CREATE POLICY "Allow admin full CRUD on audit_logs" ON audit_logs
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access streak_records"
+ON streak_records FOR ALL
+TO service_role USING (true) WITH CHECK (true);
 
--- Rate Limits policies (only system can access)
-CREATE POLICY "Allow admin full CRUD on rate_limits" ON rate_limits
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access audit_logs"
+ON audit_logs FOR ALL
+TO service_role USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service role full access rate_limits"
+ON rate_limits FOR ALL
+TO service_role USING (true) WITH CHECK (true);

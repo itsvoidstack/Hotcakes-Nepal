@@ -1,0 +1,116 @@
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase/client';
+
+const quickLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/menu', label: 'Menu' },
+  { href: '/order', label: 'Order' },
+  { href: '/location', label: 'Location' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/vacancies', label: 'Vacancies' },
+  { href: '/streak', label: 'Brew Streak Rewards' },
+];
+
+export default async function Footer() {
+  const { data: tiktokRecord } = await supabase
+    .from('contact_info')
+    .select('value')
+    .eq('key', 'tiktok')
+    .maybeSingle();
+
+  const hasTikTok = Boolean(tiktokRecord?.value?.trim());
+
+  return (
+    <footer className="bg-[#2C1810] text-cream">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+          {/* Brand */}
+          <div>
+            <h3 className="font-heading font-bold text-xl text-cream mb-4">
+              Hot Cakes Nepal
+            </h3>
+            <p className="font-body text-sm text-cream/80 leading-relaxed">
+              Coffee &amp; Bakery
+            </p>
+            <p className="font-body text-sm text-cream/80 leading-relaxed mt-2">
+              Hattiban Lalitpur
+            </p>
+            <p className="font-body text-sm text-cream/80 leading-relaxed mt-1">
+              Open Daily 7AM–8:30PM
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="font-heading font-bold text-lg text-cream mb-4">
+              Quick Links
+            </h3>
+            <ul className="space-y-2">
+              {quickLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Connect */}
+          <div>
+            <h3 className="font-heading font-bold text-lg text-cream mb-4">
+              Connect
+            </h3>
+            <ul className="space-y-2">
+              <li>
+                <a
+                  href="/api/contact-info?redirect=whatsapp"
+                  className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                >
+                  WhatsApp
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/api/contact-info?redirect=instagram"
+                  className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                >
+                  Instagram
+                </a>
+              </li>
+              {hasTikTok && (
+                <li>
+                  <a
+                    href="/api/contact-info?redirect=tiktok"
+                    className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                  >
+                    TikTok
+                  </a>
+                </li>
+              )}
+              <li>
+                <a
+                  href="tel:+9779763687532"
+                  className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                >
+                  +977 976-3687532
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-[#C9A84C]">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-4">
+          <p className="font-body text-xs text-cream/60 text-center">
+            © 2025 Hot Cakes Nepal
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

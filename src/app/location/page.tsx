@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import Image from 'next/image';
+import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
 
 export const revalidate = 0;
@@ -12,7 +12,7 @@ export default async function LocationPage() {
 
   const getContact = (key: string) => contacts?.find(c => c.key === key)?.value ?? '';
   
-  const address = getContact('address') || 'Patan, Lalitpur, Nepal';
+  const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
   const mapsLink = getContact('maps') || 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9';
 
   const locationPhotos = [
@@ -42,15 +42,13 @@ export default async function LocationPage() {
               key={index}
               className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-latte/30 shadow-sm group"
             >
-              <Image
+              <ImageWithFallback
                 src={photo.src}
                 alt={photo.alt}
                 fill
                 className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
                 sizes="(max-width: 768px) 50vw, 33vw"
-                onError={(e) => {
-                  e.currentTarget.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22%23E8DED2%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%228%22 fill%3D%22%235E5248%22%3E📸%3C%2Ftext%3E%3C%2Fsvg%3E';
-                }}
+                fallbackEmoji="📸"
               />
             </div>
           ))}

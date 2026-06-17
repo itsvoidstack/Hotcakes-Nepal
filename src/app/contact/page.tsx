@@ -15,7 +15,7 @@ export default async function ContactPage() {
   const hasInstagram = !!getContact('instagram');
   const hasTiktok = !!getContact('tiktok');
   const phoneNumber = getContact('phone') || '+977 976-3687532';
-  const address = getContact('address') || 'Patan, Lalitpur, Nepal';
+  const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
 
   return (
     <div className="bg-cream min-h-screen flex items-center justify-center py-16 px-4">

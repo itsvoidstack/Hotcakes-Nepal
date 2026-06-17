@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import ImageWithFallback from '@/components/ImageWithFallback';
 import { supabase } from '@/lib/supabase/client';
 
 export const revalidate = 0; // Disable static caching so edits display instantly
@@ -46,16 +46,13 @@ export default async function Home() {
       {/* 1. Hero Section */}
       <section className="relative h-[80vh] min-h-[500px] w-full flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image
+          <ImageWithFallback
             src="/images/hero/hero-main.jpg"
             alt="Hotcakes Nepal Hero"
             fill
             className="object-cover brightness-[0.45] scale-105"
             priority
-            onError={(e) => {
-              // Fallback styling if local image doesn't exist
-              e.currentTarget.style.display = 'none';
-            }}
+            fallbackEmoji="🥞"
           />
           {/* Fallback solid color background */}
           <div className="absolute inset-0 bg-gradient-to-tr from-espresso to-dark-roast opacity-90 -z-10" />
@@ -135,15 +132,13 @@ export default async function Home() {
                 className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
               >
                 <div className="relative h-64 w-full bg-latte/30 overflow-hidden">
-                  <Image
+                  <ImageWithFallback
                     src={item.image_url || '/images/menu/placeholder.jpg'}
                     alt={item.name}
                     fill
                     className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     sizes="(max-width: 768px) 100vw, 33vw"
-                    onError={(e) => {
-                      e.currentTarget.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22%23E8DED2%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%2210%22 fill%3D%22%235E5248%22%3E🥞%3C%2Ftext%3E%3C%2Fsvg%3E';
-                    }}
+                    fallbackEmoji="🥞"
                   />
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
@@ -188,15 +183,13 @@ export default async function Home() {
       <section className="py-24 bg-warm-white border-y border-latte">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="relative h-[400px] rounded-[24px] overflow-hidden bg-latte/30">
-            <Image
+            <ImageWithFallback
               src="/images/location/location-exterior.jpg"
               alt="Hotcakes Nepal Front Door"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
-              onError={(e) => {
-                e.currentTarget.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22%23E8DED2%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%2210%22 fill%3D%22%235E5248%22%3E📍%3C%2Ftext%3E%3C%2Fsvg%3E';
-              }}
+              fallbackEmoji="📍"
             />
           </div>
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
@@ -204,11 +197,11 @@ export default async function Home() {
               find us
             </h2>
             <p className="font-body text-mocha text-base leading-relaxed mb-8 max-w-md">
-              Located in the heart of Patan, Lalitpur. Tucked away from the main streets, offering a quiet, rustic atmosphere for reading, meetings, or a morning stack.
+              Located in the heart of Hattiban, Lalitpur. Tucked away from the main streets, offering a quiet, rustic atmosphere for reading, meetings, or a morning stack.
             </p>
             <div className="space-y-3 mb-8">
               <p className="font-body text-espresso text-sm">
-                **Address:** {getContact('address') || 'Patan, Lalitpur'}
+                **Address:** {getContact('address') || 'Hattiban, Lalitpur'}
               </p>
               <p className="font-body text-espresso text-sm">
                 **Hours:** 8:00 AM – 8:00 PM (Daily)
