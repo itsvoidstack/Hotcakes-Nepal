@@ -9,6 +9,7 @@ interface DevLoginProps {
 export default function DevLogin({ onLoginSuccess }: DevLoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -31,60 +32,77 @@ export default function DevLogin({ onLoginSuccess }: DevLoginProps) {
         throw new Error(data.error || 'Failed to authenticate');
       }
 
-      // Save token in localStorage and invoke success callback
-      localStorage.setItem('dev_session', 'authenticated');
-      localStorage.setItem('dev_token', data.token);
+      localStorage.setItem('hc_dev_session', data.token);
+      localStorage.setItem('hc_dev_login_time', Date.now().toString());
       onLoginSuccess(data.token);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during login.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred during login.';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md w-full glass-card p-8 md:p-10 rounded-[24px] border border-latte shadow-sm animate-fade-up">
+    <div className="max-w-md w-full bg-cream p-8 md:p-10 rounded-[24px] border border-latte shadow-sm animate-fade-up">
       <div className="text-center mb-8">
-        <span className="text-4xl block mb-3">🛠️</span>
-        <h1 className="font-heading font-bold text-3xl text-espresso mb-2">
-          Developer Command Center
+        <h1 className="font-heading font-bold text-3xl text-espresso mb-1">
+          Hot Cakes Nepal
         </h1>
-        <p className="font-body text-mocha text-sm">
-          Access system logs, database viewers, and maintenance tools.
+        <p className="font-body text-mocha text-sm font-semibold uppercase tracking-wider">
+          Developer Panel
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-xs font-semibold text-mocha uppercase tracking-wider mb-2">
-            Developer ID
+          <label
+            htmlFor="dev-username"
+            className="block text-xs font-semibold text-mocha uppercase tracking-wider mb-2"
+          >
+            Username
           </label>
           <input
+            id="dev-username"
             type="text"
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="e.g. ADMIN-NITRO"
+            placeholder="Enter username"
             className="w-full h-12 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso placeholder-mocha/40 focus:outline-none focus:ring-2 focus:ring-roasted transition-all text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-mocha uppercase tracking-wider mb-2">
-            Secure Key
+          <label
+            htmlFor="dev-password"
+            className="block text-xs font-semibold text-mocha uppercase tracking-wider mb-2"
+          >
+            Password
           </label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="w-full h-12 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso placeholder-mocha/40 focus:outline-none focus:ring-2 focus:ring-roasted transition-all text-sm"
-          />
+          <div className="relative">
+            <input
+              id="dev-password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              className="w-full h-12 px-4 pr-12 bg-warm-white border border-latte rounded-xl font-body text-espresso placeholder-mocha/40 focus:outline-none focus:ring-2 focus:ring-roasted transition-all text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-mocha/60 hover:text-mocha text-xs font-body"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
         </div>
 
         {error && (
-          <div className="p-3.5 bg-muted-red/15 text-muted-red rounded-xl text-center text-xs font-body leading-relaxed">
+          <div className="p-3.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-center text-sm font-body leading-relaxed">
             {error}
           </div>
         )}
@@ -92,9 +110,9 @@ export default function DevLogin({ onLoginSuccess }: DevLoginProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm text-sm"
+          className="w-full h-12 bg-[#2C1810] hover:bg-[#1f100a] disabled:bg-mocha/40 text-white font-semibold rounded-full transition-all duration-200 shadow-sm text-sm"
         >
-          {loading ? 'Authorizing developer access...' : 'Authenticate'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
     </div>

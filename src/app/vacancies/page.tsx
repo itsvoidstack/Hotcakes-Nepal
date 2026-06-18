@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import Image from 'next/image';
+import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
 
 export const revalidate = 0;
@@ -34,15 +34,13 @@ export default async function VacanciesPage() {
             >
               {vacancy.image_url && (
                 <div className="relative w-full md:w-48 h-48 rounded-2xl overflow-hidden bg-latte/30 flex-shrink-0">
-                  <Image
+                  <ImageWithFallback
                     src={vacancy.image_url}
                     alt={vacancy.title}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 192px"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
+                    fallbackEmoji="💼"
                   />
                 </div>
               )}

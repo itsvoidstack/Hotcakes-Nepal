@@ -10,17 +10,33 @@ export default async function LocationPage() {
     .from('contact_info')
     .select('*');
 
+  const { data: mapsSetting } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'google_maps')
+    .maybeSingle();
+
   const getContact = (key: string) => contacts?.find(c => c.key === key)?.value ?? '';
   
   const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
-  const mapsLink = getContact('maps') || 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9';
+  const mapsLink = (mapsSetting?.value as any)?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9';
 
-  const locationPhotos = [
-    { src: '/images/location/location-exterior.jpg', alt: 'Exterior View' },
-    { src: '/images/location/location-interior-1.jpg', alt: 'Cozy Seating Area' },
-    { src: '/images/location/location-interior-2.jpg', alt: 'Coffee Bar Counter' },
-    { src: '/images/location/location-seating.jpg', alt: 'Quiet Corner Desk' },
-  ];
+  const { data: locPhotosSetting } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'location_photos')
+    .maybeSingle();
+
+  const savedPhotos = (locPhotosSetting?.value as string[]) || [];
+
+  const locationPhotos = savedPhotos.length > 0
+    ? savedPhotos.map((url, idx) => ({ src: url, alt: `Location View ${idx + 1}` }))
+    : [
+        { src: '/images/location/location-exterior.jpg', alt: 'Exterior View' },
+        { src: '/images/location/location-interior-1.jpg', alt: 'Cozy Seating Area' },
+        { src: '/images/location/location-interior-2.jpg', alt: 'Coffee Bar Counter' },
+        { src: '/images/location/location-seating.jpg', alt: 'Quiet Corner Desk' },
+      ];
 
   return (
     <div className="bg-cream min-h-screen py-16 px-4">

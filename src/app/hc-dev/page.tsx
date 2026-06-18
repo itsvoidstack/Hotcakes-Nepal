@@ -9,12 +9,18 @@ export default function DevPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check developer local storage session state on mount
-    const savedToken = localStorage.getItem('dev_token');
-    const sessionState = localStorage.getItem('dev_session');
+    const savedToken = localStorage.getItem('hc_dev_session');
+    const loginTime = localStorage.getItem('hc_dev_login_time');
 
-    if (savedToken && sessionState === 'authenticated') {
-      setToken(savedToken);
+    if (savedToken && loginTime) {
+      const hoursElapsed = (Date.now() - parseInt(loginTime)) / (1000 * 60 * 60);
+      if (hoursElapsed >= 4) {
+        localStorage.removeItem('hc_dev_session');
+        localStorage.removeItem('hc_dev_login_time');
+        setToken(null);
+      } else {
+        setToken(savedToken);
+      }
     }
     setLoading(false);
   }, []);
@@ -24,28 +30,30 @@ export default function DevPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('dev_session');
-    localStorage.removeItem('dev_token');
+    localStorage.removeItem('hc_dev_session');
+    localStorage.removeItem('hc_dev_login_time');
     setToken(null);
   };
 
   if (loading) {
     return (
-      <div className="bg-cream min-h-[calc(100vh-80px)] flex items-center justify-center font-body text-mocha">
-        Loading developer session...
+      <div className="bg-cream min-h-screen flex items-center justify-center font-body text-mocha">
+        Loading session...
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="bg-cream min-h-screen flex items-center justify-center px-4">
+        <DevLogin onLoginSuccess={handleLoginSuccess} />
       </div>
     );
   }
 
   return (
     <div className="bg-cream min-h-[calc(100vh-80px)] py-12 px-4 flex flex-col justify-start items-center">
-      {token ? (
-        <DevClient token={token} onLogout={handleLogout} />
-      ) : (
-        <div className="flex-grow flex items-center justify-center w-full">
-          <DevLogin onLoginSuccess={handleLoginSuccess} />
-        </div>
-      )}
+      <DevClient token={token} onLogout={handleLogout} />
     </div>
   );
 }

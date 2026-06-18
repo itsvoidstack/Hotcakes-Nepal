@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         error: `Invalid credentials. ${remainingAttempts} attempts remaining before a 15-minute lockout.`
       }, { status: 401 });
     }
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

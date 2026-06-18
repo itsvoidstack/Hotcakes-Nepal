@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
+import { Database } from '@/lib/supabase/database.types';
 
 function isAuthorized(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
@@ -18,6 +19,8 @@ const TABLES_LIST = [
   'audit_logs',
   'rate_limits'
 ] as const;
+
+type TableName = keyof Database['public']['Tables'];
 
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
@@ -64,10 +67,11 @@ export async function GET(request: NextRequest) {
 
     // ACTION 2: TABLE DATA VIEWER
     if (action === 'table') {
-      const tableName = searchParams.get('table');
-      if (!tableName || !TABLES_LIST.includes(tableName as any)) {
+      const tableNameRaw = searchParams.get('table');
+      if (!tableNameRaw || !TABLES_LIST.includes(tableNameRaw as any)) {
         return NextResponse.json({ error: 'Invalid or missing table name' }, { status: 400 });
       }
+      const tableName = tableNameRaw as TableName;
 
       const { data: rows, error } = await adminSupabase
         .from(tableName)
@@ -93,10 +97,11 @@ export async function GET(request: NextRequest) {
 
     // ACTION 3: CSV EXPORT
     if (action === 'export') {
-      const tableName = searchParams.get('table');
-      if (!tableName || !TABLES_LIST.includes(tableName as any)) {
+      const tableNameRaw = searchParams.get('table');
+      if (!tableNameRaw || !TABLES_LIST.includes(tableNameRaw as any)) {
         return NextResponse.json({ error: 'Invalid or missing table name' }, { status: 400 });
       }
+      const tableName = tableNameRaw as TableName;
 
       const { data: rows, error } = await adminSupabase
         .from(tableName)
@@ -181,6 +186,35 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json({ success: true, enabled: !!enabled });
+    }
+
+    if (action === 'delete_row') {
+      const body = await request.json();
+      const { table, primaryKey, primaryKeyValue } = body;
+      
+      if (!table || !primaryKey || !primaryKeyValue) {
+        return NextResponse.json({ error: 'Missing table, primaryKey or value' }, { status: 400 });
+      }
+
+      const tableName = table as TableName;
+
+      const { error } = await adminSupabase
+        .from(tableName)
+        .delete()
+        .eq(primaryKey, primaryKeyValue);
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      // Log action in audit logs
+      await adminSupabase.from('audit_logs').insert({
+        action: `Delete Row inside ${tableName}`,
+        performed_by: 'Developer Panel',
+        details: { table: tableName, primaryKey, primaryKeyValue }
+      });
+
+      return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ error: 'Invalid dev action' }, { status: 400 });

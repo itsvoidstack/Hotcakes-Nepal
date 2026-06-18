@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       streak_count: record.streak_count,
       last_stamp_at: record.last_stamp_at,
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

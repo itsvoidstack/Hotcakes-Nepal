@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
+import ConditionalFooter from "@/components/ConditionalFooter";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -38,6 +39,7 @@ export default function RootLayout({
             {children}
           </main>
         </MaintenanceWrapper>
+        <ConditionalFooter />
         <BottomNav />
       </body>
     </html>

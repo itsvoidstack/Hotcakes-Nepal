@@ -34,6 +34,15 @@ export default async function Home() {
   
   const isOpen = (openSetting?.value as { is_open?: boolean })?.is_open ?? true;
 
+  // Fetch hero image
+  const { data: heroSetting } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'hero_image')
+    .maybeSingle();
+
+  const heroImageUrl = (heroSetting?.value as { url?: string })?.url || "/images/hero/hero-main.jpg";
+
   // 4. Fetch contact links
   const { data: contacts } = await supabase
     .from('contact_info')
@@ -47,7 +56,7 @@ export default async function Home() {
       <section className="relative h-[80vh] min-h-[500px] w-full flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <ImageWithFallback
-            src="/images/hero/hero-main.jpg"
+            src={heroImageUrl}
             alt="Hotcakes Nepal Hero"
             fill
             className="object-cover brightness-[0.45] scale-105"

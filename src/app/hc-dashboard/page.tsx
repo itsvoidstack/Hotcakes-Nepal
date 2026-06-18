@@ -9,12 +9,18 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage session state on mount
-    const savedToken = localStorage.getItem('admin_token');
-    const sessionState = localStorage.getItem('admin_session');
+    const savedToken = localStorage.getItem('hc_dashboard_session');
+    const loginTime = localStorage.getItem('hc_dashboard_login_time');
 
-    if (savedToken && sessionState === 'authenticated') {
-      setToken(savedToken);
+    if (savedToken && loginTime) {
+      const hoursElapsed = (Date.now() - parseInt(loginTime)) / (1000 * 60 * 60);
+      if (hoursElapsed >= 8) {
+        localStorage.removeItem('hc_dashboard_session');
+        localStorage.removeItem('hc_dashboard_login_time');
+        setToken(null);
+      } else {
+        setToken(savedToken);
+      }
     }
     setLoading(false);
   }, []);
@@ -24,28 +30,30 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_session');
-    localStorage.removeItem('admin_token');
+    localStorage.removeItem('hc_dashboard_session');
+    localStorage.removeItem('hc_dashboard_login_time');
     setToken(null);
   };
 
   if (loading) {
     return (
-      <div className="bg-cream min-h-[calc(100vh-80px)] flex items-center justify-center font-body text-mocha">
+      <div className="bg-cream min-h-screen flex items-center justify-center font-body text-mocha">
         Loading session...
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="bg-cream min-h-screen flex items-center justify-center px-4">
+        <DashboardLogin onLoginSuccess={handleLoginSuccess} />
       </div>
     );
   }
 
   return (
     <div className="bg-cream min-h-[calc(100vh-80px)] py-12 px-4 flex flex-col justify-start items-center">
-      {token ? (
-        <DashboardClient token={token} onLogout={handleLogout} />
-      ) : (
-        <div className="flex-grow flex items-center justify-center w-full">
-          <DashboardLogin onLoginSuccess={handleLoginSuccess} />
-        </div>
-      )}
+      <DashboardClient token={token} onLogout={handleLogout} />
     </div>
   );
 }

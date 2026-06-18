@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 function isAuthorized(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
@@ -19,10 +19,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing type or data' }, { status: 400 });
     }
 
+    const supabase = getSupabaseAdmin();
     if (type === 'open_status') {
       const { error } = await supabase
         .from('site_settings')
         .upsert({ key: 'open_status', value: { is_open: !!data.is_open }, updated_at: new Date().toISOString() });
+      
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === 'google_maps') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'google_maps', value: { url: data.url }, updated_at: new Date().toISOString() });
       
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ success: true });
@@ -63,6 +73,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    if (type === 'location_photos') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'location_photos', value: data.photos, updated_at: new Date().toISOString() });
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === 'hero_image') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'hero_image', value: { url: data.url }, updated_at: new Date().toISOString() });
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
     if (type === 'vacancy') {
       const { error } = await supabase
         .from('vacancies')
@@ -93,7 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid settings type' }, { status: 400 });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

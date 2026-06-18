@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 // Helper to validate session (simple demo session verification)
 function isAuthorized(request: NextRequest) {
@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from('menu_items')
       .insert({
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, item: data });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -61,6 +62,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from('menu_items')
       .update({
@@ -84,7 +86,7 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, item: data });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -103,6 +105,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Menu Item ID is required' }, { status: 400 });
     }
 
+    const supabase = getSupabaseAdmin();
     const { error } = await supabase
       .from('menu_items')
       .delete()
@@ -113,7 +116,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

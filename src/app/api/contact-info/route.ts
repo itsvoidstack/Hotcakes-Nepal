@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ contacts: maskedContacts });
-  } catch (err: any) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

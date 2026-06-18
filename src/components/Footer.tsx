@@ -21,28 +21,28 @@ export default async function Footer() {
   const hasTikTok = Boolean(tiktokRecord?.value?.trim());
 
   return (
-    <footer className="bg-[#2C1810] text-cream">
+    <footer className="bg-[#2C1810] text-[#FAF7F2]">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
           {/* Brand */}
           <div>
-            <h3 className="font-heading font-bold text-xl text-cream mb-4">
+            <h3 className="font-heading font-bold text-xl text-[#FAF7F2] mb-4">
               Hot Cakes Nepal
             </h3>
-            <p className="font-body text-sm text-cream/80 leading-relaxed">
+            <p className="font-body text-sm text-[#FAF7F2]/80 leading-relaxed">
               Coffee &amp; Bakery
             </p>
-            <p className="font-body text-sm text-cream/80 leading-relaxed mt-2">
-              Hattiban Lalitpur
+            <p className="font-body text-sm text-[#FAF7F2]/80 leading-relaxed mt-2">
+              Hattiban, Lalitpur
             </p>
-            <p className="font-body text-sm text-cream/80 leading-relaxed mt-1">
-              Open Daily 7AM–8:30PM
+            <p className="font-body text-sm text-[#FAF7F2]/80 leading-relaxed mt-1">
+              Open Daily 7:00 AM - 8:30 PM
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-heading font-bold text-lg text-cream mb-4">
+            <h3 className="font-heading font-bold text-lg text-[#FAF7F2] mb-4">
               Quick Links
             </h3>
             <ul className="space-y-2">
@@ -50,7 +50,7 @@ export default async function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                    className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
                   >
                     {link.label}
                   </Link>
@@ -61,14 +61,14 @@ export default async function Footer() {
 
           {/* Connect */}
           <div>
-            <h3 className="font-heading font-bold text-lg text-cream mb-4">
+            <h3 className="font-heading font-bold text-lg text-[#FAF7F2] mb-4">
               Connect
             </h3>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/api/contact-info?redirect=whatsapp"
-                  className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
                 >
                   WhatsApp
                 </a>
@@ -76,7 +76,7 @@ export default async function Footer() {
               <li>
                 <a
                   href="/api/contact-info?redirect=instagram"
-                  className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
                 >
                   Instagram
                 </a>
@@ -85,7 +85,7 @@ export default async function Footer() {
                 <li>
                   <a
                     href="/api/contact-info?redirect=tiktok"
-                    className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                    className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
                   >
                     TikTok
                   </a>
@@ -94,9 +94,9 @@ export default async function Footer() {
               <li>
                 <a
                   href="tel:+9779763687532"
-                  className="font-body text-sm text-cream/80 hover:text-cream transition-colors duration-200"
+                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
                 >
-                  +977 976-3687532
+                  Phone: +977 976-3687532
                 </a>
               </li>
             </ul>
@@ -105,12 +105,19 @@ export default async function Footer() {
       </div>
 
       <div className="border-t border-[#C9A84C]">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-4">
-          <p className="font-body text-xs text-cream/60 text-center">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <p className="font-body text-xs text-[#FAF7F2]/60 text-center sm:text-left">
             © 2025 Hot Cakes Nepal
           </p>
+          <Link
+            href="/hc-dashboard"
+            className="font-body text-[10px] text-[#FAF7F2]/30 hover:text-[#FAF7F2]/60 transition-colors duration-200"
+          >
+            Staff Login
+          </Link>
         </div>
       </div>
     </footer>
   );
 }
+

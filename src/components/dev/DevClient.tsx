@@ -82,6 +82,39 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
     }
   }, [activeTab, selectedTable]);
 
+  const getPrimaryKey = (table: string, row: any) => {
+    if ('id' in row) return { key: 'id', value: row.id };
+    if ('key' in row) return { key: 'key', value: row.key };
+    if ('platform' in row) return { key: 'platform', value: row.platform };
+    if ('ip_address' in row) return { key: 'ip_address', value: row.ip_address };
+    const firstKey = Object.keys(row)[0];
+    return { key: firstKey, value: row[firstKey] };
+  };
+
+  const handleDeleteRow = async (row: any) => {
+    if (!confirm('Are you sure you want to delete this row?')) return;
+    const { key, value } = getPrimaryKey(selectedTable, row);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/dev?action=delete_row`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ table: selectedTable, primaryKey: key, primaryKeyValue: value })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete row');
+      showFeedback('Row deleted successfully!');
+      fetchTableData(selectedTable);
+    } catch (err: any) {
+      showFeedback(err.message, true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleMaintenanceToggle = async (enable: boolean) => {
     setLoading(true);
     try {
@@ -256,6 +289,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
                     {Object.keys(tableRows[0]).map((key) => (
                       <th key={key} className="p-4 whitespace-nowrap">{key}</th>
                     ))}
+                    <th className="p-4 whitespace-nowrap text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-latte/60 text-espresso">
@@ -276,6 +310,14 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
                           </td>
                         );
                       })}
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => handleDeleteRow(row)}
+                          className="px-2.5 py-1 bg-[#A85A52] hover:bg-[#8e4841] text-white rounded font-semibold transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

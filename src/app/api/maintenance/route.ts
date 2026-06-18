@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const enabled = (data?.value as any)?.enabled ?? false;
 
     return NextResponse.json({ maintenance: enabled });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ maintenance: false });
   }
 }

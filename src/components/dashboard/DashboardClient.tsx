@@ -13,6 +13,7 @@ interface MenuItem {
   is_featured: boolean;
   is_available: boolean;
   display_order: number;
+  dietary_tags?: string;
 }
 
 interface OrderLink {
@@ -74,8 +75,15 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
   // 5. Settings States
   const [isOpen, setIsOpen] = useState(true);
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [contacts, setContacts] = useState<ContactInfo[]>([]);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  
+  // 6. Additional Media States
+  const [locationPhotos, setLocationPhotos] = useState<string[]>([]);
+  const [heroImageUrl, setHeroImageUrl] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   // Load Initial Data
   const loadData = async () => {
@@ -114,6 +122,15 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       const { data: openSetting } = await supabase.from('site_settings').select('value').eq('key', 'open_status').single();
       setIsOpen((openSetting?.value as any)?.is_open ?? true);
+
+      const { data: mapsSetting } = await supabase.from('site_settings').select('value').eq('key', 'google_maps').maybeSingle();
+      setGoogleMapsUrl((mapsSetting?.value as any)?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9');
+
+      const { data: locPhotos } = await supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle();
+      setLocationPhotos((locPhotos?.value as string[]) || []);
+
+      const { data: heroSet } = await supabase.from('site_settings').select('value').eq('key', 'hero_image').maybeSingle();
+      setHeroImageUrl((heroSet?.value as { url?: string })?.url || '');
       
     } catch (err) {
       console.error(err);
@@ -139,29 +156,82 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   // ==========================================
   // MENU OPERATIONS
   // ==========================================
+  const handleStartEdit = (item: MenuItem) => {
+    let desc = item.description || '';
+    let tags = '';
+    if (desc.includes(' | Tags: ')) {
+      const parts = desc.split(' | Tags: ');
+      desc = parts[0];
+      tags = parts[1];
+    }
+    setEditingItem({
+      ...item,
+      description: desc,
+      dietary_tags: tags
+    });
+  };
+
+  const handleUploadMenuItemImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'menu-images');
+      if (editingItem?.slug) {
+        formData.append('filename', `menu-${editingItem.slug}`);
+      }
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload image');
+
+      setEditingItem(prev => prev ? { ...prev, image_url: data.url } : null);
+      showFeedback('Menu item image uploaded successfully!');
+    } catch (err: any) {
+      showFeedback(err.message || 'Something went wrong. Try again.', true);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSaveMenu = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
 
+    setLoading(true);
     try {
       const isNew = !editingItem.id;
       const url = '/api/admin/menu';
       const method = isNew ? 'POST' : 'PUT';
 
+      const finalDescription = (editingItem.description || '') + (editingItem.dietary_tags ? ` | Tags: ${editingItem.dietary_tags}` : '');
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(editingItem)
+        body: JSON.stringify({
+          ...editingItem,
+          description: finalDescription
+        })
       });
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || 'Failed to save menu item');
 
-      showFeedback(`Menu item ${isNew ? 'added' : 'updated'} successfully!`);
+      showFeedback('Saved successfully');
       setEditingItem(null);
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -337,10 +407,107 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   };
 
   // ==========================================
-  // GENERAL SETTINGS & CONTACTS
+  // GENERAL SETTINGS & MEDIA
   // ==========================================
+  const handleUploadLocationPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'location-images');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload photo');
+
+      const updatedPhotos = [...locationPhotos, data.url];
+      setLocationPhotos(updatedPhotos);
+
+      const saveRes = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'location_photos', data: { photos: updatedPhotos } })
+      });
+      if (!saveRes.ok) throw new Error('Failed to update settings');
+
+      showFeedback('Saved successfully');
+      loadData();
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteLocationPhoto = async (photoUrl: string) => {
+    if (!confirm('Are you sure you want to delete this location photo?')) return;
+    setLoading(true);
+    try {
+      const updatedPhotos = locationPhotos.filter(p => p !== photoUrl);
+      setLocationPhotos(updatedPhotos);
+
+      const saveRes = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'location_photos', data: { photos: updatedPhotos } })
+      });
+      if (!saveRes.ok) throw new Error('Failed to update settings');
+
+      showFeedback('Saved successfully');
+      loadData();
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUploadHeroImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'hero-images');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload image');
+
+      setHeroImageUrl(data.url);
+
+      const saveRes = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'hero_image', data: { url: data.url } })
+      });
+      if (!saveRes.ok) throw new Error('Failed to update settings');
+
+      showFeedback('Saved successfully');
+      loadData();
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSavingSettings(true);
     try {
       // 1. Save open_status
       await fetch('/api/admin/settings', {
@@ -349,14 +516,28 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         body: JSON.stringify({ type: 'open_status', data: { is_open: isOpen } })
       });
 
-      // 2. Save contacts
+      // 2. Save google_maps
+      await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'google_maps', data: { url: googleMapsUrl } })
+      });
+
+      // 3. Save contacts
       await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ type: 'contact_info', data: contacts })
       });
 
-      // 3. Save campaign details (if loaded)
+      // 4. Save order links
+      await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'order_links', data: orderLinks })
+      });
+
+      // 5. Save campaign details (if loaded)
       if (campaign) {
         await fetch('/api/admin/settings', {
           method: 'POST',
@@ -365,10 +546,12 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         });
       }
 
-      showFeedback('All settings saved successfully!');
+      showFeedback('Saved successfully');
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -526,25 +709,63 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Description</label>
-                <textarea
-                  value={editingItem.description || ''}
-                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-                  placeholder="Optional details, ingredients, or servings"
-                  className="w-full h-24 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Description</label>
+                  <textarea
+                    value={editingItem.description || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                    placeholder="Optional details, ingredients, or servings"
+                    className="w-full h-24 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Dietary Tags</label>
+                  <input
+                    type="text"
+                    value={editingItem.dietary_tags || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, dietary_tags: e.target.value })}
+                    placeholder="e.g. Vegetarian, Gluten-Free, Spicy"
+                    className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm mb-2"
+                  />
+                  <span className="text-[10px] text-mocha font-body block leading-relaxed">
+                    Separate tags with commas. e.g. "Veg, Hot, Sweet"
+                  </span>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Image URL</label>
-                <input
-                  type="text"
-                  value={editingItem.image_url || ''}
-                  onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
-                  placeholder="/images/menu/menu-cappuccino.jpg"
-                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm"
-                />
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Item Image</label>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  {editingItem.image_url && (
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-latte bg-latte/30 flex-shrink-0">
+                      <img
+                        src={editingItem.image_url}
+                        alt="Menu Preview"
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-grow space-y-1.5 w-full">
+                    <input
+                      type="text"
+                      value={editingItem.image_url || ''}
+                      onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                      placeholder="/images/menu/menu-cappuccino.jpg"
+                      className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm"
+                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUploadMenuItemImage}
+                        disabled={uploading}
+                        className="text-xs text-mocha font-body"
+                      />
+                      {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-6 py-2">
@@ -572,15 +793,24 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
+                  disabled={loading || uploading}
                   className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-roasted hover:bg-dark-roast text-white rounded-full text-xs font-semibold"
+                  disabled={loading || uploading}
+                  className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
                 >
-                  Save Item
+                  {loading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Item'
+                  )}
                 </button>
               </div>
             </form>
@@ -613,7 +843,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       </td>
                       <td className="p-4 text-right space-x-2">
                         <button
-                          onClick={() => setEditingItem(item)}
+                          onClick={() => handleStartEdit(item)}
                           className="px-3 py-1 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium"
                         >
                           Edit
@@ -918,96 +1148,314 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           TAB CONTENT: SETTINGS & SOCIAL CONTACTS
           ========================================== */}
       {activeTab === 'settings' && !loading && (
-        <form onSubmit={handleSaveSettings} className="max-w-xl mx-auto space-y-6">
-          {/* Cafe Open Status */}
-          <div className="glass-card p-6 rounded-2xl border border-latte space-y-3">
-            <h2 className="font-heading font-bold text-lg text-espresso">Cafe Shop Status</h2>
-            <label className="flex items-center gap-2 font-body text-sm font-semibold text-espresso cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isOpen}
-                onChange={(e) => setIsOpen(e.target.checked)}
-                className="w-4 h-4 rounded text-roasted focus:ring-roasted cursor-pointer"
-              />
-              Show cafe open banner strip on home page
-            </label>
-          </div>
-
-          {/* Social Links */}
-          <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
-            <h2 className="font-heading font-bold text-lg text-espresso">Contacts & Social URLs</h2>
-            {contacts.map((contact, idx) => (
-              <div key={contact.key}>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">{contact.key}</label>
-                <input
-                  type="text"
-                  value={contact.value}
-                  onChange={(e) => {
-                    const updated = [...contacts];
-                    updated[idx].value = e.target.value;
-                    setContacts(updated);
-                  }}
-                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Brew Streak Campaign Setup */}
-          {campaign && (
-            <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
-              <h2 className="font-heading font-bold text-lg text-espresso">Brew Streak Campaign</h2>
+        <div className="max-w-xl mx-auto space-y-6">
+          <form onSubmit={handleSaveSettings} className="space-y-6">
+            {/* Cafe Open Status */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-3">
+              <h2 className="font-heading font-bold text-lg text-espresso">Cafe Shop Status</h2>
               <label className="flex items-center gap-2 font-body text-sm font-semibold text-espresso cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={campaign.is_active}
-                  onChange={(e) => setCampaign({ ...campaign, is_active: e.target.checked })}
+                  checked={isOpen}
+                  onChange={(e) => setIsOpen(e.target.checked)}
                   className="w-4 h-4 rounded text-roasted focus:ring-roasted cursor-pointer"
                 />
-                Active loyalty campaign (shows on home page)
+                Show cafe open banner strip on home page
               </label>
+            </div>
 
+            {/* Online Order Link */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-3">
+              <h2 className="font-heading font-bold text-lg text-espresso">Online Order Link</h2>
               <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline</label>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Online Order Link</label>
                 <input
                   type="text"
-                  value={campaign.tagline || ''}
-                  onChange={(e) => setCampaign({ ...campaign, tagline: e.target.value })}
-                  placeholder="10 stamps = 1 free coffee"
+                  value={(() => {
+                    const active = orderLinks.find(l => l.is_active);
+                    return active?.url || '';
+                  })()}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    let platform = 'custom';
+                    const lower = val.toLowerCase();
+                    if (lower.includes('foodmandu')) platform = 'foodmandu';
+                    else if (lower.includes('bhoj')) platform = 'bhoj';
+
+                    const updated = orderLinks.map(link => {
+                      if (link.platform === platform) {
+                        return { ...link, url: val || null, is_active: true };
+                      } else {
+                        return { ...link, is_active: false };
+                      }
+                    });
+                    setOrderLinks(updated);
+                  }}
+                  placeholder="Paste Bhoj or Foodmandu link here"
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                />
+              </div>
+            </div>
+
+            {/* Social & Contact Links */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
+              <h2 className="font-heading font-bold text-lg text-espresso">Contacts & Social URLs</h2>
+              
+              <div>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">WhatsApp Link</label>
+                <input
+                  type="text"
+                  value={contacts.find(c => c.key === 'whatsapp')?.value || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setContacts(prev => {
+                      const idx = prev.findIndex(c => c.key === 'whatsapp');
+                      if (idx > -1) {
+                        const updated = [...prev];
+                        updated[idx] = { ...updated[idx], value: val };
+                        return updated;
+                      }
+                      return [...prev, { key: 'whatsapp', value: val }];
+                    });
+                  }}
+                  placeholder="https://wa.me/977xxxxxxxxx"
                   className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
+              <div>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Instagram Link</label>
+                <input
+                  type="text"
+                  value={contacts.find(c => c.key === 'instagram')?.value || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setContacts(prev => {
+                      const idx = prev.findIndex(c => c.key === 'instagram');
+                      if (idx > -1) {
+                        const updated = [...prev];
+                        updated[idx] = { ...updated[idx], value: val };
+                        return updated;
+                      }
+                      return [...prev, { key: 'instagram', value: val }];
+                    });
+                  }}
+                  placeholder="https://instagram.com/yourpage"
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">TikTok Link</label>
+                <input
+                  type="text"
+                  value={contacts.find(c => c.key === 'tiktok')?.value || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setContacts(prev => {
+                      const idx = prev.findIndex(c => c.key === 'tiktok');
+                      if (idx > -1) {
+                        const updated = [...prev];
+                        updated[idx] = { ...updated[idx], value: val };
+                        return updated;
+                      }
+                      return [...prev, { key: 'tiktok', value: val }];
+                    });
+                  }}
+                  placeholder="https://tiktok.com/@yourpage"
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Phone Number</label>
+                <input
+                  type="text"
+                  value={contacts.find(c => c.key === 'phone')?.value || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setContacts(prev => {
+                      const idx = prev.findIndex(c => c.key === 'phone');
+                      if (idx > -1) {
+                        const updated = [...prev];
+                        updated[idx] = { ...updated[idx], value: val };
+                        return updated;
+                      }
+                      return [...prev, { key: 'phone', value: val }];
+                    });
+                  }}
+                  placeholder="+977 xxx-xxxxxxx"
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Google Maps Link</label>
+                <input
+                  type="text"
+                  value={googleMapsUrl}
+                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                  placeholder="https://maps.app.goo.gl/..."
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Address Text</label>
+                <input
+                  type="text"
+                  value={contacts.find(c => c.key === 'address')?.value || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setContacts(prev => {
+                      const idx = prev.findIndex(c => c.key === 'address');
+                      if (idx > -1) {
+                        const updated = [...prev];
+                        updated[idx] = { ...updated[idx], value: val };
+                        return updated;
+                      }
+                      return [...prev, { key: 'address', value: val }];
+                    });
+                  }}
+                  placeholder="Hattiban, Lalitpur, Nepal"
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                />
+              </div>
+            </div>
+
+            {/* Hero Image Upload */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-3">
+              <h2 className="font-heading font-bold text-lg text-espresso">Hero/Banner Image</h2>
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                {heroImageUrl && (
+                  <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-latte bg-latte/30 flex-shrink-0">
+                    <img
+                      src={heroImageUrl}
+                      alt="Hero Preview"
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                )}
+                <div className="flex-grow space-y-1.5 w-full">
                   <input
-                    type="date"
-                    value={campaign.start_date ? campaign.start_date.substring(0, 10) : ''}
-                    onChange={(e) => setCampaign({ ...campaign, start_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                    type="text"
+                    value={heroImageUrl}
+                    onChange={(e) => setHeroImageUrl(e.target.value)}
+                    placeholder="Hero Image URL"
                     className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">End Date</label>
-                  <input
-                    type="date"
-                    value={campaign.end_date ? campaign.end_date.substring(0, 10) : ''}
-                    onChange={(e) => setCampaign({ ...campaign, end_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
-                    className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadHeroImage}
+                      disabled={uploading}
+                      className="text-xs text-mocha font-body"
+                    />
+                    {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                  </div>
                 </div>
               </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            className="w-full py-3 bg-roasted hover:bg-dark-roast text-white font-semibold rounded-full shadow-sm text-sm"
-          >
-            Save All Settings
-          </button>
-        </form>
+            {/* Location Photos */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
+              <h2 className="font-heading font-bold text-lg text-espresso">Location Gallery Photos</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {locationPhotos.map((photoUrl, index) => (
+                  <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-latte bg-latte/30 group">
+                    <img
+                      src={photoUrl}
+                      alt={`Location ${index}`}
+                      className="object-cover w-full h-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteLocationPhoto(photoUrl)}
+                      className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-700 text-white rounded-full p-1 text-xs transition-colors"
+                      title="Delete Photo"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadLocationPhoto}
+                  disabled={uploading}
+                  className="text-xs text-mocha font-body"
+                />
+                {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+              </div>
+            </div>
+
+            {/* Brew Streak Campaign Setup */}
+            {campaign && (
+              <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
+                <h2 className="font-heading font-bold text-lg text-espresso">Brew Streak Campaign</h2>
+                <label className="flex items-center gap-2 font-body text-sm font-semibold text-espresso cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={campaign.is_active}
+                    onChange={(e) => setCampaign({ ...campaign, is_active: e.target.checked })}
+                    className="w-4 h-4 rounded text-roasted focus:ring-roasted cursor-pointer"
+                  />
+                  Active loyalty campaign (shows on home page)
+                </label>
+
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline</label>
+                  <input
+                    type="text"
+                    value={campaign.tagline || ''}
+                    onChange={(e) => setCampaign({ ...campaign, tagline: e.target.value })}
+                    placeholder="10 stamps = 1 free coffee"
+                    className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
+                    <input
+                      type="date"
+                      value={campaign.start_date ? campaign.start_date.substring(0, 10) : ''}
+                      onChange={(e) => setCampaign({ ...campaign, start_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                      className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">End Date</label>
+                    <input
+                      type="date"
+                      value={campaign.end_date ? campaign.end_date.substring(0, 10) : ''}
+                      onChange={(e) => setCampaign({ ...campaign, end_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                      className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={savingSettings || uploading}
+              className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2"
+            >
+              {savingSettings ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save All Settings'
+              )}
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );
