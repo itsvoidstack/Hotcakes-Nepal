@@ -68,7 +68,7 @@ export default async function VacanciesPage() {
               No Current Openings
             </h3>
             <p className="font-body text-mocha text-sm">
-              We don\'t have any active vacancy campaigns running right now. Follow us on Instagram to know when we open new positions!
+              We don&apos;t have any active vacancy campaigns running right now. Follow us on Instagram to know when we open new positions!
             </p>
           </div>
         )}

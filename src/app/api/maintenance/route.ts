@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message, maintenance: false }, { status: 500 });
     }
 
-    const enabled = (data?.value as any)?.enabled ?? false;
+    const maintenanceValue = data?.value as { enabled?: boolean } | null;
+    const enabled = maintenanceValue?.enabled ?? false;
 
     return NextResponse.json({ maintenance: enabled });
   } catch {

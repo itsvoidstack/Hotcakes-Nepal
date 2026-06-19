@@ -19,7 +19,8 @@ export default async function LocationPage() {
   const getContact = (key: string) => contacts?.find(c => c.key === key)?.value ?? '';
   
   const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
-  const mapsLink = (mapsSetting?.value as any)?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9';
+  const mapsValue = mapsSetting?.value as { url?: string } | null;
+  const mapsLink = mapsValue?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9';
 
   const { data: locPhotosSetting } = await supabase
     .from('site_settings')

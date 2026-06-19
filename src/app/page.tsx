@@ -85,7 +85,7 @@ export default async function Home() {
               cozy vibes, <br/>fresh hotcakes
             </h1>
             <p className="font-body text-mocha text-base md:text-lg mb-8 max-w-md">
-              Welcome to Lalitpur\'s premium coffee and hotcake boutique. Hand-drip brews, fluffy stacks, and quiet corners.
+              Welcome to Lalitpur&apos;s premium coffee and hotcake boutique. Hand-drip brews, fluffy stacks, and quiet corners.
             </p>
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               <Link
@@ -229,7 +229,7 @@ export default async function Home() {
       {/* 5. Contact Strip */}
       <section className="py-24 max-w-[1280px] mx-auto px-4 md:px-6 text-center">
         <h2 className="font-heading font-bold text-3xl text-espresso mb-4">
-          let\'s connect
+          let&apos;s connect
         </h2>
         <p className="font-body text-mocha text-sm md:text-base mb-8 max-w-md mx-auto">
           Reach out for large group reservations, ordering queries, or just to say hi.

@@ -1,6 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Database } from '@/lib/supabase/database.types';
+
+type StreakRecord = Database['public']['Tables']['streak_records']['Row'];
+
+function getErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : '';
+}
 
 interface MenuItem {
   id: string;
@@ -63,7 +70,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   
   // 2. Streak Manager States
   const [streakQuery, setStreakQuery] = useState('');
-  const [streakResult, setStreakResult] = useState<any>(null);
+  const [streakResult, setStreakResult] = useState<StreakRecord | null>(null);
   const [streakStampPhone, setStreakStampPhone] = useState('');
 
   // 3. Order Links States
@@ -93,13 +100,13 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       const menuData = await res.json();
       setMenuItems(menuData.items || []);
 
-      const settingsRes = await fetch('/api/admin/streak', {
+      await fetch('/api/admin/streak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ action: 'search', phone_number: 'dummy-load' }) // dummy query to get database schema check
       });
       // Additional public fetches
-      const publicHome = await fetch('/'); 
+      await fetch('/'); 
       
       // Let's query orders and contacts directly from public endpoints or database
       // Since they are public, we can fetch them from their respective tables using anon key
@@ -121,10 +128,12 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       setCampaign(camp);
 
       const { data: openSetting } = await supabase.from('site_settings').select('value').eq('key', 'open_status').single();
-      setIsOpen((openSetting?.value as any)?.is_open ?? true);
+      const openValue = openSetting?.value as { is_open?: boolean } | null;
+      setIsOpen(openValue?.is_open ?? true);
 
       const { data: mapsSetting } = await supabase.from('site_settings').select('value').eq('key', 'google_maps').maybeSingle();
-      setGoogleMapsUrl((mapsSetting?.value as any)?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9');
+      const mapsValue = mapsSetting?.value as { url?: string } | null;
+      setGoogleMapsUrl(mapsValue?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9');
 
       const { data: locPhotos } = await supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle();
       setLocationPhotos((locPhotos?.value as string[]) || []);
@@ -194,8 +203,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       setEditingItem(prev => prev ? { ...prev, image_url: data.url } : null);
       showFeedback('Menu item image uploaded successfully!');
-    } catch (err: any) {
-      showFeedback(err.message || 'Something went wrong. Try again.', true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err) || 'Something went wrong. Try again.', true);
     } finally {
       setUploading(false);
     }
@@ -248,8 +257,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       showFeedback('Menu item deleted successfully!');
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -274,8 +283,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!data.record) {
         showFeedback('No profile found. You can add a stamp to create one.', true);
       }
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -295,8 +304,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       setStreakResult(data.record);
       setStreakStampPhone('');
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -315,8 +324,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       showFeedback('Streak count reset to 0!');
       setStreakResult(data.record);
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -335,8 +344,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       showFeedback('Customer profile deleted successfully!');
       setStreakResult(null);
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -357,8 +366,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       showFeedback('Order links updated successfully!');
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -382,8 +391,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       showFeedback('Vacancy campaign saved successfully!');
       setEditingVacancy(null);
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -401,8 +410,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       showFeedback('Vacancy campaign deleted successfully!');
       loadData();
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
     }
   };
 
@@ -729,7 +738,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm mb-2"
                   />
                   <span className="text-[10px] text-mocha font-body block leading-relaxed">
-                    Separate tags with commas. e.g. "Veg, Hot, Sweet"
+                    Separate tags with commas. e.g. &quot;Veg, Hot, Sweet&quot;
                   </span>
                 </div>
               </div>

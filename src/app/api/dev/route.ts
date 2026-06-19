@@ -35,7 +35,10 @@ export async function GET(request: NextRequest) {
 
     // ACTION 1: HEALTH CHECKS
     if (action === 'health') {
-      const statusList: Record<string, any> = {};
+      const statusList: Record<
+        string,
+        { status: 'healthy'; count: number } | { status: 'error'; message: string }
+      > = {};
       let dbConnected = true;
 
       for (const table of TABLES_LIST) {
@@ -58,17 +61,19 @@ export async function GET(request: NextRequest) {
         .eq('key', 'maintenance_mode')
         .maybeSingle();
 
+      const maintenanceSettingValue = maintenanceSetting?.value as { enabled?: boolean } | null;
+
       return NextResponse.json({
         db_connection: dbConnected ? 'healthy' : 'degraded',
         tables: statusList,
-        maintenance_mode: (maintenanceSetting?.value as any)?.enabled ?? false
+        maintenance_mode: maintenanceSettingValue?.enabled ?? false
       });
     }
 
     // ACTION 2: TABLE DATA VIEWER
     if (action === 'table') {
       const tableNameRaw = searchParams.get('table');
-      if (!tableNameRaw || !TABLES_LIST.includes(tableNameRaw as any)) {
+      if (!tableNameRaw || !TABLES_LIST.includes(tableNameRaw as typeof TABLES_LIST[number])) {
         return NextResponse.json({ error: 'Invalid or missing table name' }, { status: 400 });
       }
       const tableName = tableNameRaw as TableName;
@@ -76,7 +81,7 @@ export async function GET(request: NextRequest) {
       const { data: rows, error } = await adminSupabase
         .from(tableName)
         .select('*')
-        .order('created_at', { ascending: false, nullsFirst: true } as any)
+        .order('created_at', { ascending: false, nullsFirst: true })
         .limit(100);
 
       if (error) {
@@ -98,7 +103,7 @@ export async function GET(request: NextRequest) {
     // ACTION 3: CSV EXPORT
     if (action === 'export') {
       const tableNameRaw = searchParams.get('table');
-      if (!tableNameRaw || !TABLES_LIST.includes(tableNameRaw as any)) {
+      if (!tableNameRaw || !TABLES_LIST.includes(tableNameRaw as typeof TABLES_LIST[number])) {
         return NextResponse.json({ error: 'Invalid or missing table name' }, { status: 400 });
       }
       const tableName = tableNameRaw as TableName;
@@ -126,7 +131,8 @@ export async function GET(request: NextRequest) {
         headers.join(','),
         ...rows.map(row => 
           headers.map(fieldName => {
-            const val = row[fieldName];
+            const key = fieldName as keyof typeof row;
+            const val = row[key];
             if (val === null || val === undefined) return '';
             const valStr = typeof val === 'object' ? JSON.stringify(val) : String(val);
             // Escape double quotes
@@ -145,8 +151,9 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid dev action' }, { status: 400 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = (err instanceof Error ? err.message : null) || 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -218,7 +225,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid dev action' }, { status: 400 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = (err instanceof Error ? err.message : null) || 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

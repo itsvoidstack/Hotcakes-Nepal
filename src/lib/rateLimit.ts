@@ -24,7 +24,7 @@ export async function checkRateLimit(
   const adminSupabase = getSupabaseAdmin();
   const dbKey = `${limitKey}_${ip}`;
   
-  const { data: record, error } = await adminSupabase
+  const { data: record } = await adminSupabase
     .from('rate_limits')
     .select('*')
     .eq('ip_address', dbKey)

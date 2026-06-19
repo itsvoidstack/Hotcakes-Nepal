@@ -57,7 +57,7 @@ export default function MaintenanceWrapper({ children }: { children: React.React
           </p>
           <div className="w-16 h-1 border-t-2 border-roasted mx-auto mb-6"></div>
           <p className="font-body text-xs text-mocha/70 italic">
-            We'll be back shortly! Thank you for your patience.
+            We&apos;ll be back shortly! Thank you for your patience.
           </p>
         </div>
       </div>

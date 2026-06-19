@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { Database } from '@/lib/supabase/database.types';
 
 interface DevClientProps {
   token: string;
@@ -20,15 +21,56 @@ const TABLES_LIST = [
   'rate_limits'
 ] as const;
 
+type DevTab = 'health' | 'database' | 'csv' | 'maintenance' | 'auditor';
+type DevTableName = (typeof TABLES_LIST)[number];
+type DevTableRow = Database['public']['Tables'][DevTableName]['Row'];
+type AuditLogRow = Database['public']['Tables']['audit_logs']['Row'];
+
+type TableHealthStatus =
+  | { status: 'healthy'; count: number }
+  | { status: 'error'; message: string };
+
+type HealthData = {
+  db_connection: 'healthy' | 'degraded';
+  tables: Record<string, TableHealthStatus>;
+  maintenance_mode: boolean;
+};
+
+const DEV_TABS: ReadonlyArray<{ id: DevTab; label: string }> = [
+  { id: 'health', label: 'Health Status' },
+  { id: 'database', label: 'Database Viewer' },
+  { id: 'csv', label: 'CSV Exporters' },
+  { id: 'maintenance', label: 'Maintenance Mode' },
+  { id: 'auditor', label: 'Audit Log Auditor' },
+];
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
+
+function isAuditLogRow(row: DevTableRow): row is AuditLogRow {
+  return 'action' in row && 'id' in row;
+}
+
+function getPrimaryKey(row: DevTableRow): { key: string; value: string | number } {
+  if ('id' in row) return { key: 'id', value: row.id };
+  if ('key' in row) return { key: 'key', value: row.key };
+  if ('platform' in row) return { key: 'platform', value: row.platform };
+  if ('ip_address' in row) return { key: 'ip_address', value: row.ip_address };
+  const firstKey = Object.keys(row)[0];
+  const firstValue = Object.values(row)[0];
+  return { key: firstKey, value: firstValue as string | number };
+}
+
 export default function DevClient({ token, onLogout }: DevClientProps) {
-  const [activeTab, setActiveTab] = useState<'health' | 'database' | 'csv' | 'maintenance' | 'auditor'>('health');
+  const [activeTab, setActiveTab] = useState<DevTab>('health');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ message: '', isError: false });
 
   // Data states
-  const [healthData, setHealthData] = useState<any>(null);
+  const [healthData, setHealthData] = useState<HealthData | null>(null);
   const [selectedTable, setSelectedTable] = useState<string>('streak_records');
-  const [tableRows, setTableRows] = useState<any[]>([]);
+  const [tableRows, setTableRows] = useState<DevTableRow[]>([]);
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
 
   const showFeedback = (msg: string, isError = false) => {
@@ -47,8 +89,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
 
       setHealthData(data);
       setMaintenanceEnabled(data.maintenance_mode);
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err, 'Failed to fetch health data'), true);
     } finally {
       setLoading(false);
     }
@@ -64,8 +106,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
       if (!res.ok) throw new Error(data.error || 'Failed to fetch table rows');
 
       setTableRows(data.rows || []);
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err, 'Failed to fetch table rows'), true);
       setTableRows([]);
     } finally {
       setLoading(false);
@@ -82,18 +124,9 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
     }
   }, [activeTab, selectedTable]);
 
-  const getPrimaryKey = (table: string, row: any) => {
-    if ('id' in row) return { key: 'id', value: row.id };
-    if ('key' in row) return { key: 'key', value: row.key };
-    if ('platform' in row) return { key: 'platform', value: row.platform };
-    if ('ip_address' in row) return { key: 'ip_address', value: row.ip_address };
-    const firstKey = Object.keys(row)[0];
-    return { key: firstKey, value: row[firstKey] };
-  };
-
-  const handleDeleteRow = async (row: any) => {
+  const handleDeleteRow = async (row: DevTableRow) => {
     if (!confirm('Are you sure you want to delete this row?')) return;
-    const { key, value } = getPrimaryKey(selectedTable, row);
+    const { key, value } = getPrimaryKey(row);
     setLoading(true);
     try {
       const res = await fetch(`/api/dev?action=delete_row`, {
@@ -108,8 +141,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
       if (!res.ok) throw new Error(data.error || 'Failed to delete row');
       showFeedback('Row deleted successfully!');
       fetchTableData(selectedTable);
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err, 'Failed to delete row'), true);
     } finally {
       setLoading(false);
     }
@@ -131,8 +164,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
 
       setMaintenanceEnabled(data.enabled);
       showFeedback(`Maintenance mode ${data.enabled ? 'activated' : 'deactivated'} successfully!`);
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err, 'Failed to toggle maintenance mode'), true);
     } finally {
       setLoading(false);
     }
@@ -162,8 +195,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
       a.click();
       a.remove();
       showFeedback(`Successfully exported ${table} to CSV!`);
-    } catch (err: any) {
-      showFeedback(err.message, true);
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err, 'Failed to export CSV'), true);
     }
   };
 
@@ -198,16 +231,10 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
 
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0">
-        {[
-          { id: 'health', label: 'Health Status' },
-          { id: 'database', label: 'Database Viewer' },
-          { id: 'csv', label: 'CSV Exporters' },
-          { id: 'maintenance', label: 'Maintenance Mode' },
-          { id: 'auditor', label: 'Audit Log Auditor' }
-        ].map((tab) => (
+        {DEV_TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id)}
             className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-roasted text-white shadow-sm'
@@ -248,11 +275,11 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
           <div className="glass-card p-6 rounded-[24px] border border-latte">
             <h3 className="font-heading font-bold text-lg text-espresso mb-4">Table Diagnostics</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.entries(healthData.tables || {}).map(([tableName, data]: [string, any]) => (
+              {Object.entries(healthData.tables || {}).map(([tableName, data]) => (
                 <div key={tableName} className="p-4 bg-warm-white border border-latte/60 rounded-xl flex justify-between items-center">
                   <div>
                     <span className="text-sm font-semibold text-espresso block">{tableName}</span>
-                    <span className="text-xs text-mocha">{data.count} rows</span>
+                    <span className="text-xs text-mocha">{'count' in data ? data.count : undefined} rows</span>
                   </div>
                   <span className={`h-2.5 w-2.5 rounded-full ${data.status === 'healthy' ? 'bg-olive' : 'bg-muted-red'}`} />
                 </div>
@@ -295,8 +322,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
                 <tbody className="divide-y divide-latte/60 text-espresso">
                   {tableRows.map((row, idx) => (
                     <tr key={idx} className="hover:bg-latte/5 transition-colors">
-                      {Object.entries(row).map(([key, val]: [string, any], cellIdx) => {
-                        let displayVal = val;
+                      {Object.entries(row).map(([, val], cellIdx) => {
+                        let displayVal: ReactNode = val;
                         if (val === null || val === undefined) {
                           displayVal = <span className="text-mocha/30 italic">null</span>;
                         } else if (typeof val === 'object') {
@@ -398,7 +425,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
           </div>
 
           <div className="space-y-3">
-            {tableRows.map((log) => (
+            {tableRows.filter(isAuditLogRow).map((log) => (
               <div key={log.id} className="p-4 bg-warm-white border border-latte rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <div>
                   <span className="text-xs font-bold text-mocha uppercase block">{new Date(log.created_at).toLocaleString()}</span>

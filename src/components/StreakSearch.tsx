@@ -46,8 +46,9 @@ export default function StreakSearch() {
       if (data.found === false) {
         setError('No record found for this number or code.');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during search.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred during search.';
+      setError(message || 'An error occurred during search.');
     } finally {
       setLoading(false);
     }
