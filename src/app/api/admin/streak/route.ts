@@ -26,13 +26,15 @@ export async function GET(request: NextRequest) {
     const totalCustomers = records.length;
     const totalStamps = records.reduce((sum, r) => sum + (r.streak_count || 0), 0);
     const totalActiveRewards = records.filter(r => r.streak_count >= 10).length;
+    const totalRewardsRedeemed = records.reduce((sum, r) => sum + (r.rewards_redeemed || 0), 0);
 
     return NextResponse.json({
       success: true,
       metrics: {
         total_customers: totalCustomers,
         total_stamps: totalStamps,
-        total_active_rewards: totalActiveRewards
+        total_active_rewards: totalActiveRewards,
+        total_rewards_redeemed: totalRewardsRedeemed
       },
       records
     });
@@ -167,16 +169,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Reset Stamp Count to 0
+    // Reset Stamp Count to 0 and increment rewards redeemed
     if (action === 'reset') {
       if (!customer_code) {
         return NextResponse.json({ error: 'Customer code is required to reset' }, { status: 400 });
+      }
+
+      const { data: existingRecord, error: findError } = await supabase
+        .from('streak_records')
+        .select('*')
+        .eq('customer_code', customer_code)
+        .single();
+
+      if (findError) {
+        console.error('Streak find error:', findError);
+        return NextResponse.json({ error: findError.message }, { status: 500 });
       }
 
       const { data: updated, error: resetError } = await supabase
         .from('streak_records')
         .update({
           streak_count: 0,
+          rewards_redeemed: (existingRecord?.rewards_redeemed || 0) + 1,
           updated_at: new Date().toISOString()
         })
         .eq('customer_code', customer_code)

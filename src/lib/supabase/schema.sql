@@ -51,13 +51,14 @@ ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 
 -- 5. Streak Records Table
 CREATE TABLE IF NOT EXISTS streak_records (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    customer_code TEXT UNIQUE NOT NULL,
-    phone_number TEXT UNIQUE NOT NULL,
-    streak_count INTEGER DEFAULT 0 NOT NULL,
-    last_stamp_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_code TEXT UNIQUE NOT NULL,
+  phone_number TEXT UNIQUE NOT NULL,
+  streak_count INTEGER DEFAULT 0 NOT NULL,
+  rewards_redeemed INTEGER DEFAULT 0 NOT NULL,
+  last_stamp_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Enable RLS

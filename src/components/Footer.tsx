@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 const quickLinks = [
   { href: '/', label: 'Home' },
@@ -13,13 +14,14 @@ const quickLinks = [
 export default async function Footer() {
   let hasTiktok = false
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL ||
-      'http://localhost:3000'}/api/contact-info?check=tiktok`,
-      { cache: 'no-store' }
-    )
-    const data = await res.json()
-    hasTiktok = !!data.tiktok
+    const supabase = getSupabaseAdmin();
+    const { data: tiktokRecord } = await supabase
+      .from('contact_info')
+      .select('value')
+      .eq('key', 'tiktok')
+      .maybeSingle();
+
+    hasTiktok = Boolean(tiktokRecord?.value?.trim());
   } catch {
     hasTiktok = false
   }

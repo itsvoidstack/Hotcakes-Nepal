@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import SiteLogo from "@/components/SiteLogo";
+import { headers } from "next/headers";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -22,6 +24,13 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Hotcakes Nepal | Premium Cafe & Coffee Boutique",
   description: "Experience the warm, cozy, and premium coffee and hotcakes boutique in Nepal. 10 visits = 1 free coffee. Start your streak today.",
+  openGraph: {
+    title: "Hotcakes Nepal | Premium Cafe & Coffee Boutique",
+    description: "Experience the warm, cozy, and premium coffee and hotcakes boutique in Nepal. 10 visits = 1 free coffee. Start your streak today.",
+    type: "website",
+    locale: "en_US",
+    siteName: "Hotcakes Nepal",
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +38,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = headers();
+  const pathname = headersList.get('x-pathname') || '';
+  const isAdminPage = pathname.startsWith('/hc-dashboard') || pathname.startsWith('/hc-dev') || pathname.startsWith('/api');
+  
   return (
     <html lang="en">
       <body
@@ -42,6 +55,20 @@ export default function RootLayout({
         </MaintenanceWrapper>
         <ConditionalFooter />
         <BottomNav />
+        
+        {/* Floating Order Button (Mobile Only) */}
+        {!isAdminPage && (
+          <Link
+            href="/order"
+            className="md:hidden fixed bottom-20 right-4 z-30 flex items-center gap-2 px-6 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-semibold rounded-full shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+            style={{ minWidth: '44px', minHeight: '44px' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Order Now
+          </Link>
+        )}
       </body>
     </html>
   );

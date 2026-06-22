@@ -3,7 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Database } from '@/lib/supabase/database.types';
 
-type StreakRecord = Database['public']['Tables']['streak_records']['Row'];
+type StreakRecord = Database['public']['Tables']['streak_records']['Row'] & {
+  rewards_redeemed?: number;
+};
 
 function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : '';
@@ -117,7 +119,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [streakResult, setStreakResult] = useState<StreakRecord | null>(null);
   const [streakStampPhone, setStreakStampPhone] = useState('');
   const [streakRecords, setStreakRecords] = useState<StreakRecord[]>([]);
-  const [streakMetrics, setStreakMetrics] = useState<{ total_customers: number; total_stamps: number; total_active_rewards: number } | null>(null);
+  const [streakMetrics, setStreakMetrics] = useState<{ total_customers: number; total_stamps: number; total_active_rewards: number; total_rewards_redeemed?: number; } | null>(null);
   const [streakLoading, setStreakLoading] = useState(false);
 
   // 3. Order Links States
@@ -137,7 +139,11 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [locationPhotos, setLocationPhotos] = useState<string[]>([]);
   const [heroImageUrl, setHeroImageUrl] = useState<string>('');
   const [logoImageUrl, setLogoImageUrl] = useState<string>('');
-  const [uploading, setUploading] = useState(false);
+  const [uploadingMenu, setUploadingMenu] = useState(false);
+  const [uploadingVacancy, setUploadingVacancy] = useState(false);
+  const [uploadingLocation, setUploadingLocation] = useState(false);
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
   // Fetch Streak analytics records
@@ -241,9 +247,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const handleUploadMenuItemImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (uploading) return;
+    if (uploadingMenu) return;
 
-    setUploading(true);
+    setUploadingMenu(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -265,7 +271,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err) || 'Something went wrong. Try again.', true);
     } finally {
-      setUploading(false);
+      setUploadingMenu(false);
     }
   };
 
@@ -306,9 +312,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const handleUploadVacancyImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (uploading) return;
+    if (uploadingVacancy) return;
 
-    setUploading(true);
+    setUploadingVacancy(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -327,7 +333,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err) || 'Something went wrong. Try again.', true);
     } finally {
-      setUploading(false);
+      setUploadingVacancy(false);
     }
   };
 
@@ -506,9 +512,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const handleUploadLocationPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (uploading) return;
+    if (uploadingLocation) return;
 
-    setUploading(true);
+    setUploadingLocation(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -537,7 +543,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch {
       showFeedback('Something went wrong. Try again.', true);
     } finally {
-      setUploading(false);
+      setUploadingLocation(false);
     }
   };
 
@@ -567,9 +573,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const handleUploadHeroImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (uploading) return;
+    if (uploadingHero) return;
 
-    setUploading(true);
+    setUploadingHero(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -597,16 +603,16 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch {
       showFeedback('Something went wrong. Try again.', true);
     } finally {
-      setUploading(false);
+      setUploadingHero(false);
     }
   };
 
   const handleUploadLogoImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (uploading) return;
+    if (uploadingLogo) return;
 
-    setUploading(true);
+    setUploadingLogo(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -634,7 +640,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch {
       showFeedback('Something went wrong. Try again.', true);
     } finally {
-      setUploading(false);
+      setUploadingLogo(false);
     }
   };
 
@@ -892,10 +898,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                         type="file"
                         accept="image/*"
                         onChange={handleUploadMenuItemImage}
-                        disabled={uploading}
+                        disabled={uploadingMenu}
                         className="text-xs text-mocha font-body"
                       />
-                      {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                      {uploadingMenu && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
                     </div>
                   </div>
                 </div>
@@ -926,17 +932,17 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  disabled={loading || uploading}
+                  disabled={loading || uploadingMenu}
                   className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || uploading}
+                  disabled={loading || uploadingMenu}
                   className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
                 >
-                  {uploading ? (
+                  {uploadingMenu ? (
                     <>
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Uploading...
@@ -1059,7 +1065,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Loyalty Analytics Summary */}
           {streakMetrics && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="glass-card p-4 rounded-xl border border-latte text-center">
                 <span className="block text-xs font-semibold text-mocha uppercase">Registered Customers</span>
                 <span className="block font-heading font-bold text-2xl text-espresso mt-1">{streakMetrics.total_customers}</span>
@@ -1071,6 +1077,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               <div className="glass-card p-4 rounded-xl border border-latte text-center">
                 <span className="block text-xs font-semibold text-mocha uppercase">Active Rewards</span>
                 <span className="block font-heading font-bold text-2xl text-olive mt-1">{streakMetrics.total_active_rewards} 🎁</span>
+              </div>
+              <div className="glass-card p-4 rounded-xl border border-latte text-center">
+                <span className="block text-xs font-semibold text-mocha uppercase">Rewards Redeemed</span>
+                <span className="block font-heading font-bold text-2xl text-roasted mt-1">{streakMetrics.total_rewards_redeemed || 0}</span>
               </div>
             </div>
           )}
@@ -1126,9 +1136,14 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     <h3 className="font-heading font-bold text-espresso text-lg">{streakResult.customer_code}</h3>
                     <p className="font-body text-xs text-mocha font-medium">Phone: {streakResult.phone_number}</p>
                   </div>
-                  <span className={`font-heading font-bold text-2xl ${streakResult.streak_count === 10 ? 'text-olive animate-pulse' : 'text-roasted'}`}>
-                    {streakResult.streak_count} / 10 Stamps
-                  </span>
+                  <div className="text-right">
+                    <span className={`font-heading font-bold text-2xl block ${streakResult.streak_count === 10 ? 'text-olive animate-pulse' : 'text-roasted'}`}>
+                      {streakResult.streak_count} / 10 Stamps
+                    </span>
+                    <span className="text-xs text-mocha font-medium">
+                      Rewards Redeemed: {(streakResult as StreakRecord).rewards_redeemed || 0}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="text-xs text-mocha font-body">
@@ -1180,6 +1195,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       <th className="p-3">Customer Code</th>
                       <th className="p-3">Phone Number</th>
                       <th className="p-3">Stamps</th>
+                      <th className="p-3">Redeemed</th>
                       <th className="p-3">Last Visit</th>
                       <th className="p-3 text-right">Actions</th>
                     </tr>
@@ -1199,6 +1215,11 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                           <td className="p-3">
                             <span className={`font-semibold ${record.streak_count >= 10 ? 'text-olive' : 'text-roasted'}`}>
                               {record.streak_count} / 10
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <span className="font-semibold text-mocha">
+                              {(record as StreakRecord).rewards_redeemed || 0}
                             </span>
                           </td>
                           <td className="p-3 text-xs text-mocha">
@@ -1372,10 +1393,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                         type="file"
                         accept="image/*"
                         onChange={handleUploadVacancyImage}
-                        disabled={uploading}
+                        disabled={uploadingVacancy}
                         className="text-xs text-mocha font-body"
                       />
-                      {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                      {uploadingVacancy && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
                     </div>
                   </div>
                 </div>
@@ -1395,17 +1416,17 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <button
                   type="button"
                   onClick={() => setEditingVacancy(null)}
-                  disabled={loading || uploading}
+                  disabled={loading || uploadingVacancy}
                   className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || uploading}
+                  disabled={loading || uploadingVacancy}
                   className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
                 >
-                  {uploading ? (
+                  {uploadingVacancy ? (
                     <>
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Uploading...
@@ -1666,10 +1687,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       type="file"
                       accept="image/*"
                       onChange={handleUploadHeroImage}
-                      disabled={uploading}
+                      disabled={uploadingHero}
                       className="text-xs text-mocha font-body"
                     />
-                    {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                    {uploadingHero && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
                   </div>
                 </div>
               </div>
@@ -1701,10 +1722,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       type="file"
                       accept="image/*"
                       onChange={handleUploadLogoImage}
-                      disabled={uploading}
+                      disabled={uploadingLogo}
                       className="text-xs text-mocha font-body"
                     />
-                    {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                    {uploadingLogo && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
                   </div>
                 </div>
               </div>
@@ -1712,7 +1733,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
             {/* Location Photos */}
             <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
-              <h2 className="font-heading font-bold text-lg text-espresso">Location Gallery Photos</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font-heading font-bold text-lg text-espresso">Location Gallery Photos</h2>
+                <span className="text-xs font-semibold text-mocha">{locationPhotos.length}/4</span>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {locationPhotos.map((photoUrl, index) => (
                   <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-latte bg-latte/30 group">
@@ -1737,10 +1761,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   type="file"
                   accept="image/*"
                   onChange={handleUploadLocationPhoto}
-                  disabled={uploading}
+                  disabled={uploadingLocation || locationPhotos.length >= 4}
                   className="text-xs text-mocha font-body"
                 />
-                {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                {uploadingLocation && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
               </div>
             </div>
 
@@ -1794,7 +1818,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
             <button
               type="submit"
-              disabled={savingSettings || uploading}
+              disabled={savingSettings || uploadingMenu || uploadingVacancy || uploadingLocation || uploadingHero || uploadingLogo}
               className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2"
             >
               {savingSettings ? (

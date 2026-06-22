@@ -1,11 +1,12 @@
-import { headers } from 'next/headers';
+'use client';
+
+import { usePathname } from 'next/navigation';
 import Footer from './Footer';
 
 const HIDDEN_PATHS = ['/hc-dashboard', '/hc-dev'];
 
-export default async function ConditionalFooter() {
-  const headersList = await headers();
-  const pathname = headersList.get('x-pathname') || '';
+export default function ConditionalFooter() {
+  const pathname = usePathname();
 
   if (HIDDEN_PATHS.some((path) => pathname.startsWith(path))) {
     return null;
