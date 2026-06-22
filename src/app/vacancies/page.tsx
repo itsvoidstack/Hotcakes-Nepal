@@ -1,10 +1,14 @@
-import { supabase } from '@/lib/supabase/client';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export const revalidate = 0;
+type Vacancy = Database['public']['Tables']['vacancies']['Row'];
+
+export const revalidate = 60;
 
 export default async function VacanciesPage() {
+  const supabase = getSupabaseAdmin();
   // Fetch active vacancies
   const { data: vacancies } = await supabase
     .from('vacancies')
@@ -27,7 +31,7 @@ export default async function VacanciesPage() {
 
       <div className="max-w-3xl mx-auto space-y-8">
         {activeVacancies.length > 0 ? (
-          activeVacancies.map((vacancy) => (
+          activeVacancies.map((vacancy: Vacancy) => (
             <div
               key={vacancy.id}
               className="glass-card p-6 md:p-8 rounded-[24px] flex flex-col md:flex-row gap-6 items-start animate-fade-up"

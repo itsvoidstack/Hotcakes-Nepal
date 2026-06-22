@@ -1,53 +1,48 @@
 import Link from 'next/link';
 import ImageWithFallback from '@/components/ImageWithFallback';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export const revalidate = 0; // Disable static caching so edits display instantly
+type MenuItem = Database['public']['Tables']['menu_items']['Row'];
+
+export const revalidate = 60;
 
 export default async function Home() {
-  // 1. Fetch active campaign
-  const { data: campaignData } = await supabase
-    .from('campaigns')
-    .select('*')
-    .eq('is_active', true)
-    .single();
+  const supabase = getSupabaseAdmin();
+  
+  // Parallelize all data fetching
+  const [
+    campaignResult,
+    menuResult,
+    openSettingResult,
+    heroImageResult,
+    contactsResult
+  ] = await Promise.all([
+    // 1. Fetch active campaign
+    supabase.from('campaigns').select('*').eq('is_active', true).single(),
+    // 2. Fetch featured menu items
+    supabase.from('menu_items').select('*').eq('is_available', true).eq('is_featured', true).order('category', { ascending: true }),
+    // 3. Fetch cafe open/closed settings
+    supabase.from('site_settings').select('value').eq('key', 'open_status').single(),
+    // 4. Fetch hero image
+    supabase.from('site_settings').select('value').eq('key', 'hero_image').maybeSingle(),
+    // 5. Fetch contact info
+    supabase.from('contact_info').select('*')
+  ]);
 
+  const campaignData = campaignResult.data;
   const now = new Date();
   const campaign = campaignData && (!campaignData.end_date || new Date(campaignData.end_date) > now)
     ? campaignData
     : null;
 
-  // 2. Fetch featured menu items
-  const { data: featuredItems } = await supabase
-    .from('menu_items')
-    .select('*')
-    .eq('is_featured', true)
-    .eq('is_available', true)
-    .limit(5);
-
-  // 3. Fetch cafe open/closed settings
-  const { data: openSetting } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'open_status')
-    .single();
-  
+  const featuredItems = menuResult.data || [];
+  const openSetting = openSettingResult.data;
   const isOpen = (openSetting?.value as { is_open?: boolean })?.is_open ?? true;
 
-  // Fetch hero image
-  const { data: heroSetting } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'hero_image')
-    .maybeSingle();
+  const heroImageUrl = (heroImageResult?.data?.value as { url?: string })?.url || "/images/hero/hero-main.jpg";
 
-  const heroImageUrl = (heroSetting?.value as { url?: string })?.url || "/images/hero/hero-main.jpg";
-
-  // 4. Fetch contact links
-  const { data: contacts } = await supabase
-    .from('contact_info')
-    .select('*');
-
+  const contacts = contactsResult.data;
   const getContact = (key: string) => contacts?.find(c => c.key === key)?.value ?? '';
 
   return (
@@ -106,7 +101,7 @@ export default async function Home() {
       </section>
 
       {/* 2. Brew Streak Campaign Strip */}
-      {campaign && (
+      {campaign ? (
         <section className="bg-roasted py-4 px-4 text-center z-10 shadow-md">
           <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
             <span className="text-white font-body text-sm md:text-base font-medium">
@@ -118,6 +113,14 @@ export default async function Home() {
             >
               Start Streak
             </Link>
+          </div>
+        </section>
+      ) : (
+        <section className="bg-warm-white py-4 px-4 text-center z-10 border-b border-latte">
+          <div className="max-w-[1280px] mx-auto">
+            <span className="text-mocha font-body text-sm md:text-base">
+              No campaigns are currently running.
+            </span>
           </div>
         </section>
       )}
@@ -135,7 +138,7 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredItems && featuredItems.length > 0 ? (
-            featuredItems.map((item) => (
+          featuredItems.map((item: MenuItem) => (
               <div
                 key={item.id}
                 className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"

@@ -1,34 +1,40 @@
-import { supabase } from '@/lib/supabase/client';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export const revalidate = 0;
+type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
+
+export const revalidate = 60;
 
 export default async function LocationPage() {
-  // Fetch address and maps link
-  const { data: contacts } = await supabase
-    .from('contact_info')
-    .select('*');
+  const supabase = getSupabaseAdmin();
+  
+  // Parallelize all data fetching
+  const [
+    contactResult,
+    mapsResult,
+    locPhotosResult
+  ] = await Promise.all([
+    supabase.from('contact_info').select('*'),
+    supabase.from('site_settings').select('value').eq('key', 'google_maps').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle()
+  ]);
 
-  const { data: mapsSetting } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'google_maps')
-    .maybeSingle();
-
-  const getContact = (key: string) => contacts?.find(c => c.key === key)?.value ?? '';
+  const contacts = contactResult.data;
+  const getContact = (key: string) => {
+    const contact = contacts?.find((c: ContactInfo) => c.key === key);
+    if (contact) {
+      return contact.value;
+    }
+    return '';
+  };
   
   const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
-  const mapsValue = mapsSetting?.value as { url?: string } | null;
+  const mapsValue = mapsResult?.data?.value as { url?: string } | null;
   const mapsLink = mapsValue?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9';
 
-  const { data: locPhotosSetting } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'location_photos')
-    .maybeSingle();
-
-  const savedPhotos = (locPhotosSetting?.value as string[]) || [];
+  const savedPhotos = Array.isArray(locPhotosResult?.data?.value) ? (locPhotosResult.data.value as string[]) : [];
 
   const locationPhotos = savedPhotos.length > 0
     ? savedPhotos.map((url, idx) => ({ src: url, alt: `Location View ${idx + 1}` }))

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function GET(request: NextRequest) {
@@ -27,9 +27,11 @@ export async function GET(request: NextRequest) {
       }, { status: 429 });
     }
 
+    const client = getSupabaseAdmin();
+
     // Lookup by phone number OR customer code using parameterized queries
     const isCode = /^HC-[0-9]{4}$/i.test(query);
-    let queryBuilder = supabase
+    let queryBuilder = client
       .from('streak_records')
       .select('customer_code, phone_number, streak_count, last_stamp_at');
 

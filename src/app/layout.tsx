@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import ConditionalFooter from "@/components/ConditionalFooter";
+import SiteLogo from "@/components/SiteLogo";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -33,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${dmSans.variable} font-body bg-cream text-espresso antialiased min-h-screen pb-20 md:pb-0`}
       >
-        <Navbar />
+        <Navbar logo={<SiteLogo />} />
         <MaintenanceWrapper>
           <main className="min-h-[calc(100vh-80px)]">
             {children}

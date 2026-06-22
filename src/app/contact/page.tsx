@@ -1,15 +1,19 @@
-import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export const revalidate = 0;
+type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
+
+export const revalidate = 60;
 
 export default async function ContactPage() {
-  // Fetch contact details from database
+  const supabase = getSupabaseAdmin();
+  // Fetch contact info
   const { data: contacts } = await supabase
     .from('contact_info')
     .select('*');
 
-  const getContact = (key: string) => contacts?.find(c => c.key === key)?.value ?? '';
+  const getContact = (key: string) => contacts?.find((c: ContactInfo) => c.key === key)?.value ?? '';
 
   const hasWhatsapp = !!getContact('whatsapp');
   const hasInstagram = !!getContact('instagram');

@@ -323,13 +323,13 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
                   {tableRows.map((row, idx) => (
                     <tr key={idx} className="hover:bg-latte/5 transition-colors">
                       {Object.entries(row).map(([, val], cellIdx) => {
-                        let displayVal: ReactNode = val;
+                        let displayVal: ReactNode;
                         if (val === null || val === undefined) {
                           displayVal = <span className="text-mocha/30 italic">null</span>;
                         } else if (typeof val === 'object') {
-                          displayVal = <code className="bg-cream p-1 rounded font-mono text-[10px] break-all">{JSON.stringify(val)}</code>;
-                        } else if (typeof val === 'boolean') {
-                          displayVal = val ? 'true' : 'false';
+                          displayVal = <span className="text-mocha/50 text-xs font-mono">{JSON.stringify(val)}</span>;
+                        } else {
+                          displayVal = String(val);
                         }
                         return (
                           <td key={cellIdx} className="p-4 max-w-xs truncate" title={String(val)}>

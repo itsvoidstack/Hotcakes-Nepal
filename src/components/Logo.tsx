@@ -4,7 +4,11 @@ import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 
-export default function Logo() {
+interface LogoProps {
+  src?: string;
+}
+
+export default function Logo({ src }: LogoProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -18,7 +22,7 @@ export default function Logo() {
         </div>
       ) : (
         <Image
-          src="/images/logo.jpeg"
+          src={src || '/images/logo.jpeg'}
           alt="Hotcakes Nepal Logo"
           width={130}
           height={36}

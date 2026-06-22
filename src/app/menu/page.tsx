@@ -1,16 +1,16 @@
-import { supabase } from '@/lib/supabase/client';
 import MenuClient from '@/components/MenuClient';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function MenuPage() {
-  // Fetch all menu items from Supabase
-  const { data: menuItems } = await supabase
+  const supabase = getSupabaseAdmin();
+  // Fetch all available menu items
+  const { data: items } = await supabase
     .from('menu_items')
     .select('*')
-    .order('display_order', { ascending: true });
-
-  const items = menuItems || [];
+    .eq('is_available', true)
+    .order('category', { ascending: true });
 
   return (
     <div className="bg-cream min-h-screen py-16">
@@ -23,7 +23,7 @@ export default async function MenuPage() {
         </p>
       </div>
 
-      <MenuClient initialItems={items} />
+      <MenuClient initialItems={items || []} />
     </div>
   );
 }

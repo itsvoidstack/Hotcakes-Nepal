@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 import StreakSearch from '@/components/StreakSearch';
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function StreakPage() {
+  const supabase = getSupabaseAdmin();
   // Fetch active campaign details to display
   const { data: campaignData } = await supabase
     .from('campaigns')
@@ -27,6 +28,17 @@ export default async function StreakPage() {
 
   return (
     <div className="bg-cream min-h-screen py-16 px-4">
+      {/* Campaign Strip (empty state matching home page) */}
+      {!campaign && (
+        <section className="bg-warm-white py-4 px-4 text-center z-10 border-b border-latte mb-12">
+          <div className="max-w-[1280px] mx-auto">
+            <span className="text-mocha font-body text-sm md:text-base">
+              No campaigns are currently running.
+            </span>
+          </div>
+        </section>
+      )}
+      
       <div className="max-w-[1280px] mx-auto text-center mb-12">
         <span className="text-4xl block mb-4">🏆</span>
         <h1 className="font-heading font-bold text-4xl md:text-5xl text-espresso mb-4">

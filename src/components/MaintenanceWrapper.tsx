@@ -1,48 +1,24 @@
-'use client';
+import { headers } from 'next/headers';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
-import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+const BYPASS_PATHS = ['/hc-dev', '/hc-dashboard', '/api'];
 
-export default function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [isMaintenance, setIsMaintenance] = useState(false);
-  const [loading, setLoading] = useState(true);
+export default async function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '';
 
-  useEffect(() => {
-    // Admin, developer, and API routes bypass maintenance mode
-    if (
-      pathname.startsWith('/hc-dev') || 
-      pathname.startsWith('/hc-dashboard') || 
-      pathname.startsWith('/api')
-    ) {
-      setLoading(false);
-      return;
-    }
-
-    const checkMaintenance = async () => {
-      try {
-        const res = await fetch('/api/maintenance');
-        const data = await res.json();
-        if (data.maintenance) {
-          setIsMaintenance(true);
-        }
-      } catch (err) {
-        console.error('Failed to check maintenance mode', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkMaintenance();
-  }, [pathname]);
-
-  if (loading) {
-    return (
-      <div className="bg-cream min-h-screen flex items-center justify-center font-body text-mocha text-sm">
-        Connecting to Hotcakes Nepal...
-      </div>
-    );
+  if (BYPASS_PATHS.some((path) => pathname.startsWith(path))) {
+    return <>{children}</>;
   }
+
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'maintenance_mode')
+    .single();
+
+  const isMaintenance = data?.value === 'true';
 
   if (isMaintenance) {
     return (

@@ -6,6 +6,42 @@ function isAuthorized(request: NextRequest) {
   return authHeader === 'Bearer authenticated-session-token-hc';
 }
 
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data: records, error } = await supabase
+      .from('streak_records')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Streak GET fetch error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const totalCustomers = records.length;
+    const totalStamps = records.reduce((sum, r) => sum + (r.streak_count || 0), 0);
+    const totalActiveRewards = records.filter(r => r.streak_count >= 10).length;
+
+    return NextResponse.json({
+      success: true,
+      metrics: {
+        total_customers: totalCustomers,
+        total_stamps: totalStamps,
+        total_active_rewards: totalActiveRewards
+      },
+      records
+    });
+  } catch (err) {
+    console.error('Streak API GET unexpected error:', err);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -38,7 +74,10 @@ export async function POST(request: NextRequest) {
 
       const { data: record, error } = await queryBuilder.maybeSingle();
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('Streak search error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true, record });
     }
 
@@ -62,7 +101,10 @@ export async function POST(request: NextRequest) {
         .eq('phone_number', cleanPhone)
         .maybeSingle();
 
-      if (findError) return NextResponse.json({ error: findError.message }, { status: 500 });
+      if (findError) {
+        console.error('Streak find error:', findError);
+        return NextResponse.json({ error: findError.message }, { status: 500 });
+      }
 
       const now = new Date();
 
@@ -97,7 +139,10 @@ export async function POST(request: NextRequest) {
           .select()
           .single();
 
-        if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+        if (updateError) {
+          console.error('Streak update error:', updateError);
+          return NextResponse.json({ error: updateError.message }, { status: 500 });
+        }
         return NextResponse.json({ success: true, record: updated });
       } else {
         // Create new profile
@@ -114,7 +159,10 @@ export async function POST(request: NextRequest) {
           .select()
           .single();
 
-        if (createError) return NextResponse.json({ error: createError.message }, { status: 500 });
+        if (createError) {
+          console.error('Streak create error:', createError);
+          return NextResponse.json({ error: createError.message }, { status: 500 });
+        }
         return NextResponse.json({ success: true, record: created });
       }
     }
@@ -135,7 +183,10 @@ export async function POST(request: NextRequest) {
         .select()
         .single();
 
-      if (resetError) return NextResponse.json({ error: resetError.message }, { status: 500 });
+      if (resetError) {
+        console.error('Streak reset error:', resetError);
+        return NextResponse.json({ error: resetError.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true, record: updated });
     }
 
@@ -150,12 +201,16 @@ export async function POST(request: NextRequest) {
         .delete()
         .eq('customer_code', customer_code);
 
-      if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
+      if (deleteError) {
+        console.error('Streak delete error:', deleteError);
+        return NextResponse.json({ error: deleteError.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ error: 'Invalid streak action' }, { status: 400 });
-  } catch {
+  } catch (err) {
+    console.error('Streak API unexpected error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

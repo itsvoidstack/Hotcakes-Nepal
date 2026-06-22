@@ -1,16 +1,20 @@
-import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
 
-export const revalidate = 0;
+type OrderLink = Database['public']['Tables']['order_links']['Row'];
+
+export const revalidate = 60;
 
 export default async function OrderPage() {
+  const supabase = getSupabaseAdmin();
   // Fetch active order links
-  const { data: orderLinks } = await supabase
+  const { data: links } = await supabase
     .from('order_links')
     .select('*')
     .eq('is_active', true);
 
-  const activeLinks = orderLinks || [];
+  const activeLinks = links || [];
 
   return (
     <div className="bg-cream min-h-screen flex items-center justify-center py-16 px-4">
@@ -24,7 +28,7 @@ export default async function OrderPage() {
 
         {activeLinks.length > 0 ? (
           <div className="flex flex-col gap-4">
-            {activeLinks.map((link) => {
+            {activeLinks.map((link: OrderLink) => {
               // Standard platforms
               let label = 'Order Now';
               let bgColor = 'bg-roasted hover:bg-dark-roast';

@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Logo from './Logo';
 
-export default function Navbar() {
+interface NavbarProps {
+  logo: React.ReactNode;
+}
+
+export default function Navbar({ logo }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
@@ -40,7 +43,7 @@ export default function Navbar() {
     >
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Left: Logo */}
-        <Logo />
+        {logo}
 
         {/* Center: Links (Desktop Only) */}
         <nav className="hidden md:flex items-center gap-8">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Database } from '@/lib/supabase/database.types';
 
 type StreakRecord = Database['public']['Tables']['streak_records']['Row'];
@@ -51,6 +51,11 @@ interface Vacancy {
   is_active: boolean;
 }
 
+interface SiteSetting {
+  key: string;
+  value: unknown;
+}
+
 interface DashboardClientProps {
   token: string;
   onLogout: () => void;
@@ -67,11 +72,53 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   // 1. Menu Manager States
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [editingItem, setEditingItem] = useState<Partial<MenuItem> | null>(null);
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
+  const [menuCategoryFilter, setMenuCategoryFilter] = useState('all');
+  const [menuFeaturedFilter, setMenuFeaturedFilter] = useState('all');
+  const [menuAvailableFilter, setMenuAvailableFilter] = useState('all');
+
+  const uniqueCategories = useMemo(() => {
+    const categories = new Set<string>();
+    menuItems.forEach((item) => categories.add(item.category));
+    return Array.from(categories);
+  }, [menuItems]);
+
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      // Search filter
+      const matchesSearch =
+        menuSearchQuery === '' ||
+        item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(menuSearchQuery.toLowerCase()));
+      
+      // Category filter
+      const matchesCategory =
+        menuCategoryFilter === 'all' ||
+        item.category === menuCategoryFilter;
+      
+      // Featured filter
+      const matchesFeatured =
+        menuFeaturedFilter === 'all' ||
+        (menuFeaturedFilter === 'featured' && item.is_featured) ||
+        (menuFeaturedFilter === 'not-featured' && !item.is_featured);
+      
+      // Availability filter
+      const matchesAvailable =
+        menuAvailableFilter === 'all' ||
+        (menuAvailableFilter === 'available' && item.is_available) ||
+        (menuAvailableFilter === 'hidden' && !item.is_available);
+
+      return matchesSearch && matchesCategory && matchesFeatured && matchesAvailable;
+    });
+  }, [menuItems, menuSearchQuery, menuCategoryFilter, menuFeaturedFilter, menuAvailableFilter]);
   
   // 2. Streak Manager States
   const [streakQuery, setStreakQuery] = useState('');
   const [streakResult, setStreakResult] = useState<StreakRecord | null>(null);
   const [streakStampPhone, setStreakStampPhone] = useState('');
+  const [streakRecords, setStreakRecords] = useState<StreakRecord[]>([]);
+  const [streakMetrics, setStreakMetrics] = useState<{ total_customers: number; total_stamps: number; total_active_rewards: number } | null>(null);
+  const [streakLoading, setStreakLoading] = useState(false);
 
   // 3. Order Links States
   const [orderLinks, setOrderLinks] = useState<OrderLink[]>([]);
@@ -89,8 +136,28 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   // 6. Additional Media States
   const [locationPhotos, setLocationPhotos] = useState<string[]>([]);
   const [heroImageUrl, setHeroImageUrl] = useState<string>('');
+  const [logoImageUrl, setLogoImageUrl] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+
+  // Fetch Streak analytics records
+  const loadStreakData = async () => {
+    setStreakLoading(true);
+    try {
+      const res = await fetch('/api/admin/streak', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStreakRecords(data.records || []);
+        setStreakMetrics(data.metrics || null);
+      }
+    } catch (err) {
+      console.error('Error fetching streak data:', err);
+    } finally {
+      setStreakLoading(false);
+    }
+  };
 
   // Load Initial Data
   const loadData = async () => {
@@ -100,47 +167,38 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       const menuData = await res.json();
       setMenuItems(menuData.items || []);
 
-      await fetch('/api/admin/streak', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ action: 'search', phone_number: 'dummy-load' }) // dummy query to get database schema check
+      // Fetch all settings via admin API
+      const settingsRes = await fetch('/api/admin/settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      // Additional public fetches
-      await fetch('/'); 
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        setOrderLinks(settingsData.orderLinks || []);
+        setVacancies(settingsData.vacancies || []);
+        setContacts(settingsData.contactInfo || []);
+        setCampaign(settingsData.campaigns?.[0] || null);
+        
+        // Process site settings
+        const siteSettings = settingsData.siteSettings || [];
+        const openSetting = siteSettings.find((s: SiteSetting) => s.key === 'open_status');
+        const openValue = openSetting?.value as { is_open?: boolean } | null;
+        setIsOpen(openValue?.is_open ?? true);
+        
+        const mapsSetting = siteSettings.find((s: SiteSetting) => s.key === 'google_maps');
+        const mapsValue = mapsSetting?.value as { url?: string } | null;
+        setGoogleMapsUrl(mapsValue?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9');
+        
+        const locPhotos = siteSettings.find((s: SiteSetting) => s.key === 'location_photos');
+        setLocationPhotos((locPhotos?.value as string[]) || []);
+        
+        const heroSet = siteSettings.find((s: SiteSetting) => s.key === 'hero_image');
+        setHeroImageUrl((heroSet?.value as { url?: string })?.url || '');
+
+        const logoSet = siteSettings.find((s: SiteSetting) => s.key === 'logo_image');
+        setLogoImageUrl((logoSet?.value as { url?: string })?.url || '');
+      }
       
-      // Let's query orders and contacts directly from public endpoints or database
-      // Since they are public, we can fetch them from their respective tables using anon key
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-      const { data: ord } = await supabase.from('order_links').select('*');
-      setOrderLinks(ord || []);
-
-      const { data: vac } = await supabase.from('vacancies').select('*');
-      setVacancies(vac || []);
-
-      const { data: con } = await supabase.from('contact_info').select('*');
-      setContacts(con || []);
-
-      const { data: camp } = await supabase.from('campaigns').select('*').single();
-      setCampaign(camp);
-
-      const { data: openSetting } = await supabase.from('site_settings').select('value').eq('key', 'open_status').single();
-      const openValue = openSetting?.value as { is_open?: boolean } | null;
-      setIsOpen(openValue?.is_open ?? true);
-
-      const { data: mapsSetting } = await supabase.from('site_settings').select('value').eq('key', 'google_maps').maybeSingle();
-      const mapsValue = mapsSetting?.value as { url?: string } | null;
-      setGoogleMapsUrl(mapsValue?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9');
-
-      const { data: locPhotos } = await supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle();
-      setLocationPhotos((locPhotos?.value as string[]) || []);
-
-      const { data: heroSet } = await supabase.from('site_settings').select('value').eq('key', 'hero_image').maybeSingle();
-      setHeroImageUrl((heroSet?.value as { url?: string })?.url || '');
-      
+      await loadStreakData();
     } catch (err) {
       console.error(err);
     } finally {
@@ -183,6 +241,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const handleUploadMenuItemImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (uploading) return;
 
     setUploading(true);
     try {
@@ -244,6 +303,34 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     }
   };
 
+  const handleUploadVacancyImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (uploading) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'vacancy-images');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload image');
+
+      setEditingVacancy(prev => prev ? { ...prev, image_url: data.url } : null);
+      showFeedback('Vacancy image uploaded successfully!');
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err) || 'Something went wrong. Try again.', true);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleDeleteMenu = async (id: string) => {
     if (!confirm('Are you sure you want to delete this menu item?')) return;
     try {
@@ -287,7 +374,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       showFeedback(getErrorMessage(err), true);
     }
   };
-
   const handleAddStamp = async (phone: string) => {
     if (!phone.trim()) return;
     try {
@@ -303,7 +389,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       showFeedback('Stamp added successfully (+1)!');
       setStreakResult(data.record);
       setStreakStampPhone('');
-      loadData();
+      await loadData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
     }
@@ -323,7 +409,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       showFeedback('Streak count reset to 0!');
       setStreakResult(data.record);
-      loadData();
+      await loadData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
     }
@@ -343,12 +429,11 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       showFeedback('Customer profile deleted successfully!');
       setStreakResult(null);
-      loadData();
+      await loadData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
     }
   };
-
   // ==========================================
   // ORDER LINKS OPERATIONS
   // ==========================================
@@ -421,6 +506,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const handleUploadLocationPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (uploading) return;
 
     setUploading(true);
     try {
@@ -436,7 +522,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to upload photo');
 
-      const updatedPhotos = [...locationPhotos, data.url];
+      const updatedPhotos = [...locationPhotos, data.url].slice(-4);
       setLocationPhotos(updatedPhotos);
 
       const saveRes = await fetch('/api/admin/settings', {
@@ -481,6 +567,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const handleUploadHeroImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (uploading) return;
 
     setUploading(true);
     try {
@@ -502,6 +589,43 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ type: 'hero_image', data: { url: data.url } })
+      });
+      if (!saveRes.ok) throw new Error('Failed to update settings');
+
+      showFeedback('Saved successfully');
+      loadData();
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUploadLogoImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (uploading) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'logo-images');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload image');
+
+      setLogoImageUrl(data.url);
+
+      const saveRes = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'logo_image', data: { url: data.url } })
       });
       if (!saveRes.ok) throw new Error('Failed to update settings');
 
@@ -812,7 +936,12 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   disabled={loading || uploading}
                   className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
                 >
-                  {loading ? (
+                  {uploading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : loading ? (
                     <>
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Saving...
@@ -824,7 +953,48 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               </div>
             </form>
           ) : (
-            <div className="overflow-x-auto border border-latte rounded-2xl bg-warm-white">
+            <div className="space-y-4">
+              {/* Search & Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <input
+                  type="text"
+                  value={menuSearchQuery}
+                  onChange={(e) => setMenuSearchQuery(e.target.value)}
+                  placeholder="Search menu items..."
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                />
+                <select
+                  value={menuCategoryFilter}
+                  onChange={(e) => setMenuCategoryFilter(e.target.value)}
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                >
+                  <option value="all">All Categories</option>
+                  {uniqueCategories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <select
+                  value={menuFeaturedFilter}
+                  onChange={(e) => setMenuFeaturedFilter(e.target.value)}
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                >
+                  <option value="all">All (Featured)</option>
+                  <option value="featured">Featured</option>
+                  <option value="not-featured">Not Featured</option>
+                </select>
+                <select
+                  value={menuAvailableFilter}
+                  onChange={(e) => setMenuAvailableFilter(e.target.value)}
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                >
+                  <option value="all">All (Availability)</option>
+                  <option value="available">Available</option>
+                  <option value="hidden">Hidden</option>
+                </select>
+              </div>
+
+              {/* Menu Items Table */}
+              <div className="overflow-x-auto border border-latte rounded-2xl bg-warm-white">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-latte/20 font-body text-xs font-bold uppercase tracking-wider text-mocha border-b border-latte">
@@ -837,37 +1007,46 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-latte/60 font-body text-sm text-espresso">
-                  {menuItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-latte/5 transition-colors">
-                      <td className="p-4 font-heading font-semibold">{item.name}</td>
-                      <td className="p-4">{item.category}</td>
-                      <td className="p-4">Rs. {item.price}</td>
-                      <td className="p-4">{item.is_featured ? '⭐ Yes' : 'No'}</td>
-                      <td className="p-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          item.is_available ? 'bg-olive/15 text-olive' : 'bg-muted-red/15 text-muted-red'
-                        }`}>
-                          {item.is_available ? 'In Stock' : 'Out of Stock'}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleStartEdit(item)}
-                          className="px-3 py-1 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteMenu(item.id)}
-                          className="px-3 py-1 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-md text-xs font-medium"
-                        >
-                          Delete
-                        </button>
+                  {filteredMenuItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-mocha">
+                        No menu items found.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredMenuItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-latte/5 transition-colors">
+                        <td className="p-4 font-heading font-semibold">{item.name}</td>
+                        <td className="p-4">{item.category}</td>
+                        <td className="p-4">Rs. {item.price}</td>
+                        <td className="p-4">{item.is_featured ? '⭐ Yes' : 'No'}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.is_available ? 'bg-olive/15 text-olive' : 'bg-muted-red/15 text-muted-red'
+                          }`}>
+                            {item.is_available ? 'In Stock' : 'Out of Stock'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleStartEdit(item)}
+                            className="px-3 py-1 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMenu(item.id)}
+                            className="px-3 py-1 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-md text-xs font-medium"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
@@ -878,6 +1057,24 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           ========================================== */}
       {activeTab === 'streak' && !loading && (
         <div className="space-y-8 max-w-2xl mx-auto">
+          {/* Loyalty Analytics Summary */}
+          {streakMetrics && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="glass-card p-4 rounded-xl border border-latte text-center">
+                <span className="block text-xs font-semibold text-mocha uppercase">Registered Customers</span>
+                <span className="block font-heading font-bold text-2xl text-espresso mt-1">{streakMetrics.total_customers}</span>
+              </div>
+              <div className="glass-card p-4 rounded-xl border border-latte text-center">
+                <span className="block text-xs font-semibold text-mocha uppercase">Stamps Collected</span>
+                <span className="block font-heading font-bold text-2xl text-espresso mt-1">{streakMetrics.total_stamps}</span>
+              </div>
+              <div className="glass-card p-4 rounded-xl border border-latte text-center">
+                <span className="block text-xs font-semibold text-mocha uppercase">Active Rewards</span>
+                <span className="block font-heading font-bold text-2xl text-olive mt-1">{streakMetrics.total_active_rewards} 🎁</span>
+              </div>
+            </div>
+          )}
+
           {/* Quick Stamp Action */}
           <div className="glass-card p-6 rounded-2xl border border-latte">
             <h2 className="font-heading font-bold text-lg text-espresso mb-4">Barista Stamp Station</h2>
@@ -964,6 +1161,74 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     Delete Profile
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Customer Overview Table */}
+          <div className="glass-card p-6 rounded-2xl border border-latte">
+            <h2 className="font-heading font-bold text-lg text-espresso mb-4">Customer Registry</h2>
+            {streakLoading ? (
+              <div className="text-center py-6 text-mocha text-sm">Loading registry...</div>
+            ) : streakRecords.length === 0 ? (
+              <div className="text-center py-6 text-mocha text-sm">No customers found.</div>
+            ) : (
+              <div className="overflow-x-auto border border-latte rounded-xl bg-warm-white">
+                <table className="w-full border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="bg-latte/20 font-body text-xs font-bold uppercase tracking-wider text-mocha border-b border-latte">
+                      <th className="p-3">Customer Code</th>
+                      <th className="p-3">Phone Number</th>
+                      <th className="p-3">Stamps</th>
+                      <th className="p-3">Last Visit</th>
+                      <th className="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-latte/60 font-body text-espresso">
+                    {streakRecords.map((record) => {
+                      // Mask phone number: e.g. 9841234567 -> 984*****67
+                      const phone = record.phone_number || '';
+                      const maskedPhone = phone.length > 5 
+                        ? phone.substring(0, 3) + '*'.repeat(phone.length - 5) + phone.substring(phone.length - 2)
+                        : phone;
+
+                      return (
+                        <tr key={record.id} className="hover:bg-latte/5 transition-colors">
+                          <td className="p-3 font-semibold">{record.customer_code}</td>
+                          <td className="p-3">{maskedPhone}</td>
+                          <td className="p-3">
+                            <span className={`font-semibold ${record.streak_count >= 10 ? 'text-olive' : 'text-roasted'}`}>
+                              {record.streak_count} / 10
+                            </span>
+                          </td>
+                          <td className="p-3 text-xs text-mocha">
+                            {record.last_stamp_at ? new Date(record.last_stamp_at).toLocaleDateString() : 'Never'}
+                          </td>
+                          <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
+                            {record.streak_count < 10 && (
+                              <button
+                                onClick={() => handleAddStamp(record.phone_number)}
+                                className="px-2.5 py-1 bg-roasted hover:bg-dark-roast text-white rounded text-xs font-medium"
+                              >
+                                +1
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleResetStreak(record.customer_code)}
+                              className={`px-2.5 py-1 rounded text-xs font-medium border ${
+                                record.streak_count === 10
+                                  ? 'bg-olive border-olive text-white hover:bg-olive/90'
+                                  : 'border-roasted text-roasted hover:bg-roasted/5'
+                              }`}
+                            >
+                              {record.streak_count === 10 ? '🎁 Claim' : 'Reset'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -1082,15 +1347,38 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Banner URL</label>
-                <input
-                  type="text"
-                  value={editingVacancy.image_url || ''}
-                  onChange={(e) => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })}
-                  placeholder="/images/vacancies/vacancy-default.jpg"
-                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm"
-                />
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Banner Image</label>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  {editingVacancy.image_url && (
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-latte bg-latte/30 flex-shrink-0">
+                      <img
+                        src={editingVacancy.image_url}
+                        alt="Vacancy Banner Preview"
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-grow space-y-1.5 w-full">
+                    <input
+                      type="text"
+                      value={editingVacancy.image_url || ''}
+                      onChange={(e) => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })}
+                      placeholder="/images/vacancies/vacancy-default.jpg"
+                      className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm"
+                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUploadVacancyImage}
+                        disabled={uploading}
+                        className="text-xs text-mocha font-body"
+                      />
+                      {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer py-2">
@@ -1107,48 +1395,68 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <button
                   type="button"
                   onClick={() => setEditingVacancy(null)}
+                  disabled={loading || uploading}
                   className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-roasted hover:bg-dark-roast text-white rounded-full text-xs font-semibold"
+                  disabled={loading || uploading}
+                  className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
                 >
-                  Save Campaign
+                  {uploading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : loading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Campaign'
+                  )}
                 </button>
               </div>
             </form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {vacancies.map((vac) => (
-                <div key={vac.id} className="p-6 bg-warm-white rounded-2xl border border-latte space-y-4">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-heading font-bold text-lg text-espresso">{vac.title}</h3>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      vac.is_active ? 'bg-olive/15 text-olive' : 'bg-mocha/15 text-mocha'
-                    }`}>
-                      {vac.is_active ? 'Active' : 'Closed'}
-                    </span>
+            vacancies.length === 0 ? (
+              <div className="text-center py-12 text-mocha">
+                No vacancies available.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {vacancies.map((vac) => (
+                  <div key={vac.id} className="p-6 bg-warm-white rounded-2xl border border-latte space-y-4">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-heading font-bold text-lg text-espresso">{vac.title}</h3>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        vac.is_active ? 'bg-olive/15 text-olive' : 'bg-mocha/15 text-mocha'
+                      }`}>
+                        {vac.is_active ? 'Active' : 'Closed'}
+                      </span>
+                    </div>
+                    <p className="font-body text-mocha text-xs line-clamp-3 leading-relaxed">{vac.description}</p>
+                    <div className="flex gap-2 justify-end pt-2">
+                      <button
+                        onClick={() => setEditingVacancy(vac)}
+                        className="px-3 py-1.5 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => vac.id && handleDeleteVacancy(vac.id)}
+                        className="px-3 py-1.5 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-md text-xs font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                  <p className="font-body text-mocha text-xs line-clamp-3 leading-relaxed">{vac.description}</p>
-                  <div className="flex gap-2 justify-end pt-2">
-                    <button
-                      onClick={() => setEditingVacancy(vac)}
-                      className="px-3 py-1.5 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => vac.id && handleDeleteVacancy(vac.id)}
-                      className="px-3 py-1.5 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-md text-xs font-medium"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </div>
       )}
@@ -1358,6 +1666,41 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       type="file"
                       accept="image/*"
                       onChange={handleUploadHeroImage}
+                      disabled={uploading}
+                      className="text-xs text-mocha font-body"
+                    />
+                    {uploading && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Logo Image Upload */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-3">
+              <h2 className="font-heading font-bold text-lg text-espresso">Logo Image</h2>
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                {logoImageUrl && (
+                  <div className="relative w-32 h-12 rounded-lg overflow-hidden border border-latte bg-latte/30 flex-shrink-0">
+                    <img
+                      src={logoImageUrl}
+                      alt="Logo Preview"
+                      className="object-contain w-full h-full"
+                    />
+                  </div>
+                )}
+                <div className="flex-grow space-y-1.5 w-full">
+                  <input
+                    type="text"
+                    value={logoImageUrl}
+                    onChange={(e) => setLogoImageUrl(e.target.value)}
+                    placeholder="Logo Image URL"
+                    className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadLogoImage}
                       disabled={uploading}
                       className="text-xs text-mocha font-body"
                     />

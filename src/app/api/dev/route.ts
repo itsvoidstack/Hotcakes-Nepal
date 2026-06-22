@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const adminSupabase = getSupabaseAdmin();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = adminSupabase as any;
 
     // ACTION 1: HEALTH CHECKS
     if (action === 'health') {
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
       let dbConnected = true;
 
       for (const table of TABLES_LIST) {
-        const { count, error } = await adminSupabase
+        const { count, error } = await supabase
           .from(table)
           .select('*', { count: 'exact', head: true });
         
@@ -55,7 +57,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Check current maintenance mode status
-      const { data: maintenanceSetting } = await adminSupabase
+      const { data: maintenanceSetting } = await supabase
         .from('site_settings')
         .select('value')
         .eq('key', 'maintenance_mode')
@@ -78,7 +80,7 @@ export async function GET(request: NextRequest) {
       }
       const tableName = tableNameRaw as TableName;
 
-      const { data: rows, error } = await adminSupabase
+      const { data: rows, error } = await supabase
         .from(tableName)
         .select('*')
         .order('created_at', { ascending: false, nullsFirst: true })
@@ -86,7 +88,7 @@ export async function GET(request: NextRequest) {
 
       if (error) {
         // Fallback if sorting on created_at fails (some tables like order_links do not have it)
-        const { data: fallbackRows, error: fallbackError } = await adminSupabase
+        const { data: fallbackRows, error: fallbackError } = await supabase
           .from(tableName)
           .select('*')
           .limit(100);
@@ -108,7 +110,7 @@ export async function GET(request: NextRequest) {
       }
       const tableName = tableNameRaw as TableName;
 
-      const { data: rows, error } = await adminSupabase
+      const { data: rows, error } = await supabase
         .from(tableName)
         .select('*');
 
@@ -129,7 +131,7 @@ export async function GET(request: NextRequest) {
       const headers = Object.keys(rows[0]);
       const csvRows = [
         headers.join(','),
-        ...rows.map(row => 
+        ...rows.map((row: Record<string, unknown>) => 
           headers.map(fieldName => {
             const key = fieldName as keyof typeof row;
             const val = row[key];
@@ -167,13 +169,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const adminSupabase = getSupabaseAdmin();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = adminSupabase as any;
 
     // ACTION 4: MAINTENANCE MODE TOGGLE
     if (action === 'maintenance') {
       const body = await request.json();
       const { enabled } = body;
 
-      const { error } = await adminSupabase
+      const { error } = await supabase
         .from('site_settings')
         .upsert({
           key: 'maintenance_mode',
@@ -186,7 +190,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Log action in audit logs
-      await adminSupabase.from('audit_logs').insert({
+      await supabase.from('audit_logs').insert({
         action: enabled ? 'Enable Maintenance Mode' : 'Disable Maintenance Mode',
         performed_by: 'Developer Panel',
         details: { timestamp: new Date().toISOString() }
@@ -205,7 +209,7 @@ export async function POST(request: NextRequest) {
 
       const tableName = table as TableName;
 
-      const { error } = await adminSupabase
+      const { error } = await supabase
         .from(tableName)
         .delete()
         .eq(primaryKey, primaryKeyValue);
@@ -215,7 +219,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Log action in audit logs
-      await adminSupabase.from('audit_logs').insert({
+      await supabase.from('audit_logs').insert({
         action: `Delete Row inside ${tableName}`,
         performed_by: 'Developer Panel',
         details: { table: tableName, primaryKey, primaryKeyValue }

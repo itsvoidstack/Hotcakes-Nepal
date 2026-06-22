@@ -1,30 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
-import { checkRateLimit } from '@/lib/rateLimit';
-
-export const revalidate = 0;
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase/client'
 
 export async function GET(request: NextRequest) {
   try {
-    const clientIp = request.headers.get('x-forwarded-for') || '127.0.0.1';
-
-    // 1. General Rate Limit: 100 requests/minute
-    const limit = await checkRateLimit(clientIp, 'general', 100, 60 * 1000);
-    if (!limit.success) {
-      return NextResponse.json({ error: 'Rate limit exceeded. Max 100 requests per minute.' }, { status: 429 });
+    const { searchParams } = new URL(request.url)
+    const featured = searchParams.get('featured') === 'true'
+    const supabase = getSupabaseAdmin()
+    
+    let query = supabase.from('menu_items').select('*').eq('is_available', true)
+    
+    if (featured) {
+      query = query.eq('is_featured', true)
     }
-
-    const { data: items, error } = await supabase
-      .from('menu_items')
-      .select('*')
-      .order('display_order', { ascending: true });
-
+    
+    const { data, error } = await query.order('category', { ascending: true })
+    
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('Menu fetch error:', error)
+      throw error
     }
-
-    return NextResponse.json({ items });
-  } catch {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    
+    return NextResponse.json({
+      items: data || []
+    })
+  } catch (error) {
+    console.error('Menu route error:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch menu', items: [] },
+      { status: 500 }
+    )
   }
 }

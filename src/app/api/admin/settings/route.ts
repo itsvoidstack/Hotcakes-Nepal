@@ -6,6 +6,100 @@ function isAuthorized(request: NextRequest) {
   return authHeader === 'Bearer authenticated-session-token-hc';
 }
 
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+    const supabase = getSupabaseAdmin();
+
+    if (type) {
+      if (type === 'order_links') {
+        const { data, error } = await supabase.from('order_links').select('*');
+        if (error) {
+          console.error('ROUTE ERROR:', {
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ data });
+      }
+
+      if (type === 'vacancies') {
+        const { data, error } = await supabase.from('vacancies').select('*');
+        if (error) {
+          console.error('ROUTE ERROR:', {
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ data });
+      }
+
+      if (type === 'contact_info') {
+        const { data, error } = await supabase.from('contact_info').select('*');
+        if (error) {
+          console.error('ROUTE ERROR:', {
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ data });
+      }
+
+      if (type === 'campaigns') {
+        const { data, error } = await supabase.from('campaigns').select('*');
+        if (error) {
+          console.error('ROUTE ERROR:', {
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ data });
+      }
+
+      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    }
+
+    // If no type specified, return all settings in a single object
+    const { data: orderLinks, error: orderLinksError } = await supabase.from('order_links').select('*');
+    if (orderLinksError) throw orderLinksError;
+
+    const { data: vacancies, error: vacanciesError } = await supabase.from('vacancies').select('*');
+    if (vacanciesError) throw vacanciesError;
+
+    const { data: contactInfo, error: contactInfoError } = await supabase.from('contact_info').select('*');
+    if (contactInfoError) throw contactInfoError;
+
+    const { data: campaigns, error: campaignsError } = await supabase.from('campaigns').select('*');
+    if (campaignsError) throw campaignsError;
+
+    const { data: siteSettings, error: siteSettingsError } = await supabase.from('site_settings').select('*');
+    if (siteSettingsError) throw siteSettingsError;
+
+    return NextResponse.json({
+      orderLinks,
+      vacancies,
+      contactInfo,
+      campaigns,
+      siteSettings,
+    });
+  } catch (err) {
+    console.error('ROUTE ERROR:', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -25,7 +119,13 @@ export async function POST(request: NextRequest) {
         .from('site_settings')
         .upsert({ key: 'open_status', value: { is_open: !!data.is_open }, updated_at: new Date().toISOString() });
       
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
@@ -34,7 +134,13 @@ export async function POST(request: NextRequest) {
         .from('site_settings')
         .upsert({ key: 'google_maps', value: { url: data.url }, updated_at: new Date().toISOString() });
       
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
@@ -69,7 +175,13 @@ export async function POST(request: NextRequest) {
         })
         .eq('name', 'Brew Streak Rewards');
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
@@ -78,7 +190,13 @@ export async function POST(request: NextRequest) {
         .from('site_settings')
         .upsert({ key: 'location_photos', value: data.photos, updated_at: new Date().toISOString() });
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
@@ -87,7 +205,28 @@ export async function POST(request: NextRequest) {
         .from('site_settings')
         .upsert({ key: 'hero_image', value: { url: data.url }, updated_at: new Date().toISOString() });
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === 'logo_image') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'logo_image', value: { url: data.url }, updated_at: new Date().toISOString() });
+
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
@@ -103,7 +242,13 @@ export async function POST(request: NextRequest) {
           is_active: !!data.is_active
         });
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
@@ -116,12 +261,22 @@ export async function POST(request: NextRequest) {
         .delete()
         .eq('id', data.id);
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ error: 'Invalid settings type' }, { status: 400 });
-  } catch {
+  } catch (err) {
+    console.error('ROUTE ERROR:', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/client';
 
 const quickLinks = [
   { href: '/', label: 'Home' },
@@ -12,13 +11,18 @@ const quickLinks = [
 ];
 
 export default async function Footer() {
-  const { data: tiktokRecord } = await supabase
-    .from('contact_info')
-    .select('value')
-    .eq('key', 'tiktok')
-    .maybeSingle();
-
-  const hasTikTok = Boolean(tiktokRecord?.value?.trim());
+  let hasTiktok = false
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL ||
+      'http://localhost:3000'}/api/contact-info?check=tiktok`,
+      { cache: 'no-store' }
+    )
+    const data = await res.json()
+    hasTiktok = !!data.tiktok
+  } catch {
+    hasTiktok = false
+  }
 
   return (
     <footer className="bg-[#2C1810] text-[#FAF7F2]">
@@ -81,7 +85,7 @@ export default async function Footer() {
                   Instagram
                 </a>
               </li>
-              {hasTikTok && (
+              {hasTiktok && (
                 <li>
                   <a
                     href="/api/contact-info?redirect=tiktok"
