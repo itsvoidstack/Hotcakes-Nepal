@@ -54,7 +54,7 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
   if (items.length === 0) {
     return (
       <div className="text-center py-12 text-mocha font-body">
-        No featured items available right now. View our menu below.
+        Featured items coming soon.
       </div>
     );
   }
@@ -87,7 +87,7 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
 
       <div
         ref={scrollContainerRef}
-        className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-x-hidden md:scroll-smooth"
+        className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         onScroll={updateScrollButtons}
       >
         {items.map((item) => (

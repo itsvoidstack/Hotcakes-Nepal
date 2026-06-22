@@ -644,6 +644,23 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     }
   };
 
+  const handleRemoveLogo = async () => {
+    if (!confirm('Are you sure you want to remove the logo?')) return;
+    setLogoImageUrl('');
+    try {
+      const saveRes = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'logo_image', data: { url: '' } })
+      });
+      if (!saveRes.ok) throw new Error('Failed to update settings');
+      showFeedback('Logo removed successfully');
+      loadData();
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    }
+  };
+
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingSettings(true);
@@ -744,6 +761,38 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       </div>
 
       {loading && <div className="text-center py-12 text-mocha font-body">Updating dashboard records...</div>}
+
+      {/* Dashboard Health Card */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        <div className="glass-card p-4 rounded-xl border border-latte text-center">
+          <p className="text-xs font-semibold text-mocha uppercase">Menu Items</p>
+          <p className="font-heading font-bold text-2xl text-espresso mt-1">{menuItems.length}</p>
+        </div>
+        <div className="glass-card p-4 rounded-xl border border-latte text-center">
+          <p className="text-xs font-semibold text-mocha uppercase">Featured</p>
+          <p className="font-heading font-bold text-2xl text-roasted mt-1">
+            {menuItems.filter(item => item.is_featured && item.is_available).length}
+          </p>
+        </div>
+        <div className="glass-card p-4 rounded-xl border border-latte text-center">
+          <p className="text-xs font-semibold text-mocha uppercase">Active Vacancies</p>
+          <p className="font-heading font-bold text-2xl text-espresso mt-1">
+            {vacancies.filter(v => v.is_active).length}
+          </p>
+        </div>
+        <div className="glass-card p-4 rounded-xl border border-latte text-center">
+          <p className="text-xs font-semibold text-mocha uppercase">Loyalty Customers</p>
+          <p className="font-heading font-bold text-2xl text-espresso mt-1">
+            {streakMetrics?.total_customers || 0}
+          </p>
+        </div>
+        <div className="glass-card p-4 rounded-xl border border-latte text-center">
+          <p className="text-xs font-semibold text-mocha uppercase">Campaign</p>
+          <p className={`font-heading font-bold text-lg mt-1 ${campaign ? 'text-olive' : 'text-mocha'}`}>
+            {campaign ? 'Active' : 'None'}
+          </p>
+        </div>
+      </div>
 
       {/* ==========================================
           TAB CONTENT: MENU MANAGER
@@ -1664,6 +1713,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             {/* Hero Image Upload */}
             <div className="glass-card p-6 rounded-2xl border border-latte space-y-3">
               <h2 className="font-heading font-bold text-lg text-espresso">Hero/Banner Image</h2>
+              <p className="text-xs text-mocha">Recommended: 1920x1080px</p>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 {heroImageUrl && (
                   <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-latte bg-latte/30 flex-shrink-0">
@@ -1699,14 +1749,19 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             {/* Logo Image Upload */}
             <div className="glass-card p-6 rounded-2xl border border-latte space-y-3">
               <h2 className="font-heading font-bold text-lg text-espresso">Logo Image</h2>
+              <p className="text-xs text-mocha">Recommended: 500x500px PNG</p>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                {logoImageUrl && (
+                {(logoImageUrl || true) && (
                   <div className="relative w-32 h-12 rounded-lg overflow-hidden border border-latte bg-latte/30 flex-shrink-0">
-                    <img
-                      src={logoImageUrl}
-                      alt="Logo Preview"
-                      className="object-contain w-full h-full"
-                    />
+                    {logoImageUrl ? (
+                      <img
+                        src={logoImageUrl}
+                        alt="Logo Preview"
+                        className="object-contain w-full h-full"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-mocha text-xs">No Logo</div>
+                    )}
                   </div>
                 )}
                 <div className="flex-grow space-y-1.5 w-full">
@@ -1717,7 +1772,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     placeholder="Logo Image URL"
                     className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
                   />
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="file"
                       accept="image/*"
@@ -1726,6 +1781,16 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       className="text-xs text-mocha font-body"
                     />
                     {uploadingLogo && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+                    {logoImageUrl && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveLogo}
+                        disabled={uploadingLogo}
+                        className="px-4 py-1.5 border border-muted-red text-muted-red hover:bg-muted-red/10 text-xs font-semibold rounded-full transition-colors"
+                      >
+                        Remove Logo
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1737,6 +1802,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <h2 className="font-heading font-bold text-lg text-espresso">Location Gallery Photos</h2>
                 <span className="text-xs font-semibold text-mocha">{locationPhotos.length}/4</span>
               </div>
+              <p className="text-xs text-mocha">Recommended: 1200px+ width</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {locationPhotos.map((photoUrl, index) => (
                   <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-latte bg-latte/30 group">

@@ -123,7 +123,48 @@ export default async function Home() {
         </section>
       )}
 
-      {/* 3. Featured Menu Items */}
+      {/* 3. Featured Today Spotlight */}
+      {featuredItems.length > 0 && (
+        <section className="py-16 max-w-[1280px] mx-auto px-4 md:px-6">
+          <div className="flex items-center justify-center gap-2 mb-12">
+            <span className="text-2xl">⭐</span>
+            <h2 className="font-heading font-bold text-2xl md:text-3xl text-espresso">
+              Featured Today
+            </h2>
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            <div className="relative w-full md:w-1/2 h-80 rounded-[20px] overflow-hidden bg-latte/30">
+              <ImageWithFallback
+                src={featuredItems[0].image_url || '/images/menu/placeholder.jpg'}
+                alt={featuredItems[0].name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                fallbackEmoji="🥞"
+              />
+            </div>
+            <div className="w-full md:w-1/2 text-center md:text-left">
+              <h3 className="font-heading font-bold text-3xl md:text-4xl text-espresso mb-4">
+                {featuredItems[0].name}
+              </h3>
+              <p className="font-body text-mocha text-base leading-relaxed mb-6 max-w-md">
+                {featuredItems[0].description || 'Prepared fresh with premium ingredients every morning.'}
+              </p>
+              <p className="font-heading font-bold text-3xl text-roasted mb-8">
+                Rs. {featuredItems[0].price}
+              </p>
+              <Link
+                href="/order"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-medium rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-sm"
+              >
+                Order Now
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 4. Featured Menu Items Carousel */}
       <section className="py-24 max-w-[1280px] mx-auto px-4 md:px-6">
         <div className="text-center max-w-xl mx-auto mb-16">
           <h2 className="font-heading font-bold text-3xl md:text-4xl text-espresso mb-4">
