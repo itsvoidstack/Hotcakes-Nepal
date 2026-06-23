@@ -53,8 +53,16 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 text-mocha font-body">
-        Featured items coming soon.
+      <div className="text-center py-16 bg-warm-white/50 rounded-[24px] border border-dashed border-latte/60 p-8 max-w-md mx-auto animate-fade-up">
+        <svg className="w-10 h-10 mx-auto text-mocha/40 mb-3" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+        </svg>
+        <h3 className="font-heading font-semibold text-base text-espresso mb-1">
+          Featured Specials Coming Soon
+        </h3>
+        <p className="font-body text-mocha text-xs">
+          We are currently preparing our seasonal specials. Check back soon for fresh, handcrafted favorites!
+        </p>
       </div>
     );
   }
@@ -65,10 +73,10 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
       <button
         onClick={() => scroll('left')}
         disabled={!canScrollLeft}
-        className={`hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center transition-all duration-200 hover:bg-cream ${!canScrollLeft ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}
+        className={`hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 w-12 h-12 rounded-full bg-warm-white border border-latte/70 shadow-sm items-center justify-center transition-all duration-300 hover:bg-roasted hover:text-white text-espresso disabled:opacity-0 ${!canScrollLeft ? 'pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}
         aria-label="Scroll left"
       >
-        <svg className="w-6 h-6 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
@@ -77,10 +85,10 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
       <button
         onClick={() => scroll('right')}
         disabled={!canScrollRight}
-        className={`hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center transition-all duration-200 hover:bg-cream ${!canScrollRight ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}
+        className={`hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 w-12 h-12 rounded-full bg-warm-white border border-latte/70 shadow-sm items-center justify-center transition-all duration-300 hover:bg-roasted hover:text-white text-espresso disabled:opacity-0 ${!canScrollRight ? 'pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}
         aria-label="Scroll right"
       >
-        <svg className="w-6 h-6 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
@@ -95,35 +103,35 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
             key={item.id}
             className="snap-start flex-shrink-0 w-[280px] sm:w-[320px]"
           >
-            <div className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-lg">
+            <div className="group flex flex-col bg-warm-white rounded-[24px] overflow-hidden border border-latte/80 hover:-translate-y-1.5 transition-all duration-300 hover:shadow-xl hover:shadow-espresso/5">
               <div className="relative h-64 w-full bg-latte/30 overflow-hidden">
                 <ImageWithFallback
                   src={item.image_url || '/images/menu/placeholder.jpg'}
                   alt={item.name}
                   fill
-                  className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                   sizes="(max-width: 768px) 80vw, 320px"
                   fallbackEmoji="🥞"
                 />
               </div>
               <div className="p-6 flex flex-col flex-grow">
-                <div className="flex items-baseline justify-between gap-2 mb-2">
-                  <h3 className="font-heading font-bold text-xl text-espresso">
-                    {item.name}
-                  </h3>
-                  <span className="font-heading text-roasted font-semibold">
+                <h3 className="font-heading font-bold text-xl text-espresso group-hover:text-roasted transition-colors mb-2 leading-snug">
+                  {item.name}
+                </h3>
+                <p className="font-body text-mocha/90 text-sm leading-relaxed mb-4 flex-grow min-h-[72px] line-clamp-3">
+                  {item.description || 'Prepared fresh daily using only quality local ingredients.'}
+                </p>
+                <div className="mt-4 pt-4 border-t border-latte/40 flex flex-col gap-3">
+                  <span className="font-heading text-roasted font-bold text-xl">
                     Rs. {item.price}
                   </span>
+                  <Link
+                    href="/order"
+                    className="w-full text-center py-3 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:shadow-md"
+                  >
+                    Order Now
+                  </Link>
                 </div>
-                <p className="font-body text-mocha text-sm leading-relaxed mb-6 flex-grow">
-                  {item.description || 'Prepared fresh with premium ingredients.'}
-                </p>
-                <Link
-                  href="/order"
-                  className="w-full text-center py-2.5 bg-roasted hover:bg-dark-roast text-white text-xs font-semibold rounded-full transition-colors duration-200"
-                >
-                  Order Now
-                </Link>
               </div>
             </div>
           </div>

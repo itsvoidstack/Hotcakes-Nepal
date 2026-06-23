@@ -20,11 +20,11 @@ export default async function VacanciesPage() {
   return (
     <div className="bg-cream min-h-screen py-16 px-4">
       <div className="max-w-[1280px] mx-auto text-center mb-16">
-        <span className="text-4xl block mb-4">💼</span>
+        <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-2 block">Careers</span>
         <h1 className="font-heading font-bold text-4xl md:text-5xl text-espresso mb-4">
-          join our team
+          Join Our Team
         </h1>
-        <p className="font-body text-mocha text-base max-w-md mx-auto">
+        <p className="font-body text-mocha/90 text-base max-w-md mx-auto">
           We are always looking for passionate baristas, bakers, and service staff to craft memorable cafe experiences.
         </p>
       </div>
@@ -34,7 +34,7 @@ export default async function VacanciesPage() {
           activeVacancies.map((vacancy: Vacancy) => (
             <div
               key={vacancy.id}
-              className="glass-card p-6 md:p-8 rounded-[24px] flex flex-col md:flex-row gap-6 items-start animate-fade-up"
+              className="glass-card p-6 md:p-8 rounded-[28px] flex flex-col md:flex-row gap-6 items-start animate-fade-up border border-latte/80 shadow-sm"
             >
               {vacancy.image_url && (
                 <div className="relative w-full md:w-48 h-48 rounded-2xl overflow-hidden bg-latte/30 flex-shrink-0">
@@ -49,16 +49,16 @@ export default async function VacanciesPage() {
                 </div>
               )}
               <div className="flex-grow">
-                <h2 className="font-heading font-bold text-2xl text-espresso mb-3">
+                <h2 className="font-heading font-bold text-2xl text-espresso mb-3 leading-snug">
                   {vacancy.title}
                 </h2>
-                <p className="font-body text-mocha text-sm leading-relaxed mb-6 whitespace-pre-wrap">
+                <p className="font-body text-mocha/90 text-sm leading-relaxed mb-6 whitespace-pre-wrap">
                   {vacancy.description}
                 </p>
                 <Link
                   href={vacancy.google_form_link}
                   target="_blank"
-                  className="inline-block px-8 py-3 bg-roasted hover:bg-dark-roast text-white text-xs font-semibold rounded-full transition-colors duration-200 shadow-sm"
+                  className="inline-block px-8 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 shadow-sm"
                 >
                   Apply via Google Form
                 </Link>
@@ -66,13 +66,16 @@ export default async function VacanciesPage() {
             </div>
           ))
         ) : (
-          <div className="text-center py-16 border border-dashed border-latte rounded-[24px] glass-card p-8">
-            <span className="text-3xl block mb-3">☕</span>
-            <h3 className="font-heading font-semibold text-lg text-espresso mb-1">
+          <div className="text-center py-20 bg-warm-white/50 rounded-[28px] border border-dashed border-latte/60 p-10 max-w-md mx-auto animate-fade-up">
+            <svg className="w-12 h-12 mx-auto text-mocha/40 mb-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
+            <h3 className="font-heading font-semibold text-xl text-espresso mb-2">
               No Current Openings
             </h3>
-            <p className="font-body text-mocha text-sm">
-              We don&apos;t have any active vacancy campaigns running right now. Follow us on Instagram to know when we open new positions!
+            <p className="font-body text-mocha/90 text-sm">
+              We don&apos;t have any active vacancy campaigns running right now. Follow us on Instagram or reach out to know when we open new positions!
             </p>
           </div>
         )}

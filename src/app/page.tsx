@@ -61,35 +61,37 @@ export default async function Home() {
         </div>
 
         <div className="max-w-[1280px] w-full mx-auto px-4 md:px-6 z-10 flex justify-center md:justify-start">
-          <div className="max-w-xl p-8 md:p-12 glass-card rounded-[24px] animate-fade-up text-center md:text-left">
+          <div className="max-w-xl p-8 md:p-12 glass-card rounded-[28px] animate-fade-up text-center md:text-left">
             {isOpen ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-body bg-olive/15 text-olive mb-4">
-                <span className="w-2 h-2 rounded-full bg-olive animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold font-body bg-olive/15 text-olive mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-olive animate-pulse" />
                 We are open
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-body bg-muted-red/15 text-muted-red mb-4">
-                <span className="w-2 h-2 rounded-full bg-muted-red" />
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold font-body bg-muted-red/15 text-muted-red mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-red" />
                 Closed for now
               </span>
             )}
             
-            <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-espresso leading-tight mb-4">
-              cozy vibes, <br/>fresh hotcakes
+            <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-espresso leading-[1.1] mb-6 tracking-tight">
+              Fresh Coffee.<br/>
+              Fluffy Hotcakes.<br/>
+              Warm Moments.
             </h1>
-            <p className="font-body text-mocha text-base md:text-lg mb-8 max-w-md">
+            <p className="font-body text-mocha/90 text-sm md:text-base leading-relaxed mb-8 max-w-md">
               Welcome to Lalitpur&apos;s premium coffee and hotcake boutique. Hand-drip brews, fluffy stacks, and quiet corners.
             </p>
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               <Link
                 href="/menu"
-                className="px-8 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-medium rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-sm"
+                className="px-8 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-md shadow-sm"
               >
                 View Menu
               </Link>
               <Link
                 href="/order"
-                className="px-8 py-3 border border-roasted text-roasted hover:bg-roasted/5 text-sm font-medium rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+                className="px-8 py-3.5 border border-roasted text-roasted hover:bg-roasted hover:text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-sm"
               >
                 Order Now
               </Link>
@@ -114,10 +116,13 @@ export default async function Home() {
           </div>
         </section>
       ) : (
-        <section className="bg-warm-white py-4 px-4 text-center z-10 border-b border-latte">
-          <div className="max-w-[1280px] mx-auto">
-            <span className="text-mocha font-body text-sm md:text-base">
-              No campaigns are currently running.
+        <section className="bg-warm-white py-4.5 px-4 text-center z-10 border-b border-latte/60 shadow-sm">
+          <div className="max-w-[1280px] mx-auto flex items-center justify-center gap-2">
+            <svg className="w-4 h-4 text-roasted" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span className="text-mocha/90 font-body text-xs md:text-sm font-medium tracking-wide">
+              Check back soon for our next seasonal reward events & specials!
             </span>
           </div>
         </section>
@@ -126,9 +131,9 @@ export default async function Home() {
       {/* 3. Featured Today Spotlight */}
       {featuredItems.length > 0 && (
         <section className="py-16 max-w-[1280px] mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-center gap-2 mb-12">
-            <span className="text-2xl">⭐</span>
-            <h2 className="font-heading font-bold text-2xl md:text-3xl text-espresso">
+          <div className="text-center mb-12">
+            <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-2 block">Today&apos;s Highlight</span>
+            <h2 className="font-heading font-bold text-3xl md:text-4xl text-espresso">
               Featured Today
             </h2>
           </div>
@@ -155,7 +160,7 @@ export default async function Home() {
               </p>
               <Link
                 href="/order"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-medium rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-sm"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-md shadow-sm"
               >
                 Order Now
               </Link>
@@ -167,10 +172,11 @@ export default async function Home() {
       {/* 4. Featured Menu Items Carousel */}
       <section className="py-24 max-w-[1280px] mx-auto px-4 md:px-6">
         <div className="text-center max-w-xl mx-auto mb-16">
+          <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-2 block">Customer Favorites</span>
           <h2 className="font-heading font-bold text-3xl md:text-4xl text-espresso mb-4">
-            highlights
+            Most Loved
           </h2>
-          <p className="font-body text-mocha text-sm md:text-base">
+          <p className="font-body text-mocha/90 text-sm md:text-base">
             Hand-picked customer favorites prepared fresh every single morning.
           </p>
         </div>
@@ -180,7 +186,7 @@ export default async function Home() {
         <div className="text-center mt-12">
           <Link
             href="/menu"
-            className="inline-flex items-center gap-2 px-8 py-3 border border-roasted text-roasted hover:bg-roasted/5 text-sm font-medium rounded-full transition-all duration-200"
+            className="inline-flex items-center gap-2 px-8 py-3.5 border border-roasted text-roasted hover:bg-roasted hover:text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
           >
             Explore Full Menu
           </Link>
@@ -201,8 +207,9 @@ export default async function Home() {
             />
           </div>
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
+            <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-2 block">Visit Our Space</span>
             <h2 className="font-heading font-bold text-3xl md:text-4xl text-espresso mb-6">
-              find us
+              Find Us
             </h2>
             <p className="font-body text-mocha text-base leading-relaxed mb-8 max-w-md">
               Located in the heart of Hattiban, Lalitpur. Tucked away from the main streets, offering a quiet, rustic atmosphere for reading, meetings, or a morning stack.
@@ -217,7 +224,7 @@ export default async function Home() {
             </div>
             <Link
               href="/location"
-              className="px-8 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-medium rounded-full transition-colors duration-200"
+              className="px-8 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-md shadow-sm"
             >
               Get Directions
             </Link>
@@ -227,8 +234,9 @@ export default async function Home() {
 
       {/* 5. Contact Strip */}
       <section className="py-24 max-w-[1280px] mx-auto px-4 md:px-6 text-center">
+        <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-2 block">Get in Touch</span>
         <h2 className="font-heading font-bold text-3xl text-espresso mb-4">
-          let&apos;s connect
+          Let&apos;s Connect
         </h2>
         <p className="font-body text-mocha text-sm md:text-base mb-8 max-w-md mx-auto">
           Reach out for large group reservations, ordering queries, or just to say hi.
@@ -238,7 +246,7 @@ export default async function Home() {
             <Link
               href="/api/contact-info?redirect=whatsapp"
               target="_blank"
-              className="px-6 py-2.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-semibold rounded-full transition-colors"
+              className="px-6 py-3 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
             >
               WhatsApp
             </Link>
@@ -247,14 +255,14 @@ export default async function Home() {
             <Link
               href="/api/contact-info?redirect=instagram"
               target="_blank"
-              className="px-6 py-2.5 bg-[#E1306C] hover:bg-[#c9265c] text-white text-xs font-semibold rounded-full transition-colors"
+              className="px-6 py-3 bg-[#E1306C] hover:bg-[#c9265c] text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
             >
               Instagram
             </Link>
           )}
           <Link
             href="/contact"
-            className="px-6 py-2.5 border border-roasted text-roasted hover:bg-roasted/5 text-xs font-semibold rounded-full transition-colors"
+            className="px-6 py-3 border border-roasted text-roasted hover:bg-roasted hover:text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5"
           >
             All Contact Info
           </Link>

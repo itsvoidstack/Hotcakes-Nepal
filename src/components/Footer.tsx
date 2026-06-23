@@ -56,7 +56,7 @@ export default async function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
+                    className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-all duration-300 hover:translate-x-1 inline-block"
                   >
                     {link.label}
                   </Link>
@@ -74,7 +74,7 @@ export default async function Footer() {
               <li>
                 <a
                   href="/api/contact-info?redirect=whatsapp"
-                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
+                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   WhatsApp
                 </a>
@@ -82,7 +82,7 @@ export default async function Footer() {
               <li>
                 <a
                   href="/api/contact-info?redirect=instagram"
-                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
+                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Instagram
                 </a>
@@ -91,7 +91,7 @@ export default async function Footer() {
                 <li>
                   <a
                     href="/api/contact-info?redirect=tiktok"
-                    className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
+                    className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-all duration-300 hover:translate-x-1 inline-block"
                   >
                     TikTok
                   </a>
@@ -100,7 +100,7 @@ export default async function Footer() {
               <li>
                 <a
                   href="tel:+9779763687532"
-                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-colors duration-200"
+                  className="font-body text-sm text-[#FAF7F2]/80 hover:text-[#FAF7F2] transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Phone: +977 976-3687532
                 </a>

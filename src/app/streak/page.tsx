@@ -30,17 +30,20 @@ export default async function StreakPage() {
     <div className="bg-cream min-h-screen py-16 px-4">
       {/* Campaign Strip (empty state matching home page) */}
       {!campaign && (
-        <section className="bg-warm-white py-4 px-4 text-center z-10 border-b border-latte mb-12">
-          <div className="max-w-[1280px] mx-auto">
-            <span className="text-mocha font-body text-sm md:text-base">
-              No campaigns are currently running.
+        <section className="bg-warm-white py-4.5 px-4 text-center z-10 border-b border-latte/60 shadow-sm mb-12 rounded-2xl max-w-[1280px] mx-auto">
+          <div className="flex items-center justify-center gap-2">
+            <svg className="w-4 h-4 text-roasted" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span className="text-mocha/90 font-body text-xs md:text-sm font-medium tracking-wide">
+              Check back soon for our next seasonal reward events & specials!
             </span>
           </div>
         </section>
       )}
       
       <div className="max-w-[1280px] mx-auto text-center mb-12">
-        <span className="text-4xl block mb-4">🏆</span>
+        <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-2 block">Rewards</span>
         <h1 className="font-heading font-bold text-4xl md:text-5xl text-espresso mb-4">
           Brew Streak Loyalty
         </h1>

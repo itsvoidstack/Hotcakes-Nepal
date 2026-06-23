@@ -91,7 +91,7 @@ export default function StreakSearch() {
         <button
           type="submit"
           disabled={loading}
-          className="px-6 h-12 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-medium rounded-full transition-all text-sm shadow-sm"
+          className="px-6 h-12 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 shadow-sm"
         >
           {loading ? 'Searching...' : 'Search'}
         </button>
@@ -183,7 +183,12 @@ export default function StreakSearch() {
                   }`}
                   aria-label={isStamped ? `Stamp ${index + 1} marked` : `Stamp ${index + 1} empty`}
                 >
-                  ☕
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h14v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="3" x2="6" y2="5" strokeLinecap="round" />
+                    <line x1="10" y1="3" x2="10" y2="5" strokeLinecap="round" />
+                    <line x1="14" y1="3" x2="14" y2="5" strokeLinecap="round" />
+                  </svg>
                 </div>
               );
             })}

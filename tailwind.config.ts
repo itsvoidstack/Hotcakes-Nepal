@@ -23,7 +23,7 @@ const config: Config = {
       },
       fontFamily: {
         heading: ["var(--font-playfair)", "serif"],
-        body: ["var(--font-dm-sans)", "sans-serif"],
+        body: ["var(--font-plus-jakarta)", "sans-serif"],
       },
     },
   },

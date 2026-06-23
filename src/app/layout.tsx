@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, DM_Sans } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -12,13 +12,13 @@ import { headers } from "next/headers";
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
-  weight: ["600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const dmSans = DM_Sans({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
-  weight: ["400", "500", "600"],
+  variable: "--font-plus-jakarta",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -45,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${playfair.variable} ${dmSans.variable} font-body bg-cream text-espresso antialiased min-h-screen pb-20 md:pb-0`}
+        className={`${playfair.variable} ${plusJakarta.variable} font-body bg-cream text-espresso antialiased min-h-screen pb-20 md:pb-0`}
       >
         <Navbar logo={<SiteLogo />} />
         <MaintenanceWrapper>
@@ -60,10 +60,10 @@ export default function RootLayout({
         {!isAdminPage && (
           <Link
             href="/order"
-            className="md:hidden fixed bottom-20 right-4 z-30 flex items-center gap-2 px-6 py-3 bg-roasted hover:bg-dark-roast text-white text-sm font-semibold rounded-full shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+            className="md:hidden fixed bottom-20 right-4 z-30 flex items-center gap-2 px-6 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-bold rounded-full shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
             style={{ minWidth: '44px', minHeight: '44px' }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             Order Now

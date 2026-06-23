@@ -18,11 +18,12 @@ export default async function OrderPage() {
 
   return (
     <div className="bg-cream min-h-screen flex items-center justify-center py-16 px-4">
-      <div className="max-w-md w-full glass-card p-8 md:p-10 rounded-[24px] text-center animate-fade-up">
+      <div className="max-w-md w-full glass-card p-8 md:p-10 rounded-[28px] text-center animate-fade-up border border-latte/80 shadow-sm">
+        <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-2 block">Delivery</span>
         <h1 className="font-heading font-bold text-3xl md:text-4xl text-espresso mb-4">
-          order online
+          Order Online
         </h1>
-        <p className="font-body text-mocha text-sm md:text-base mb-8">
+        <p className="font-body text-mocha/90 text-sm md:text-base mb-8">
           Get fresh hotcakes and coffee delivered straight to your doorstep.
         </p>
 
@@ -45,7 +46,7 @@ export default async function OrderPage() {
                   key={link.platform}
                   href={link.url || '#'}
                   target="_blank"
-                  className={`w-full py-3 ${bgColor} text-white font-semibold rounded-full transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm text-sm`}
+                  className={`w-full py-3.5 ${bgColor} text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 shadow-sm`}
                 >
                   {label}
                 </Link>
@@ -53,12 +54,17 @@ export default async function OrderPage() {
             })}
           </div>
         ) : (
-          <div className="py-6 border border-dashed border-latte rounded-xl">
-            <span className="text-4xl block mb-2">🚚</span>
-            <h3 className="font-heading font-semibold text-lg text-espresso mb-1">
-              Online Ordering Coming Soon
+          <div className="py-10 bg-warm-white/50 border border-dashed border-latte/60 rounded-[24px] p-6 max-w-sm mx-auto">
+            <svg className="w-12 h-12 mx-auto text-mocha/40 mb-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <rect x="1" y="3" width="15" height="13" rx="2" />
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+              <circle cx="5.5" cy="18.5" r="2.5" />
+              <circle cx="18.5" cy="18.5" r="2.5" />
+            </svg>
+            <h3 className="font-heading font-semibold text-base text-espresso mb-1">
+              Online Delivery Coming Soon
             </h3>
-            <p className="font-body text-mocha text-xs px-4">
+            <p className="font-body text-mocha/80 text-xs px-4">
               We are currently setting up our delivery integrations. In the meantime, you can visit us directly or call to order!
             </p>
           </div>
@@ -67,7 +73,7 @@ export default async function OrderPage() {
         <div className="mt-8">
           <Link
             href="/contact"
-            className="text-xs font-semibold text-roasted hover:underline"
+            className="text-xs font-semibold text-roasted hover:underline transition-colors duration-200"
           >
             Call Us Directly to Place an Order
           </Link>

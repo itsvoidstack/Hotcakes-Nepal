@@ -32,7 +32,14 @@ export default async function LocationPage() {
   
   const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
   const mapsValue = mapsResult?.data?.value as { url?: string } | null;
-  const mapsLink = mapsValue?.url ?? 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9';
+  // Fallback maps link updated to user's provided Google Maps URL
+  const mapsLink = mapsValue?.url ?? 'https://maps.app.goo.gl/Akbsp1cgDmTLDPy18';
+  const phoneNumber = getContact('phone') || '+977 976-3687532';
+  const email = getContact('email');
+
+  const instagram = getContact('instagram');
+  const whatsapp = getContact('whatsapp');
+  const tiktok = getContact('tiktok');
 
   const savedPhotos = Array.isArray(locPhotosResult?.data?.value) ? (locPhotosResult.data.value as string[]) : [];
 
@@ -45,85 +52,237 @@ export default async function LocationPage() {
         { src: '/images/location/location-seating.jpg', alt: 'Quiet Corner Desk' },
       ];
 
-  return (
-    <div className="bg-cream min-h-screen py-16 px-4">
-      <div className="max-w-[1280px] mx-auto text-center mb-16">
-        <span className="text-4xl block mb-4">📍</span>
-        <h1 className="font-heading font-bold text-4xl md:text-5xl text-espresso mb-4">
-          our location
-        </h1>
-        <p className="font-body text-mocha text-base max-w-md mx-auto">
-          Nestled in Lalitpur, offering a quiet escape with a rustic atmosphere, warm lighting, and fresh coffee.
-        </p>
-      </div>
+  // Fill/pad photos array up to exactly 4 items to ensure our asymmetric layout works perfectly
+  const finalPhotos = [...locationPhotos];
+  while (finalPhotos.length < 4) {
+    const fallbacks = [
+      '/images/location/location-exterior.jpg',
+      '/images/location/location-interior-1.jpg',
+      '/images/location/location-interior-2.jpg',
+      '/images/location/location-seating.jpg'
+    ];
+    finalPhotos.push({
+      src: fallbacks[finalPhotos.length % 4],
+      alt: `Fallback Location View ${finalPhotos.length + 1}`
+    });
+  }
 
-      <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-        {/* Left: Photos Grid */}
-        <div className="lg:col-span-7 grid grid-cols-2 gap-4">
-          {locationPhotos.map((photo, index) => (
-            <div
-              key={index}
-              className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-latte/30 shadow-sm group"
-            >
-              <ImageWithFallback
-                src={photo.src}
-                alt={photo.alt}
-                fill
-                className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                sizes="(max-width: 768px) 50vw, 33vw"
-                fallbackEmoji="📸"
-              />
+  return (
+    <div className="bg-cream text-espresso min-h-screen">
+      {/* 1. Location Hero Section */}
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-14 md:py-18 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        {/* Left column: Visit info card */}
+        <div className="lg:col-span-5 space-y-6 text-left">
+          <div className="space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-roasted block">Welcome</span>
+            <h1 className="font-heading font-bold text-4xl md:text-5xl text-espresso tracking-tight leading-none uppercase">
+              Visit Us
+            </h1>
+            <p className="font-body text-mocha/90 text-sm md:text-base leading-relaxed max-w-md">
+              We welcome you to our peaceful boutique space in Hattiban. Come enjoy slow mornings, quiet coffee corners, and freshly prepared hotcakes.
+            </p>
+          </div>
+
+          <div className="border-t border-latte/60 pt-6 space-y-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Our Café</span>
+              <p className="font-heading font-bold text-lg text-espresso">Hotcakes Nepal</p>
             </div>
-          ))}
+
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Address</span>
+              <p className="font-body text-sm md:text-base text-espresso font-medium">{address}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Opening Hours</span>
+                <p className="font-body text-sm md:text-base text-espresso font-medium">Daily: 8:00 AM – 8:00 PM</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Phone Number</span>
+                <p className="font-body text-sm md:text-base text-espresso font-medium">{phoneNumber}</p>
+              </div>
+            </div>
+
+            {email && (
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Email</span>
+                <p className="font-body text-sm md:text-base text-espresso font-medium">{email}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Section 5: Get Directions CTA */}
+          <div className="pt-2">
+            <Link
+              href={mapsLink}
+              target="_blank"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md"
+            >
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0z" />
+              </svg>
+              📍 Get Directions
+            </Link>
+          </div>
         </div>
 
-        {/* Right: Details Card */}
-        <div className="lg:col-span-5 glass-card p-8 md:p-10 rounded-[24px] border border-latte shadow-sm animate-fade-up">
-          <h2 className="font-heading font-bold text-2xl text-espresso mb-6">
-            visit details
-          </h2>
+        {/* Right column: Visually dominant map card */}
+        <div className="lg:col-span-7 w-full animate-fade-up">
+          {/* Reduced desktop map container height to 400px */}
+          <div className="relative w-full aspect-[4/3] md:aspect-[16/10] lg:aspect-auto lg:h-[400px] rounded-[24px] overflow-hidden bg-latte/30 shadow-sm border border-latte/50">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3531.97382605196!2d85.3363342!3d27.647707!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb170066805b63%3A0x49daabdd55ed2655!2sHOT%20CAKES!5e0!3m2!1sen!2snp!4v1719112000000!5m2!1sen!2snp"
+              className="w-full h-full border-0 absolute inset-0"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </div>
+      </section>
 
-          <div className="space-y-6 mb-8 text-left">
-            <div>
-              <span className="text-xs font-semibold text-mocha uppercase tracking-wider block mb-1">
-                Address
-              </span>
-              <p className="font-body text-base text-espresso font-medium">
-                {address}
+      {/* 2. Detailed Info Grid Section */}
+      <section className="bg-warm-white border-y border-latte/40 py-16 md:py-20 px-4 md:px-6">
+        <div className="max-w-[1280px] mx-auto">
+          <div className="text-center max-w-xl mx-auto mb-12">
+            <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-1 block">Details</span>
+            <h2 className="font-heading font-bold text-3xl text-espresso mb-3">
+              Visit Details
+            </h2>
+            <p className="font-body text-mocha/80 text-sm">
+              A meticulously designed space to offer calm, warmth, and the perfect cup of coffee.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {/* Address Info */}
+            <div className="bg-cream rounded-[24px] border border-latte/50 p-7 space-y-3.5 shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-latte/40 flex items-center justify-center text-espresso text-base">
+                📍
+              </div>
+              <h3 className="font-heading font-bold text-lg text-espresso">Address</h3>
+              <p className="font-body text-mocha/90 text-sm leading-relaxed">
+                {address}. Located away from the main streets, offering a quiet, rustic atmosphere for reading, study, or morning stacks.
               </p>
             </div>
 
-            <div>
-              <span className="text-xs font-semibold text-mocha uppercase tracking-wider block mb-1">
-                Opening Hours
-              </span>
-              <p className="font-body text-base text-espresso font-medium">
-                Every Day: 8:00 AM – 8:00 PM
+            {/* Hours Info */}
+            <div className="bg-cream rounded-[24px] border border-latte/50 p-7 space-y-3.5 shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-latte/40 flex items-center justify-center text-espresso text-base">
+                ⏰
+              </div>
+              <h3 className="font-heading font-bold text-lg text-espresso">Opening Hours</h3>
+              <p className="font-body text-mocha/90 text-sm leading-relaxed">
+                Open Daily: 8:00 AM – 8:00 PM. Serving hot cakes, fresh brews, and signature desserts all day. Kitchen closes at 7:45 PM.
               </p>
             </div>
 
-            <div>
-              <span className="text-xs font-semibold text-mocha uppercase tracking-wider block mb-1">
-                Atmosphere & Amenities
-              </span>
-              <ul className="list-disc list-inside font-body text-sm text-mocha space-y-1.5 mt-1">
+            {/* Directions & Ambiance */}
+            <div className="bg-cream rounded-[24px] border border-latte/50 p-7 space-y-3.5 shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-latte/40 flex items-center justify-center text-espresso text-base">
+                ✨
+              </div>
+              <h3 className="font-heading font-bold text-lg text-espresso">Amenities</h3>
+              <ul className="list-disc list-inside font-body text-sm text-mocha/90 space-y-1 mt-0.5">
                 <li>High-speed complimentary Wi-Fi</li>
-                <li>Quiet zones for study and work</li>
+                <li>Dedicated quiet zones for study/work</li>
                 <li>Power outlets at seating corners</li>
                 <li>Freshly baked desserts daily</li>
               </ul>
             </div>
           </div>
-
-          <Link
-            href={mapsLink}
-            target="_blank"
-            className="block w-full text-center py-3 bg-roasted hover:bg-dark-roast text-white font-semibold rounded-full transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm text-sm"
-          >
-            Find Us on Google Maps
-          </Link>
         </div>
-      </div>
+      </section>
+
+      {/* 3. Elegant Boutique Gallery Section */}
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-12 md:py-16">
+        <div className="text-center max-w-xl mx-auto mb-10">
+          <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-1 block">Moments</span>
+          <h2 className="font-heading font-bold text-2xl md:text-3xl text-espresso mb-3">
+            Boutique Gallery
+          </h2>
+          <p className="font-body text-mocha/80 text-sm">
+            Take a look inside our cozy corners, coffee counters, and fresh preparations.
+          </p>
+        </div>
+
+        {/* Clean 2x2 Card Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {finalPhotos.map((photo, index) => (
+            <div
+              key={index}
+              className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-latte/30 group shadow-sm border border-latte/30"
+            >
+              <ImageWithFallback
+                src={photo.src}
+                alt={photo.alt}
+                fill
+                className="group-hover:scale-[1.03] transition-transform duration-500"
+                style={{ objectFit: 'cover' }}
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                fallbackEmoji="📸"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Brand Story Block */}
+      <section className="bg-warm-white border-y border-latte/40 py-20 md:py-24 px-4 md:px-6">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <h2 className="font-heading font-medium italic text-3xl md:text-4xl text-roasted/95 leading-relaxed tracking-tight">
+            &ldquo;Fresh coffee,<br className="sm:hidden" /> fluffy hotcakes,<br className="sm:hidden" /> and warm moments.&rdquo;
+          </h2>
+          <div className="w-12 h-0.5 bg-roasted/30 mx-auto" />
+          <p className="font-heading font-light text-espresso text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+            Designed for slow mornings, friendly conversations, and memorable afternoons.
+          </p>
+        </div>
+      </section>
+
+      {/* 6. Social Connection Section */}
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 md:py-20 text-center space-y-6">
+        <div className="space-y-1.5">
+          <span className="text-xs font-semibold uppercase tracking-widest text-roasted block">Connect</span>
+          <h2 className="font-heading font-bold text-2xl md:text-3xl text-espresso">Follow Our Journey</h2>
+          <p className="font-body text-mocha/80 text-sm max-w-xs mx-auto">
+            Get updates on seasonal recipes, community events, and fresh stacks.
+          </p>
+        </div>
+
+        <div className="flex justify-center gap-8 md:gap-12 pt-2">
+          {instagram && (
+            <Link
+              href="/api/contact-info?redirect=instagram"
+              target="_blank"
+              className="font-body text-sm font-semibold tracking-wider uppercase text-espresso hover:text-roasted transition-all duration-300 hover:-translate-y-0.5"
+            >
+              Instagram
+            </Link>
+          )}
+          {whatsapp && (
+            <Link
+              href="/api/contact-info?redirect=whatsapp"
+              target="_blank"
+              className="font-body text-sm font-semibold tracking-wider uppercase text-espresso hover:text-roasted transition-all duration-300 hover:-translate-y-0.5"
+            >
+              WhatsApp
+            </Link>
+          )}
+          {tiktok && (
+            <Link
+              href="/api/contact-info?redirect=tiktok"
+              target="_blank"
+              className="font-body text-sm font-semibold tracking-wider uppercase text-espresso hover:text-roasted transition-all duration-300 hover:-translate-y-0.5"
+            >
+              TikTok
+            </Link>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
