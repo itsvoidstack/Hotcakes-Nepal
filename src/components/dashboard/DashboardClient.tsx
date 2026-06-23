@@ -78,6 +78,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [menuCategoryFilter, setMenuCategoryFilter] = useState('all');
   const [menuFeaturedFilter, setMenuFeaturedFilter] = useState('all');
   const [menuAvailableFilter, setMenuAvailableFilter] = useState('all');
+  const [menuImageFilter, setMenuImageFilter] = useState('all'); // New image filter!
+  const [selectedMenuItems, setSelectedMenuItems] = useState<string[]>([]); // Multi-select!
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false); // Confirmation dialog!
 
   const uniqueCategories = useMemo(() => {
     const categories = new Set<string>();
@@ -109,10 +112,17 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         menuAvailableFilter === 'all' ||
         (menuAvailableFilter === 'available' && item.is_available) ||
         (menuAvailableFilter === 'hidden' && !item.is_available);
-
-      return matchesSearch && matchesCategory && matchesFeatured && matchesAvailable;
+      
+      // Image filter
+      const hasImage = !!item.image_url;
+      // For now, we'll treat "broken" as theoretical, or we can just use hasImage (since we don't have real-time broken image detection)
+      let matchesImage = true;
+      if (menuImageFilter === 'has-image') matchesImage = hasImage;
+      if (menuImageFilter === 'missing-image') matchesImage = !hasImage;
+      
+      return matchesSearch && matchesCategory && matchesFeatured && matchesAvailable && matchesImage;
     });
-  }, [menuItems, menuSearchQuery, menuCategoryFilter, menuFeaturedFilter, menuAvailableFilter]);
+  }, [menuItems, menuSearchQuery, menuCategoryFilter, menuFeaturedFilter, menuAvailableFilter, menuImageFilter]);
   
   // 2. Streak Manager States
   const [streakQuery, setStreakQuery] = useState('');
@@ -169,7 +179,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/menu');
+      const res = await fetch('/api/admin/menu', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const menuData = await res.json();
       setMenuItems(menuData.items || []);
 
@@ -351,6 +363,44 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       showFeedback('Menu item deleted successfully!');
       loadData();
     } catch (err: unknown) {
+      showFeedback(getErrorMessage(err), true);
+    }
+  };
+
+  // BULK DELETE!
+  const handleBulkDelete = async () => {
+    console.log('=== [handleBulkDelete] Starting ===');
+    console.log('=== [handleBulkDelete] Selected Menu Items IDs ===', selectedMenuItems);
+    console.log('=== [handleBulkDelete] Selected IDs type check ===', typeof selectedMenuItems[0], selectedMenuItems.map(id => typeof id));
+    console.log('=== [handleBulkDelete] Filtered Menu Items ===', filteredMenuItems.map(item => ({ id: item.id, name: item.name })));
+    
+    setShowBulkDeleteConfirm(false);
+    try {
+      const requestUrl = `/api/admin/menu?ids=${selectedMenuItems.join(',')}`;
+      console.log('=== [handleBulkDelete] Request URL ===', requestUrl);
+      
+      const res = await fetch(requestUrl, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      console.log('=== [handleBulkDelete] Response status ===', res.status);
+      
+      if (!res.ok) {
+        const data = await res.json();
+        console.error('=== [handleBulkDelete] Error response data ===', data);
+        throw new Error(data.error || 'Failed to delete selected items');
+      }
+      
+      const successData = await res.json();
+      console.log('=== [handleBulkDelete] Success response data ===', successData);
+
+      showFeedback(`${successData.deletedCount} menu items deleted successfully!`);
+      setSelectedMenuItems([]);
+      await loadData();
+      console.log('=== [handleBulkDelete] Load data completed ===');
+    } catch (err: unknown) {
+      console.error('=== [handleBulkDelete] Unhandled exception ===', err);
       showFeedback(getErrorMessage(err), true);
     }
   };
@@ -1010,7 +1060,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           ) : (
             <div className="space-y-4">
               {/* Search & Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                 <input
                   type="text"
                   value={menuSearchQuery}
@@ -1046,17 +1096,67 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   <option value="available">Available</option>
                   <option value="hidden">Hidden</option>
                 </select>
+                <select
+                  value={menuImageFilter}
+                  onChange={(e) => setMenuImageFilter(e.target.value)}
+                  className="w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                >
+                  <option value="all">All (Images)</option>
+                  <option value="has-image">Has Image</option>
+                  <option value="missing-image">Missing Image</option>
+                </select>
               </div>
+
+              {/* Bulk Actions Bar */}
+              {selectedMenuItems.length > 0 && (
+                <div className="flex items-center justify-between p-4 bg-latte/20 rounded-xl border border-latte">
+                  <div className="flex items-center gap-4">
+                    <span className="font-heading font-semibold text-espresso">
+                      {selectedMenuItems.length} item{selectedMenuItems.length !== 1 ? 's' : ''} selected
+                    </span>
+                    <button
+                      onClick={() => setSelectedMenuItems([])}
+                      className="text-xs text-mocha hover:text-espresso transition-colors"
+                    >
+                      Clear selection
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowBulkDeleteConfirm(true)}
+                    className="px-4 py-2 bg-muted-red hover:bg-red-700 text-white rounded-full text-xs font-semibold"
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              )}
 
               {/* Menu Items Table */}
               <div className="overflow-x-auto border border-latte rounded-2xl bg-warm-white">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-latte/20 font-body text-xs font-bold uppercase tracking-wider text-mocha border-b border-latte">
+                    <th className="p-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedMenuItems.length === filteredMenuItems.length && filteredMenuItems.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedMenuItems(filteredMenuItems.map(item => item.id));
+                            } else {
+                              setSelectedMenuItems([]);
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-roasted focus:ring-roasted"
+                        />
+                        Select All
+                      </label>
+                    </th>
                     <th className="p-4">Name</th>
                     <th className="p-4">Category</th>
                     <th className="p-4">Price</th>
                     <th className="p-4">Featured</th>
+                    <th className="p-4">Image</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 text-right">Actions</th>
                   </tr>
@@ -1064,17 +1164,38 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <tbody className="divide-y divide-latte/60 font-body text-sm text-espresso">
                   {filteredMenuItems.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-mocha">
+                      <td colSpan={8} className="p-8 text-center text-mocha">
                         No menu items found.
                       </td>
                     </tr>
                   ) : (
                     filteredMenuItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-latte/5 transition-colors">
+                      <tr key={item.id} className={`hover:bg-latte/5 transition-colors ${selectedMenuItems.includes(item.id) ? 'bg-roasted/5' : ''}`}>
+                        <td className="p-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedMenuItems.includes(item.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedMenuItems(prev => [...prev, item.id]);
+                              } else {
+                                setSelectedMenuItems(prev => prev.filter(id => id !== item.id));
+                              }
+                            }}
+                            className="w-4 h-4 rounded text-roasted focus:ring-roasted"
+                          />
+                        </td>
                         <td className="p-4 font-heading font-semibold">{item.name}</td>
                         <td className="p-4">{item.category}</td>
                         <td className="p-4">Rs. {item.price}</td>
                         <td className="p-4">{item.is_featured ? '⭐ Yes' : 'No'}</td>
+                        <td className="p-4">
+                          {item.image_url ? (
+                            <span className="px-2 py-0.5 bg-olive/15 text-olive rounded-full text-xs font-medium">Valid Image</span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-muted-red/15 text-muted-red rounded-full text-xs font-medium">Missing Image</span>
+                          )}
+                        </td>
                         <td className="p-4">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             item.is_available ? 'bg-olive/15 text-olive' : 'bg-muted-red/15 text-muted-red'
@@ -1102,6 +1223,34 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 </tbody>
               </table>
               </div>
+
+              {/* Bulk Delete Confirmation Dialog */}
+              {showBulkDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-cream rounded-2xl p-6 max-w-sm w-full shadow-xl animate-fade-in">
+                    <h3 className="font-heading font-bold text-xl text-espresso mb-4">
+                      Delete {selectedMenuItems.length} Menu Items?
+                    </h3>
+                    <p className="font-body text-mocha text-sm mb-6">
+                      This action cannot be undone. Are you sure you want to delete the selected items?
+                    </p>
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        onClick={() => setShowBulkDeleteConfirm(false)}
+                        className="px-4 py-2 border border-latte text-mocha hover:bg-latte/10 rounded-full text-xs font-semibold"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleBulkDelete}
+                        className="px-4 py-2 bg-muted-red hover:bg-red-700 text-white rounded-full text-xs font-semibold"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
