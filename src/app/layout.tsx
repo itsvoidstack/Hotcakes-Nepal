@@ -5,7 +5,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
-import ConditionalFooter from "@/components/ConditionalFooter";
+import Footer from "@/components/Footer";
 import SiteLogo from "@/components/SiteLogo";
 import { headers } from "next/headers";
 
@@ -43,17 +43,20 @@ export default function RootLayout({
   const isAdminPage = pathname.startsWith('/hc-dashboard') || pathname.startsWith('/hc-dev') || pathname.startsWith('/api');
   
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-x-hidden">
+      <head>
+        <style>{`*, *::before, *::after { box-sizing: border-box; }`}</style>
+      </head>
       <body
-        className={`${playfair.variable} ${inter.variable} font-body bg-cream text-espresso antialiased min-h-screen pb-20 md:pb-0`}
+        className={`${playfair.variable} ${inter.variable} font-body bg-cream text-espresso antialiased min-h-screen pb-20 md:pb-0 overflow-x-hidden w-full max-w-full`}
       >
         <Navbar logo={<SiteLogo />} />
         <MaintenanceWrapper>
-          <main className="min-h-[calc(100vh-80px)]">
+          <main className="min-h-[calc(100vh-80px)] w-full max-w-full overflow-x-hidden">
             {children}
           </main>
         </MaintenanceWrapper>
-        <ConditionalFooter />
+        {!isAdminPage && <Footer />}
         <BottomNav />
         
         {/* Floating Order Button (Mobile Only) */}

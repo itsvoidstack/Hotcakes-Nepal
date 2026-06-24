@@ -230,7 +230,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
       )}
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="w-full overflow-hidden">
+        <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0">
         {DEV_TABS.map((tab) => (
           <button
             key={tab.id}
@@ -244,6 +245,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
             {tab.label}
           </button>
         ))}
+        </div>
       </div>
 
       {loading && <div className="text-center py-12 text-mocha font-body animate-pulse">Running system diagnostics...</div>}

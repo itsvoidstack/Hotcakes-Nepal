@@ -68,7 +68,7 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
   }
 
   return (
-    <div className="relative group">
+    <div className="relative group w-full max-w-full overflow-x-hidden">
       {/* Desktop Left Arrow */}
       <button
         onClick={() => scroll('left')}
@@ -93,62 +93,76 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
         </svg>
       </button>
 
-      <div
-        ref={scrollContainerRef}
-        className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-        onScroll={updateScrollButtons}
-      >
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="snap-start flex-shrink-0 w-[260px] sm:w-[300px]"
-          >
-            <div className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-sm">
-              <div className="relative aspect-[4/3] w-full bg-latte/20 overflow-hidden">
-                <ImageWithFallback
-                  src={item.image_url || '/images/menu/placeholder.jpg'}
-                  alt={item.name}
-                  fill
-                  className="object-cover group-hover:scale-103 transition-transform duration-700"
-                  sizes="(max-width: 768px) 80vw, 300px"
-                  fallbackEmoji="🥞"
-                />
-                {/* Bestseller Badge */}
-                <div className="absolute top-4 left-4">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-espresso/80 text-white rounded-full text-[9px] font-semibold tracking-wider uppercase">
-                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+      <div className="w-full overflow-hidden">
+        <div
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto snap-x snap-mandatory pb-4 scroll-smooth w-full max-w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          onScroll={updateScrollButtons}
+        >
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="snap-center flex-shrink-0 w-full px-4 md:w-[280px] lg:w-[300px] md:px-0"
+              style={{ flex: '0 0 100%' }}
+            >
+              <div className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-sm h-full">
+                <div className="relative h-52 md:h-auto md:aspect-[4/3] w-full bg-latte/20 overflow-hidden">
+                  <ImageWithFallback
+                    src={item.image_url || '/images/menu/placeholder.jpg'}
+                    alt={item.name}
+                    fill
+                    className="object-cover group-hover:scale-103 transition-transform duration-700"
+                    sizes="(max-width: 768px) 100vw, 300px"
+                    fallbackEmoji="🥞"
+                  />
+                  {/* Bestseller Badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-espresso/80 text-white rounded-full text-[9px] font-semibold tracking-wider uppercase">
+                      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      Bestseller
+                    </span>
+                  </div>
+                </div>
+                <div className="p-5 flex flex-col flex-grow">
+                  <div className="flex items-baseline justify-between gap-2 mb-2">
+                    <h3 className="font-heading font-medium text-lg text-espresso leading-tight">
+                      {item.name}
+                    </h3>
+                    <span className="font-body text-roasted font-semibold text-sm">
+                      Rs. {item.price}
+                    </span>
+                  </div>
+                  <p className="font-body text-mocha/80 text-xs leading-relaxed mb-5 line-clamp-2">
+                    {item.description || 'Prepared fresh daily with premium ingredients.'}
+                  </p>
+                  <Link
+                    href="/order"
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:shadow-md"
+                  >
+                    Order Now
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                     </svg>
-                    Bestseller
-                  </span>
+                  </Link>
                 </div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow">
-                <div className="flex items-baseline justify-between gap-2 mb-2">
-                  <h3 className="font-heading font-medium text-lg text-espresso leading-tight">
-                    {item.name}
-                  </h3>
-                  <span className="font-body text-roasted font-semibold text-sm">
-                    Rs. {item.price}
-                  </span>
-                </div>
-                <p className="font-body text-mocha/80 text-xs leading-relaxed mb-5 line-clamp-2">
-                  {item.description || 'Prepared fresh daily with premium ingredients.'}
-                </p>
-                <Link
-                  href="/order"
-                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:shadow-md"
-                >
-                  Order Now
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                  </svg>
-                </Link>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .snap-center {
+            flex: 0 0 auto !important;
+          }
+          .flex.overflow-x-auto {
+            gap: 1.5rem;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -876,7 +876,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       )}
 
       {/* Tab Navigation */}
-      <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="w-full overflow-hidden">
+        <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0">
         {(['menu', 'streak', 'order', 'vacancies', 'settings'] as const).map((tab) => (
           <button
             key={tab}
@@ -894,6 +895,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             {tab === 'order' ? 'Delivery Links' : tab}
           </button>
         ))}
+        </div>
       </div>
 
       {loading && <div className="text-center py-12 text-mocha font-body">Updating dashboard records...</div>}

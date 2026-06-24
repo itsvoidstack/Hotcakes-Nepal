@@ -62,21 +62,22 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
         </div>
       </div>
 
-      {/* Category Tabs (Horizontally Scrollable, No Scrollbars Visible) */}
-      <div className="flex overflow-x-auto gap-6 pb-2.5 mb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center">
-        {categories.map((category) => (
-          <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className={`whitespace-nowrap text-base font-serif italic transition-all duration-200 ${
-              selectedCategory === category
-                ? 'text-roasted underline underline-offset-8 decoration-latte'
-                : 'text-mocha/80 hover:text-espresso'
-            }`}
-          >
-            {category}
-          </button>
-        ))}
+      <div className="w-full overflow-hidden">
+        <div className="flex overflow-x-auto gap-6 pb-2.5 mb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`whitespace-nowrap text-base font-serif italic transition-all duration-200 ${
+                selectedCategory === category
+                  ? 'text-roasted underline underline-offset-8 decoration-latte'
+                  : 'text-mocha/80 hover:text-espresso'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Menu Grid */}

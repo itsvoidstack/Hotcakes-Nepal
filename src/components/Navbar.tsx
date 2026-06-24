@@ -44,7 +44,7 @@ export default function Navbar({ logo }: NavbarProps) {
           </div>
 
           {/* Center: Links (Desktop Only) */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8 justify-center">
+          <nav className="hidden lg:flex items-center gap-6 lg:gap-8 justify-center">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
@@ -67,7 +67,7 @@ export default function Navbar({ logo }: NavbarProps) {
           {/* Right: CTA & Sign in (Desktop) / Hamburger (Mobile) */}
           <div className="flex-1 flex items-center justify-end gap-5">
             {/* Desktop only CTA and Sign in */}
-            <div className="hidden md:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-6">
               <Link
                 href="/hc-dashboard"
                 className="text-[13px] font-semibold text-mocha/80 hover:text-espresso transition-colors"
@@ -88,7 +88,7 @@ export default function Navbar({ logo }: NavbarProps) {
             {/* Mobile only Hamburger Toggle */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden p-2 rounded-full hover:bg-latte/20 text-espresso transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-roasted"
+              className="lg:hidden p-2 rounded-full hover:bg-latte/20 text-espresso transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-roasted"
               aria-label="Toggle navigation menu"
             >
               {isOpen ? (
@@ -106,7 +106,7 @@ export default function Navbar({ logo }: NavbarProps) {
 
         {/* Mobile Dropdown Menu Card */}
         {isOpen && (
-          <div className="absolute top-[calc(100%+8px)] left-0 right-0 z-50 bg-[#FCFBF8] border border-latte/20 rounded-[20px] shadow-lg p-5 flex flex-col gap-4 animate-fade-up md:hidden pointer-events-auto">
+          <div className="absolute top-[calc(100%+8px)] left-0 right-0 z-50 bg-[#FCFBF8] border border-latte/20 rounded-[20px] shadow-lg p-5 flex flex-col gap-4 animate-fade-up lg:hidden pointer-events-auto">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (

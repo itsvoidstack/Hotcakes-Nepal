@@ -77,9 +77,9 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-cream">
+    <div className="flex flex-col min-h-screen bg-cream w-full max-w-full overflow-x-hidden">
       {/* 1. Hero Section */}
-      <section className="relative w-full flex items-center justify-center pt-24 pb-16 md:pt-32 md:pb-20">
+      <section className="relative w-full max-w-full flex items-center justify-center pt-24 pb-16 md:pt-32 md:pb-20 overflow-x-hidden">
         <div className="max-w-[1240px] w-full mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           {/* Hero Left Content */}
           <div className="lg:col-span-6 flex flex-col text-center lg:text-left items-center lg:items-start animate-fade-up">
@@ -138,7 +138,7 @@ export default async function Home() {
 
       {/* 2. Brew Streak Campaign Strip */}
       {campaign ? (
-        <section className="px-4 z-10">
+        <section className="px-4 z-10 w-full max-w-full overflow-x-hidden">
           <div className="max-w-[1240px] mx-auto px-6 py-4 bg-[#FCFBF8] border border-latte/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm text-center sm:text-left">
             <span className="text-espresso font-body text-sm font-medium">
               ☕ <span className="font-semibold text-roasted">{campaign.name}</span>: {campaign.tagline}
@@ -152,7 +152,7 @@ export default async function Home() {
           </div>
         </section>
       ) : (
-        <section className="px-4 z-10">
+        <section className="px-4 z-10 w-full max-w-full overflow-x-hidden">
           <div className="max-w-[1240px] mx-auto px-6 py-3.5 bg-[#FCFBF8] border border-latte/20 rounded-2xl flex items-center justify-center gap-2.5 shadow-sm text-center">
             <svg className="w-4 h-4 text-roasted flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -165,8 +165,8 @@ export default async function Home() {
       )}
 
       {/* 3. Most Loved (Featured Menu Carousel) */}
-      <section className="py-24 md:py-32 max-w-[1200px] mx-auto px-4 md:px-6">
-        <div className="text-center max-w-xl mx-auto mb-12">
+      <section className="py-24 md:py-32 w-full max-w-[1200px] mx-auto px-4 md:px-6 overflow-x-hidden">
+        <div className="text-center max-w-xl mx-auto mb-12 px-4">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
             Customer Favorites
           </span>
@@ -180,7 +180,7 @@ export default async function Home() {
 
         <FeaturedCarousel items={featuredItems} />
 
-        <div className="text-center mt-12">
+        <div className="flex justify-center px-4 mt-12">
           <Link
             href="/menu"
             className="inline-flex items-center justify-center px-6 py-2.5 border border-espresso/20 text-espresso hover:bg-espresso hover:text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 shadow-sm"
@@ -191,7 +191,7 @@ export default async function Home() {
       </section>
 
       {/* 4. Location Teaser (Visit Our Space) */}
-      <section className="py-24 md:py-32 border-y border-latte/30 bg-warm-white">
+      <section className="py-24 md:py-32 border-y border-latte/30 bg-warm-white w-full max-w-full overflow-x-hidden">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-14 items-center">
           {/* Location Content (Left) */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md mx-auto md:mx-0 order-1">
@@ -240,7 +240,7 @@ export default async function Home() {
       </section>
 
       {/* 5. Follow Our Journey Section */}
-      <section className="py-24 md:py-32 bg-cream text-espresso">
+      <section className="py-24 md:py-32 bg-cream text-espresso w-full max-w-full overflow-x-hidden">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             

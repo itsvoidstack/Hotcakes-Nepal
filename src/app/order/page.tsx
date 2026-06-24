@@ -119,7 +119,7 @@ export default async function OrderPage() {
       {/* 3. Ordering Options Cards */}
       <div className="max-w-[1240px] w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 md:mb-24 px-4 animate-fade-up">
         {/* Bhoj Card */}
-        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
           <div>
             {/* Custom Bhoj Logo with Splash */}
             <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
@@ -158,7 +158,7 @@ export default async function OrderPage() {
         </div>
 
         {/* Foodmandu Card */}
-        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
           <div>
             {/* Custom Foodmandu Logo with Splash */}
             <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
@@ -205,7 +205,7 @@ export default async function OrderPage() {
         </div>
 
         {/* Custom Order Card */}
-        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
           <div>
             {/* Custom Order Icon with Splash */}
             <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
