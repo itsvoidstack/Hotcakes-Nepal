@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #F7F4EF; /* Cream */
-  --foreground: #2E221B; /* Espresso */
+  --background: #F5F0EA; /* Primary Background */
+  --foreground: #2A1D16; /* Primary Text */
 }
 
 html {

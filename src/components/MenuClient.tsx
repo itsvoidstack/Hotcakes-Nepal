@@ -38,9 +38,9 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
   }, [initialItems, selectedCategory, searchQuery]);
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-12">
+    <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-0 pb-12">
       {/* Search Bar */}
-      <div className="max-w-md mx-auto mb-10">
+      <div className="max-w-md mx-auto mb-6">
         <div className="relative">
           <input
             type="text"
@@ -63,7 +63,7 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
       </div>
 
       {/* Category Tabs (Horizontally Scrollable, No Scrollbars Visible) */}
-      <div className="flex overflow-x-auto gap-6 pb-4 mb-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center">
+      <div className="flex overflow-x-auto gap-6 pb-2.5 mb-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center">
         {categories.map((category) => (
           <button
             key={category}
@@ -85,15 +85,15 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
           filteredItems.map((item) => (
             <div
               key={item.id}
-              className={`group flex flex-col ${!item.is_available ? 'opacity-50' : ''}`}
+              className={`group flex flex-col hover:-translate-y-1 transition-all duration-250 ease-out ${!item.is_available ? 'opacity-50' : ''}`}
             >
               {/* Image Container */}
-              <div className="relative aspect-[4/3] w-full bg-latte/30 rounded-3xl overflow-hidden mb-4 group-hover:shadow-lg group-hover:shadow-roasted/10 transition-all duration-500">
+              <div className="relative aspect-[4/3] w-full bg-latte/30 rounded-3xl overflow-hidden mb-4 group-hover:shadow-sm transition-all duration-250 ease-out">
                 <ImageWithFallback
                   src={item.image_url || '/images/menu/placeholder.jpg'}
                   alt={item.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover group-hover:scale-[1.03] transition-transform duration-250 ease-out"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   fallbackEmoji="🥞"
                 />

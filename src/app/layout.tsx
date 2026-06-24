@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -15,9 +15,9 @@ const playfair = Playfair_Display({
   weight: ["400", "500", "600", "700"],
 });
 
-const plusJakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-plus-jakarta",
+  variable: "--font-inter",
   weight: ["400", "500", "600", "700"],
 });
 
@@ -45,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${playfair.variable} ${plusJakarta.variable} font-body bg-cream text-espresso antialiased min-h-screen pb-20 md:pb-0`}
+        className={`${playfair.variable} ${inter.variable} font-body bg-cream text-espresso antialiased min-h-screen pb-20 md:pb-0`}
       >
         <Navbar logo={<SiteLogo />} />
         <MaintenanceWrapper>
