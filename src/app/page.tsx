@@ -139,7 +139,7 @@ export default async function Home() {
               href="/streak"
               className="inline-flex items-center justify-center px-5 py-2 bg-roasted hover:bg-dark-roast text-cream text-[10px] uppercase tracking-wider font-semibold rounded-full shadow-sm transition-all active:scale-[0.98]"
             >
-              Start Streak
+              View Campaigns
             </Link>
           </div>
         </section>

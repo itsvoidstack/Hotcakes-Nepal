@@ -40,7 +40,7 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
   return (
     <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-0 pb-12">
       {/* Search Bar */}
-      <div className="max-w-md mx-auto mb-6">
+      <div className="max-w-md mx-auto mb-5">
         <div className="relative">
           <input
             type="text"
@@ -63,7 +63,7 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
       </div>
 
       {/* Category Tabs (Horizontally Scrollable, No Scrollbars Visible) */}
-      <div className="flex overflow-x-auto gap-6 pb-2.5 mb-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center">
+      <div className="flex overflow-x-auto gap-6 pb-2.5 mb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center">
         {categories.map((category) => (
           <button
             key={category}

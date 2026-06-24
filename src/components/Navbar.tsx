@@ -24,7 +24,7 @@ export default function Navbar({ logo }: NavbarProps) {
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Menu', path: '/menu' },
-    { label: 'Streak', path: '/streak' },
+    { label: 'Campaigns', path: '/streak' },
     { label: 'Vacancies', path: '/vacancies' },
     { label: 'Location', path: '/location' },
     { label: 'Contact', path: '/contact' },

@@ -8,7 +8,7 @@ const quickLinks = [
   { href: '/location', label: 'Location' },
   { href: '/contact', label: 'Contact' },
   { href: '/vacancies', label: 'Vacancies' },
-  { href: '/streak', label: 'Brew Streak Rewards' },
+  { href: '/streak', label: 'Campaigns' },
 ];
 
 export default async function Footer() {
