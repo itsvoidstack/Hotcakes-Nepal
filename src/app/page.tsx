@@ -2,6 +2,7 @@ import Link from 'next/link';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import FeaturedCarousel from '@/components/FeaturedCarousel';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
+import { getOpeningHoursStatus, OpeningHours } from '@/lib/openingHours';
 
 export const revalidate = 60;
 
@@ -16,7 +17,8 @@ export default async function Home() {
     heroImageResult,
     contactsResult,
     locPhotosResult,
-    showcaseResult
+    showcaseResult,
+    openingHoursResult
   ] = await Promise.all([
     // 1. Fetch active campaign
     supabase.from('campaigns').select('*').eq('is_active', true).single(),
@@ -31,7 +33,9 @@ export default async function Home() {
     // 6. Fetch location photos for Visit Us section
     supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle(),
     // 7. Fetch contact showcase images
-    supabase.from('site_settings').select('value').eq('key', 'contact_showcase_images').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'contact_showcase_images').maybeSingle(),
+    // 8. Fetch opening hours settings
+    supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle()
   ]);
 
   const campaignData = campaignResult.data;
@@ -43,6 +47,10 @@ export default async function Home() {
   const featuredItems = menuResult.data || [];
   const openSetting = openSettingResult.data;
   const isOpen = (openSetting?.value as { is_open?: boolean })?.is_open ?? true;
+
+  const hoursSetting = openingHoursResult?.data;
+  const openingHours = hoursSetting?.value ? (hoursSetting.value as OpeningHours) : null;
+  const statusInfo = getOpeningHoursStatus(openingHours, isOpen);
 
   const heroImageUrl = (heroImageResult?.data?.value as { url?: string })?.url || "/images/hero/hero-main.jpg";
 
@@ -75,15 +83,15 @@ export default async function Home() {
         <div className="max-w-[1240px] w-full mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           {/* Hero Left Content */}
           <div className="lg:col-span-6 flex flex-col text-center lg:text-left items-center lg:items-start animate-fade-up">
-            {isOpen ? (
+            {statusInfo.isOpen ? (
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider font-body bg-olive/10 text-olive mb-6 uppercase">
                 <span className="w-1.5 h-1.5 rounded-full bg-olive animate-pulse" />
-                We are open
+                {statusInfo.statusText}
               </span>
             ) : (
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider font-body bg-muted-red/10 text-muted-red mb-6 uppercase">
                 <span className="w-1.5 h-1.5 rounded-full bg-muted-red" />
-                Closed for now
+                {statusInfo.statusText}
               </span>
             )}
             
@@ -202,7 +210,7 @@ export default async function Home() {
                 <span className="font-semibold text-roasted">Address:</span> {getContact('address') || 'Hattiban, Lalitpur'}
               </p>
               <p>
-                <span className="font-semibold text-roasted">Hours:</span> 8:00 AM – 8:00 PM (Daily)
+                <span className="font-semibold text-roasted">Hours:</span> {statusInfo.todayHoursText} <span className="text-xs text-mocha">({statusInfo.statusText})</span>
               </p>
             </div>
             

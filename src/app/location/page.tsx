@@ -2,6 +2,7 @@ import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
+import { getOpeningHoursStatus, OpeningHours, DAY_NAMES, formatDayHours } from '@/lib/openingHours';
 
 type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
 
@@ -14,12 +15,21 @@ export default async function LocationPage() {
   const [
     contactResult,
     mapsResult,
-    locPhotosResult
+    locPhotosResult,
+    openingHoursResult,
+    openStatusResult
   ] = await Promise.all([
     supabase.from('contact_info').select('*'),
     supabase.from('site_settings').select('value').eq('key', 'google_maps').maybeSingle(),
-    supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle()
   ]);
+
+  const isOpen = (openStatusResult?.data?.value as { is_open?: boolean })?.is_open ?? true;
+  const hoursSetting = openingHoursResult?.data;
+  const openingHours = hoursSetting?.value ? (hoursSetting.value as OpeningHours) : null;
+  const statusInfo = getOpeningHoursStatus(openingHours, isOpen);
 
   const contacts = contactResult.data;
   const getContact = (key: string) => {
@@ -97,7 +107,8 @@ export default async function LocationPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Opening Hours</span>
-                <p className="font-body text-sm md:text-base text-espresso font-medium">Daily: 8:00 AM – 8:00 PM</p>
+                <p className="font-body text-sm md:text-base text-espresso font-medium">{statusInfo.todayHoursText}</p>
+                <p className="text-xs text-mocha">{statusInfo.statusText}</p>
               </div>
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Phone Number</span>
@@ -175,8 +186,20 @@ export default async function LocationPage() {
                 ⏰
               </div>
               <h3 className="font-heading font-bold text-lg text-espresso">Opening Hours</h3>
-              <p className="font-body text-mocha/90 text-sm leading-relaxed">
-                Open Daily: 8:00 AM – 8:00 PM. Serving hot cakes, fresh brews, and signature desserts all day. Kitchen closes at 7:45 PM.
+              <div className="space-y-1.5 pt-1">
+                {DAY_NAMES.map((day) => {
+                  const dayHours = openingHours?.[day] || { isClosed: false, openTime: '08:00', closeTime: '20:00' };
+                  const formatted = formatDayHours(dayHours);
+                  return (
+                    <div key={day} className="flex justify-between font-body text-xs text-mocha/90">
+                      <span className="capitalize font-semibold">{day}:</span>
+                      <span>{formatted}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-mocha font-body mt-2 leading-relaxed">
+                Serving hot cakes, fresh brews, and signature desserts all day. Kitchen closes 15 mins prior to closing.
               </p>
             </div>
 

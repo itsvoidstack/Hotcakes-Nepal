@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
+import { getOpeningHoursStatus, OpeningHours } from '@/lib/openingHours';
 
 const quickLinks = [
   { href: '/', label: 'Home' },
@@ -12,19 +13,35 @@ const quickLinks = [
 ];
 
 export default async function Footer() {
-  let hasTiktok = false
+  let contacts: { key: string; value: string }[] = [];
+  let openingHours: OpeningHours | null = null;
+  let isOpen = true;
+  let hasTiktok = false;
+  let address = 'Hattiban, Lalitpur';
+  let phone = '+977 976-3687532';
+
   try {
     const supabase = getSupabaseAdmin();
-    const { data: tiktokRecord } = await supabase
-      .from('contact_info')
-      .select('value')
-      .eq('key', 'tiktok')
-      .maybeSingle();
+    const [contactRes, hoursRes, openRes] = await Promise.all([
+      supabase.from('contact_info').select('*'),
+      supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
+      supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle()
+    ]);
 
-    hasTiktok = Boolean(tiktokRecord?.value?.trim());
-  } catch {
-    hasTiktok = false
+    contacts = contactRes.data || [];
+    openingHours = hoursRes.data?.value ? (hoursRes.data.value as OpeningHours) : null;
+    isOpen = (openRes.data?.value as { is_open?: boolean })?.is_open ?? true;
+
+    const tiktokVal = contacts.find(c => c.key === 'tiktok')?.value;
+    hasTiktok = Boolean(tiktokVal?.trim());
+
+    address = contacts.find(c => c.key === 'address')?.value || address;
+    phone = contacts.find(c => c.key === 'phone')?.value || phone;
+  } catch (err) {
+    console.error('Error loading footer settings:', err);
   }
+
+  const statusInfo = getOpeningHoursStatus(openingHours, isOpen);
 
   return (
     <footer className="bg-[#F7F2EC] text-espresso relative overflow-hidden border-t border-latte/40">
@@ -102,7 +119,7 @@ export default async function Footer() {
               Locations
             </h3>
             <p className="font-body text-xs md:text-sm text-mocha/90 leading-relaxed font-semibold">
-              Hattiban, Lalitpur
+              {address}
             </p>
             <p className="font-body text-xs md:text-sm text-mocha/70 leading-relaxed mt-1">
               Tucked away in the quiet street of Hattiban, Lalitpur.
@@ -123,15 +140,15 @@ export default async function Footer() {
               Hours
             </h3>
             <p className="font-body text-xs md:text-sm text-mocha/95 leading-relaxed font-semibold">
-              Daily: 8:00 AM – 8:00 PM
+              {statusInfo.todayHoursText}
             </p>
             <p className="font-body text-xs text-mocha/70 mt-0.5">
-              Kitchen closes at 7:45 PM
+              {statusInfo.statusText}
             </p>
             <div className="mt-4 space-y-2 pt-2 border-t border-latte/40">
               <p className="font-body text-xs text-mocha/80">
-                <a href="tel:+9779763687532" className="hover:text-roasted transition-colors duration-200">
-                  📞 +977 976-3687532
+                <a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-roasted transition-colors duration-200">
+                  📞 {phone}
                 </a>
               </p>
               <div className="flex flex-wrap gap-2.5 items-center mt-3">

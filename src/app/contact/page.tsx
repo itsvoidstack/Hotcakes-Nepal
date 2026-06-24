@@ -2,6 +2,7 @@ import Link from 'next/link';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
+import { getOpeningHoursStatus, OpeningHours } from '@/lib/openingHours';
 
 type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
 
@@ -49,11 +50,20 @@ export default async function ContactPage() {
   // Fetch contact info and showcase images in parallel
   const [
     contactResult, 
-    showcaseResult
+    showcaseResult,
+    openingHoursResult,
+    openStatusResult
   ] = await Promise.all([
     supabase.from('contact_info').select('*'),
-    supabase.from('site_settings').select('value').eq('key', 'contact_showcase_images').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'contact_showcase_images').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle()
   ]);
+
+  const isOpen = (openStatusResult?.data?.value as { is_open?: boolean })?.is_open ?? true;
+  const hoursSetting = openingHoursResult?.data;
+  const openingHours = hoursSetting?.value ? (hoursSetting.value as OpeningHours) : null;
+  const statusInfo = getOpeningHoursStatus(openingHours, isOpen);
 
   const contacts = contactResult.data;
   const getContact = (key: string) => contacts?.find((c: ContactInfo) => c.key === key)?.value ?? '';
@@ -179,7 +189,7 @@ export default async function ContactPage() {
             {phoneNumber && <span className="opacity-40">•</span>}
             <span className="font-medium">{address}</span>
             <span className="opacity-40">•</span>
-            <span className="font-medium">8:00 AM – 8:00 PM (Daily)</span>
+            <span className="font-medium">{statusInfo.todayHoursText} ({statusInfo.statusText})</span>
           </div>
         </div>
       </div>

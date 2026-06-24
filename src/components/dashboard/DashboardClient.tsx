@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Database } from '@/lib/supabase/database.types';
+import { OpeningHours, DEFAULT_OPENING_HOURS, DAY_NAMES } from '@/lib/openingHours';
 
 type StreakRecord = Database['public']['Tables']['streak_records']['Row'] & {
   rewards_redeemed?: number;
@@ -144,6 +145,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [contacts, setContacts] = useState<ContactInfo[]>([]);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [openingHours, setOpeningHours] = useState<OpeningHours>(DEFAULT_OPENING_HOURS);
   
   // 6. Additional Media States
   const [locationPhotos, setLocationPhotos] = useState<string[]>([]);
@@ -219,6 +221,13 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         
         const contactShowcaseSet = siteSettings.find((s: SiteSetting) => s.key === 'contact_showcase_images');
         setContactShowcaseImages((contactShowcaseSet?.value as string[]) || []);
+
+        const hoursSetting = siteSettings.find((s: SiteSetting) => s.key === 'opening_hours');
+        if (hoursSetting?.value) {
+          setOpeningHours(hoursSetting.value as OpeningHours);
+        } else {
+          setOpeningHours(DEFAULT_OPENING_HOURS);
+        }
       }
       
       await loadStreakData();
@@ -821,6 +830,13 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           body: JSON.stringify({ type: 'campaign', data: campaign })
         });
       }
+
+      // 6. Save opening hours
+      await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'opening_hours', data: openingHours })
+      });
 
       showFeedback('Saved successfully');
       loadData();
@@ -1768,6 +1784,80 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 />
                 Show cafe open banner strip on home page
               </label>
+            </div>
+
+            {/* Cafe Opening Hours */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
+              <h2 className="font-heading font-bold text-lg text-espresso">Cafe Opening Hours</h2>
+              <p className="text-xs text-mocha font-body">Configure the opening times and closed days for each day of the week.</p>
+              
+              <div className="space-y-3">
+                {DAY_NAMES.map((day) => {
+                  const dayHours = openingHours[day] || DEFAULT_OPENING_HOURS[day];
+                  return (
+                    <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-latte/30 last:border-0 last:pb-0">
+                      <span className="capitalize font-body text-sm font-semibold text-espresso min-w-[90px]">
+                        {day}
+                      </span>
+                      
+                      <div className="flex flex-wrap items-center gap-4">
+                        {/* Closed Toggle */}
+                        <label className="flex items-center gap-1.5 font-body text-xs font-semibold text-espresso cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={dayHours.isClosed}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setOpeningHours(prev => ({
+                                ...prev,
+                                [day]: { ...prev[day], isClosed: checked }
+                              }));
+                            }}
+                            className="w-3.5 h-3.5 rounded text-roasted focus:ring-roasted cursor-pointer"
+                          />
+                          Closed
+                        </label>
+                        
+                        {/* Open Time */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] uppercase font-bold text-mocha">Open:</span>
+                          <input
+                            type="time"
+                            value={dayHours.openTime}
+                            disabled={dayHours.isClosed}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setOpeningHours(prev => ({
+                                ...prev,
+                                [day]: { ...prev[day], openTime: val }
+                              }));
+                            }}
+                            className="h-8 px-2 bg-warm-white border border-latte rounded-lg font-body text-espresso text-xs focus:outline-none focus:ring-2 focus:ring-roasted disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                        </div>
+                        
+                        {/* Close Time */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] uppercase font-bold text-mocha">Close:</span>
+                          <input
+                            type="time"
+                            value={dayHours.closeTime}
+                            disabled={dayHours.isClosed}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setOpeningHours(prev => ({
+                                ...prev,
+                                [day]: { ...prev[day], closeTime: val }
+                              }));
+                            }}
+                            className="h-8 px-2 bg-warm-white border border-latte rounded-lg font-body text-espresso text-xs focus:outline-none focus:ring-2 focus:ring-roasted disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Online Order Link */}
