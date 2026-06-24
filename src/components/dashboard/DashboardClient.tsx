@@ -147,11 +147,13 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   
   // 6. Additional Media States
   const [locationPhotos, setLocationPhotos] = useState<string[]>([]);
+  const [contactShowcaseImages, setContactShowcaseImages] = useState<string[]>([]);
   const [heroImageUrl, setHeroImageUrl] = useState<string>('');
   const [logoImageUrl, setLogoImageUrl] = useState<string>('');
   const [uploadingMenu, setUploadingMenu] = useState(false);
   const [uploadingVacancy, setUploadingVacancy] = useState(false);
   const [uploadingLocation, setUploadingLocation] = useState(false);
+  const [uploadingContactShowcase, setUploadingContactShowcase] = useState(false);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -214,6 +216,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
         const logoSet = siteSettings.find((s: SiteSetting) => s.key === 'logo_image');
         setLogoImageUrl((logoSet?.value as { url?: string })?.url || '');
+        
+        const contactShowcaseSet = siteSettings.find((s: SiteSetting) => s.key === 'contact_showcase_images');
+        setContactShowcaseImages((contactShowcaseSet?.value as string[]) || []);
       }
       
       await loadStreakData();
@@ -612,6 +617,71 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!saveRes.ok) throw new Error('Failed to update settings');
 
       showFeedback('Saved successfully');
+      loadData();
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // CONTACT SHOWCASE IMAGE MANAGEMENT
+  // ==========================================
+  const handleUploadContactShowcaseImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (uploadingContactShowcase) return;
+    if (contactShowcaseImages.length >= 8) return;
+
+    setUploadingContactShowcase(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'contact-showcase-images');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload image');
+
+      const updatedImages = [...contactShowcaseImages, data.url].slice(-8);
+      setContactShowcaseImages(updatedImages);
+
+      const saveRes = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'contact_showcase_images', data: { images: updatedImages } })
+      });
+      if (!saveRes.ok) throw new Error('Failed to update settings');
+
+      showFeedback('Image uploaded successfully');
+      loadData();
+    } catch {
+      showFeedback('Something went wrong. Try again.', true);
+    } finally {
+      setUploadingContactShowcase(false);
+    }
+  };
+
+  const handleDeleteContactShowcaseImage = async (imageUrl: string) => {
+    if (!confirm('Are you sure you want to delete this showcase image?')) return;
+    setLoading(true);
+    try {
+      const updatedImages = contactShowcaseImages.filter(p => p !== imageUrl);
+      setContactShowcaseImages(updatedImages);
+
+      const saveRes = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ type: 'contact_showcase_images', data: { images: updatedImages } })
+      });
+      if (!saveRes.ok) throw new Error('Failed to update settings');
+
+      showFeedback('Image deleted successfully');
       loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
@@ -1983,6 +2053,44 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               </div>
             </div>
 
+            {/* Contact Showcase Images */}
+            <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-heading font-bold text-lg text-espresso">Contact Showcase Images</h2>
+                <span className="text-xs font-semibold text-mocha">{contactShowcaseImages.length}/8</span>
+              </div>
+              <p className="text-xs text-mocha">Recommended: 1200px+ width (jpg, png, webp)</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {contactShowcaseImages.map((imageUrl, index) => (
+                  <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-latte bg-latte/30 group">
+                    <img
+                      src={imageUrl}
+                      alt={`Contact Showcase ${index + 1}`}
+                      className="object-cover w-full h-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteContactShowcaseImage(imageUrl)}
+                      className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-700 text-white rounded-full p-1 text-xs transition-colors"
+                      title="Delete Image"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleUploadContactShowcaseImage}
+                  disabled={uploadingContactShowcase || contactShowcaseImages.length >= 8}
+                  className="text-xs text-mocha font-body"
+                />
+                {uploadingContactShowcase && <span className="text-xs text-mocha animate-pulse">Uploading...</span>}
+              </div>
+            </div>
+
             {/* Brew Streak Campaign Setup */}
             {campaign && (
               <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
@@ -2033,7 +2141,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
             <button
               type="submit"
-              disabled={savingSettings || uploadingMenu || uploadingVacancy || uploadingLocation || uploadingHero || uploadingLogo}
+              disabled={savingSettings || uploadingMenu || uploadingVacancy || uploadingLocation || uploadingContactShowcase || uploadingHero || uploadingLogo}
               className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2"
             >
               {savingSettings ? (
