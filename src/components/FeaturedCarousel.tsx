@@ -101,37 +101,49 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
         {items.map((item) => (
           <div
             key={item.id}
-            className="snap-start flex-shrink-0 w-[280px] sm:w-[320px]"
+            className="snap-start flex-shrink-0 w-[260px] sm:w-[300px]"
           >
-            <div className="group flex flex-col bg-warm-white rounded-[24px] overflow-hidden border border-latte/80 hover:-translate-y-1.5 transition-all duration-300 hover:shadow-xl hover:shadow-espresso/5">
-              <div className="relative h-64 w-full bg-latte/30 overflow-hidden">
+            <div className="group flex flex-col bg-cream rounded-3xl overflow-hidden border border-latte/60 hover:-translate-y-2 transition-all duration-400 hover:shadow-xl hover:shadow-roasted/10">
+              <div className="relative aspect-[4/3] w-full bg-latte/30 overflow-hidden">
                 <ImageWithFallback
                   src={item.image_url || '/images/menu/placeholder.jpg'}
                   alt={item.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  sizes="(max-width: 768px) 80vw, 320px"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  sizes="(max-width: 768px) 80vw, 300px"
                   fallbackEmoji="🥞"
                 />
+                {/* Bestseller Badge - add to all featured items in carousel */}
+                <div className="absolute top-4 left-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-espresso/90 text-white rounded-full text-[10px] font-medium tracking-wide uppercase">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Bestseller
+                  </span>
+                </div>
               </div>
-              <div className="p-6 flex flex-col flex-grow">
-                <h3 className="font-heading font-bold text-xl text-espresso group-hover:text-roasted transition-colors mb-2 leading-snug">
-                  {item.name}
-                </h3>
-                <p className="font-body text-mocha/90 text-sm leading-relaxed mb-4 flex-grow min-h-[72px] line-clamp-3">
-                  {item.description || 'Prepared fresh daily using only quality local ingredients.'}
-                </p>
-                <div className="mt-4 pt-4 border-t border-latte/40 flex flex-col gap-3">
-                  <span className="font-heading text-roasted font-bold text-xl">
+              <div className="p-5 flex flex-col flex-grow">
+                <div className="flex items-baseline justify-between gap-2 mb-2">
+                  <h3 className="font-heading font-semibold text-xl text-espresso leading-tight">
+                    {item.name}
+                  </h3>
+                  <span className="font-body text-roasted font-medium text-base">
                     Rs. {item.price}
                   </span>
-                  <Link
-                    href="/order"
-                    className="w-full text-center py-3 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:shadow-md"
-                  >
-                    Order Now
-                  </Link>
                 </div>
+                <p className="font-body text-mocha/80 text-sm leading-relaxed mb-5 line-clamp-2">
+                  {item.description || 'Prepared fresh daily with premium ingredients.'}
+                </p>
+                <Link
+                  href="/order"
+                  className="group/btn w-full inline-flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-roasted to-dark-roast hover:from-dark-roast hover:to-espresso text-white text-xs uppercase tracking-widest font-semibold rounded-full transition-all duration-400 hover:shadow-lg hover:shadow-roasted/30"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  Order Now
+                </Link>
               </div>
             </div>
           </div>

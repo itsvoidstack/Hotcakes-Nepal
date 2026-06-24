@@ -14,11 +14,7 @@ export default function Navbar({ logo }: NavbarProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -35,32 +31,32 @@ export default function Navbar({ logo }: NavbarProps) {
 
   return (
     <header
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        scrolled
-          ? 'py-3.5 bg-cream/80 backdrop-blur-md border-b border-latte/40 shadow-sm'
-          : 'py-5 bg-transparent'
+      className={`sticky top-0 z-40 w-full h-[72px] flex items-center bg-cream/95 transition-shadow duration-300 ${
+        scrolled ? 'border-b border-latte/30 shadow-sm' : ''
       }`}
     >
-      <div className="max-w-[1280px] mx-auto px-4 md:px-6 flex items-center justify-between">
+      <div className="max-w-[1280px] w-full mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Left: Logo */}
-        {logo}
+        <div className="flex items-center">
+          {logo}
+        </div>
 
         {/* Center: Links (Desktop Only) */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => {
             const isActive = pathname === link.path;
             return (
               <Link
                 key={link.path}
                 href={link.path}
-                className={`relative py-1 text-sm font-semibold tracking-wide transition-colors duration-200 hover:text-roasted ${
-                  isActive ? 'text-roasted' : 'text-mocha/80'
+                className={`relative group py-1 text-sm font-medium tracking-widest transition-all duration-300 ${
+                  isActive ? 'text-roasted' : 'text-mocha/70 hover:text-espresso'
                 }`}
               >
                 {link.label}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-roasted rounded-full animate-fade-in" />
-                )}
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-roasted transition-all duration-300 group-hover:w-full ${
+                  isActive ? 'w-full' : 'w-0'
+                }`} />
               </Link>
             );
           })}
@@ -70,9 +66,12 @@ export default function Navbar({ logo }: NavbarProps) {
         <div className="flex items-center gap-4">
           <Link
             href="/order"
-            className="px-6 py-2.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-md shadow-sm"
+            className="group inline-flex items-center justify-center gap-2 px-7 py-2.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-widest font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-lg shadow-md"
           >
             Order Now
+            <svg className="w-3 h-3 -mr-1 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
           </Link>
         </div>
       </div>

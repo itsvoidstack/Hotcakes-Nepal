@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Image from 'next/image';
+
 import Link from 'next/link';
+import ImageWithFallback from './ImageWithFallback';
 
 interface MenuItem {
   id: string;
@@ -84,45 +85,51 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
           filteredItems.map((item) => (
             <div
               key={item.id}
-              className={`group flex flex-col overflow-hidden ${!item.is_available ? 'opacity-50' : ''}`}
+              className={`group flex flex-col ${!item.is_available ? 'opacity-50' : ''}`}
             >
               {/* Image Container */}
-              <div className="relative aspect-[3/4] w-full bg-latte/20 overflow-hidden mb-4">
-                <Image
+              <div className="relative aspect-[4/3] w-full bg-latte/30 rounded-3xl overflow-hidden mb-4 group-hover:shadow-lg group-hover:shadow-roasted/10 transition-all duration-500">
+                <ImageWithFallback
                   src={item.image_url || '/images/menu/placeholder.jpg'}
                   alt={item.name}
                   fill
-                  className="object-cover"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  onError={(e) => {
-                    e.currentTarget.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Crect width%3D%22100%25%22 height%3D%22100%25%22 fill%3D%22%23E8DED2%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%2210%22 fill%3D%22%235E5248%22%3E🥞%3C%2Ftext%3E%3C%2Fsvg%3E';
-                  }}
+                  fallbackEmoji="🥞"
                 />
                 {item.is_featured && item.is_available && (
-                  <span className="absolute top-3 left-3 bg-white/90 text-espresso px-2 py-0.5 rounded-full text-[10px] font-serif">
-                    Bestseller
-                  </span>
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-espresso/90 text-white rounded-full text-[9px] font-medium tracking-wide uppercase">
+                      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      Bestseller
+                    </span>
+                  </div>
                 )}
               </div>
 
               {/* Item Details */}
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-heading font-semibold text-base text-espresso">
+                  <h3 className="font-heading font-semibold text-lg text-espresso leading-tight">
                     {item.name}
                   </h3>
-                  <span className="font-body text-xs text-roasted">
+                  <span className="font-body text-roasted font-medium text-sm">
                     Rs. {item.price}
                   </span>
                 </div>
-                <p className="font-body text-xs text-mocha/70 line-clamp-2">
-                  {item.description || 'Fresh & homemade daily.'}
+                <p className="font-body text-mocha/80 text-sm line-clamp-2">
+                  {item.description || 'Fresh & homemade daily with premium ingredients.'}
                 </p>
                 {item.is_available && (
                   <Link
                     href="/order"
-                    className="mt-2 text-[10px] font-medium text-roasted hover:text-espresso transition-colors uppercase tracking-wider"
+                    className="group/btn inline-flex items-center justify-center gap-1.5 mt-1 py-2 bg-roasted/5 hover:bg-roasted text-roasted hover:text-white text-[10px] uppercase tracking-widest font-semibold rounded-full transition-all duration-300 border border-roasted/20"
                   >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
                     Order Now
                   </Link>
                 )}
