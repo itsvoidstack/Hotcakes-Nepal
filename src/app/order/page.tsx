@@ -1,8 +1,16 @@
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import { getOpeningHoursStatus, OpeningHours } from '@/lib/openingHours';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Order Online | Hotcakes Nepal",
+  alternates: {
+    canonical: "https://hotcakes-nepal.vercel.app/order"
+  }
+};
 
 export default async function OrderPage() {
   const supabase = getSupabaseAdmin();

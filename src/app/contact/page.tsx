@@ -3,10 +3,18 @@ import ImageWithFallback from '@/components/ImageWithFallback';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
 import { getOpeningHoursStatus, OpeningHours } from '@/lib/openingHours';
+import type { Metadata } from 'next';
 
 type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Contact Us | Hotcakes Nepal",
+  alternates: {
+    canonical: "https://hotcakes-nepal.vercel.app/contact"
+  }
+};
 
 // Coordinates for responsive floating image layout
 const imagePositions = [

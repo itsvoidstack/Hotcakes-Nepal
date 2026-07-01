@@ -3,8 +3,16 @@ import ImageWithFallback from '@/components/ImageWithFallback';
 import FeaturedCarousel from '@/components/FeaturedCarousel';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import { getOpeningHoursStatus, OpeningHours } from '@/lib/openingHours';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Hotcakes Nepal | Premium Pancakes & Coffee",
+  alternates: {
+    canonical: "https://hotcakes-nepal.vercel.app"
+  }
+};
 
 export default async function Home() {
   const supabase = getSupabaseAdmin();

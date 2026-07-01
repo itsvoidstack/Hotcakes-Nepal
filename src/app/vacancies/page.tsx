@@ -1,10 +1,18 @@
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
+import type { Metadata } from 'next';
 
 type Vacancy = Database['public']['Tables']['vacancies']['Row'];
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Careers | Hotcakes Nepal",
+  alternates: {
+    canonical: "https://hotcakes-nepal.vercel.app/vacancies"
+  }
+};
 
 // Helper to parse location and employment type from description or titles
 function parseVacancyDetails(description: string | null) {

@@ -1,7 +1,15 @@
 import MenuClient from '@/components/MenuClient';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Menu | Hotcakes Nepal",
+  alternates: {
+    canonical: "https://hotcakes-nepal.vercel.app/menu"
+  }
+};
 
 export default async function MenuPage() {
   const supabase = getSupabaseAdmin();

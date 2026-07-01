@@ -1,8 +1,16 @@
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import StreakSearch from '@/components/StreakSearch';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Rewards & Campaigns | Hotcakes Nepal",
+  alternates: {
+    canonical: "https://hotcakes-nepal.vercel.app/streak"
+  }
+};
 
 export default async function StreakPage() {
   const supabase = getSupabaseAdmin();

@@ -3,10 +3,18 @@ import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
 import { getOpeningHoursStatus, OpeningHours, DAY_NAMES, formatDayHours } from '@/lib/openingHours';
+import type { Metadata } from 'next';
 
 type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Visit Us | Hotcakes Nepal",
+  alternates: {
+    canonical: "https://hotcakes-nepal.vercel.app/location"
+  }
+};
 
 export default async function LocationPage() {
   const supabase = getSupabaseAdmin();

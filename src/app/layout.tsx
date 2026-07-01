@@ -22,15 +22,35 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Hotcakes Nepal | Premium Cafe & Coffee Boutique",
-  description: "Experience the warm, cozy, and premium coffee and hotcakes boutique in Nepal. 10 visits = 1 free coffee. Start your streak today.",
+  metadataBase: new URL('https://hotcakes-nepal.vercel.app'),
+  title: "Hotcakes Nepal | Premium Pancakes, Coffee & Cafe in Hattiban, Lalitpur",
+  description: "Hotcakes Nepal is a cozy cafe in Hattiban, Lalitpur serving premium pancakes, specialty coffee, desserts, breakfast, and handcrafted beverages. Visit us near Little Angels School.",
+  keywords: [
+    "Hotcakes Nepal",
+    "Cafe in Hattiban",
+    "Cafe in Lalitpur",
+    "Cafe near Little Angels",
+    "Pancakes in Kathmandu",
+    "Coffee in Lalitpur",
+    "Breakfast cafe Nepal",
+    "Dessert cafe Kathmandu",
+    "Coffee shop Hattiban"
+  ],
+  authors: [{ name: "Hotcakes Nepal" }],
   openGraph: {
-    title: "Hotcakes Nepal | Premium Cafe & Coffee Boutique",
-    description: "Experience the warm, cozy, and premium coffee and hotcakes boutique in Nepal. 10 visits = 1 free coffee. Start your streak today.",
+    title: "Hotcakes Nepal | Premium Pancakes, Coffee & Cafe in Hattiban, Lalitpur",
+    description: "Hotcakes Nepal is a cozy cafe in Hattiban, Lalitpur serving premium pancakes, specialty coffee, desserts, breakfast, and handcrafted beverages. Visit us near Little Angels School.",
     type: "website",
     locale: "en_US",
     siteName: "Hotcakes Nepal",
+    images: ["/images/hero/hero-main.jpg"]
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hotcakes Nepal | Premium Pancakes, Coffee & Cafe in Hattiban, Lalitpur",
+    description: "Hotcakes Nepal is a cozy cafe in Hattiban, Lalitpur serving premium pancakes, specialty coffee, desserts, breakfast, and handcrafted beverages. Visit us near Little Angels School.",
+    images: ["/images/hero/hero-main.jpg"]
+  }
 };
 
 export default function RootLayout({
