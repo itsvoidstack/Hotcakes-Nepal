@@ -23,6 +23,9 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://hotcakes-nepal.vercel.app'),
+  verification: {
+    google: "FUggnaI0TbJr1Z5bUeK5oT3el1nkgxnQvn2zH1ijXnc",
+  },
   title: "Hotcakes Nepal | Premium Pancakes, Coffee & Cafe in Hattiban, Lalitpur",
   description: "Hotcakes Nepal is a cozy cafe in Hattiban, Lalitpur serving premium pancakes, specialty coffee, desserts, breakfast, and handcrafted beverages. Visit us near Little Angels School.",
   keywords: [
