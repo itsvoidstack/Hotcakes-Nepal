@@ -231,16 +231,17 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
 
       {/* Tabs */}
       <div className="w-full overflow-hidden">
-        <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {DEV_TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-roasted text-white shadow-sm'
                 : 'text-mocha hover:bg-latte/10'
             }`}
+            style={{ minHeight: '44px' }}
           >
             {tab.label}
           </button>
@@ -253,7 +254,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
       {/* 1. HEALTH TAB */}
       {activeTab === 'health' && !loading && healthData && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="glass-card p-6 rounded-2xl border border-latte text-center">
               <span className="text-xs font-bold text-mocha uppercase tracking-wider block mb-2">Supabase Connectivity</span>
               <span className={`text-lg font-bold ${healthData.db_connection === 'healthy' ? 'text-olive' : 'text-muted-red'}`}>
@@ -294,7 +295,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
       {/* 2. DATABASE VIEWER */}
       {activeTab === 'database' && !loading && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 className="font-heading font-bold text-lg text-espresso">Select Database Table</h3>
               <p className="font-body text-xs text-mocha">Displaying up to 100 most recent records</p>
@@ -302,7 +303,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
             <select
               value={selectedTable}
               onChange={(e) => setSelectedTable(e.target.value)}
-              className="h-11 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm"
+              className="w-full sm:w-auto h-11 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm"
             >
               {TABLES_LIST.map(table => (
                 <option key={table} value={table}>{table}</option>
@@ -310,15 +311,16 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
             </select>
           </div>
 
-          <div className="overflow-x-auto border border-latte rounded-[24px] bg-warm-white">
+          <div className="overflow-x-auto border border-latte rounded-[24px] bg-warm-white -mx-4 md:mx-0">
+            <div className="min-w-[560px]">
             {tableRows.length > 0 ? (
               <table className="w-full border-collapse text-left text-xs font-body">
                 <thead>
                   <tr className="bg-latte/20 font-bold uppercase tracking-wider text-mocha border-b border-latte">
                     {Object.keys(tableRows[0]).map((key) => (
-                      <th key={key} className="p-4 whitespace-nowrap">{key}</th>
+                      <th key={key} className="p-3 whitespace-nowrap">{key}</th>
                     ))}
-                    <th className="p-4 whitespace-nowrap text-right">Actions</th>
+                    <th className="p-3 whitespace-nowrap text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-latte/60 text-espresso">
@@ -334,15 +336,15 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
                           displayVal = String(val);
                         }
                         return (
-                          <td key={cellIdx} className="p-4 max-w-xs truncate" title={String(val)}>
+                          <td key={cellIdx} className="p-3 max-w-[160px] truncate" title={String(val)}>
                             {displayVal}
                           </td>
                         );
                       })}
-                      <td className="p-4 text-right">
+                      <td className="p-3 text-right">
                         <button
                           onClick={() => handleDeleteRow(row)}
-                          className="px-2.5 py-1 bg-[#A85A52] hover:bg-[#8e4841] text-white rounded font-semibold transition-colors"
+                          className="px-2.5 py-1 bg-[#A85A52] hover:bg-[#8e4841] text-white rounded font-semibold transition-colors text-xs"
                         >
                           Delete
                         </button>
@@ -354,6 +356,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
             ) : (
               <div className="p-8 text-center text-mocha">No records found inside {selectedTable}.</div>
             )}
+            </div>
           </div>
         </div>
       )}
@@ -428,16 +431,18 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
 
           <div className="space-y-3">
             {tableRows.filter(isAuditLogRow).map((log) => (
-              <div key={log.id} className="p-4 bg-warm-white border border-latte rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                <div>
-                  <span className="text-xs font-bold text-mocha uppercase block">{new Date(log.created_at).toLocaleString()}</span>
-                  <span className="font-heading font-semibold text-espresso text-sm mt-0.5 block">{log.action}</span>
-                </div>
-                <div className="text-left md:text-right">
-                  <span className="text-xs text-mocha block">Operator: {log.performed_by || 'system'}</span>
-                  <code className="text-[10px] text-roasted font-mono bg-cream px-1.5 py-0.5 rounded inline-block mt-1">
-                    {JSON.stringify(log.details)}
-                  </code>
+              <div key={log.id} className="p-4 bg-warm-white border border-latte rounded-xl flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                  <div>
+                    <span className="text-xs font-bold text-mocha uppercase block">{new Date(log.created_at).toLocaleString()}</span>
+                    <span className="font-heading font-semibold text-espresso text-sm mt-0.5 block">{log.action}</span>
+                  </div>
+                  <div className="sm:text-right">
+                    <span className="text-xs text-mocha block">Operator: {log.performed_by || 'system'}</span>
+                    <code className="text-[10px] text-roasted font-mono bg-cream px-1.5 py-0.5 rounded inline-block mt-1 break-all">
+                      {JSON.stringify(log.details)}
+                    </code>
+                  </div>
                 </div>
               </div>
             ))}

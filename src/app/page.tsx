@@ -174,7 +174,7 @@ export default async function Home() {
       )}
 
       {/* 3. Most Loved (Featured Menu Carousel) */}
-      <section className="py-24 md:py-32 w-full max-w-[1200px] mx-auto px-4 md:px-6 overflow-x-hidden">
+      <section className="py-16 md:py-24 lg:py-32 w-full max-w-[1200px] mx-auto px-4 md:px-6 overflow-x-hidden">
         <div className="text-center max-w-xl mx-auto mb-12 px-4">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
             Customer Favorites
@@ -200,7 +200,7 @@ export default async function Home() {
       </section>
 
       {/* 4. Location Teaser (Visit Our Space) */}
-      <section className="py-24 md:py-32 border-y border-latte/30 bg-warm-white w-full max-w-full overflow-x-hidden">
+      <section className="py-16 md:py-24 lg:py-32 border-y border-latte/30 bg-warm-white w-full max-w-full overflow-x-hidden">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-14 items-center">
           {/* Location Content (Left) */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md mx-auto md:mx-0 order-1">
@@ -249,12 +249,49 @@ export default async function Home() {
       </section>
 
       {/* 5. Follow Our Journey Section */}
-      <section className="py-24 md:py-32 bg-cream text-espresso w-full max-w-full overflow-x-hidden">
+      <section className="py-16 md:py-24 lg:py-32 bg-cream text-espresso w-full max-w-full overflow-x-hidden">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            
+          {/* Center Content — always on top on mobile */}
+          <div className="text-center max-w-sm mx-auto flex flex-col items-center mb-10 lg:hidden">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-3 block">
+              FOLLOW OUR JOURNEY
+            </span>
+            <h2 className="font-heading font-medium text-3xl text-espresso mb-4 leading-tight">
+              Stay Connected With Hotcakes
+            </h2>
+            <p className="font-body text-mocha/80 text-xs md:text-sm leading-relaxed mb-6">
+              Get updates on seasonal specials, menu launches, community events and cafe stories.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-1.5 px-7 py-3 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-300"
+            >
+              Contact Us
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </Link>
+          </div>
+
+          {/* Mobile: single 4-col image row; Desktop: three-column layout */}
+          <div className="grid grid-cols-4 gap-3 lg:hidden">
+            {showcaseImages.slice(0, 4).map((imageUrl, idx) => (
+              <div key={idx} className="relative aspect-square w-full rounded-2xl overflow-hidden bg-latte/20 shadow-sm border border-latte/30">
+                <ImageWithFallback
+                  src={imageUrl}
+                  alt={`Gallery ${idx + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="25vw"
+                  fallbackEmoji="☕"
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden lg:grid lg:grid-cols-12 gap-10 items-center">
             {/* Left Image Grid (2x2) */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-4 order-2 lg:order-none">
+            <div className="lg:col-span-4 grid grid-cols-2 gap-4">
               {showcaseImages.slice(0, 4).map((imageUrl, idx) => (
                 <div key={idx} className="relative aspect-square w-full rounded-[24px] overflow-hidden bg-latte/20 shadow-sm border border-latte/30 group">
                   <ImageWithFallback
@@ -262,25 +299,23 @@ export default async function Home() {
                     alt={`Gallery Left ${idx + 1}`}
                     fill
                     className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                    sizes="(max-width: 768px) 150px, 200px"
+                    sizes="200px"
                     fallbackEmoji="☕"
                   />
                 </div>
               ))}
             </div>
-            
             {/* Center Content */}
-            <div className="lg:col-span-4 text-center px-4 max-w-sm mx-auto flex flex-col items-center order-1 lg:order-none mb-8 lg:mb-0">
+            <div className="lg:col-span-4 text-center px-4 max-w-sm mx-auto flex flex-col items-center">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-3 block">
                 FOLLOW OUR JOURNEY
               </span>
-              <h2 className="font-heading font-medium text-3xl md:text-4xl text-espresso mb-4 leading-tight">
+              <h2 className="font-heading font-medium text-4xl text-espresso mb-4 leading-tight">
                 Stay Connected With Hotcakes
               </h2>
-              <p className="font-body text-mocha/80 text-xs md:text-sm leading-relaxed mb-8">
+              <p className="font-body text-mocha/80 text-sm leading-relaxed mb-8">
                 Get updates on seasonal specials, menu launches, community events and cafe stories.
               </p>
-              
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center gap-1.5 px-7 py-3 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
@@ -291,9 +326,8 @@ export default async function Home() {
                 </svg>
               </Link>
             </div>
-            
             {/* Right Image Grid (2x2) */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-4 order-3 lg:order-none">
+            <div className="lg:col-span-4 grid grid-cols-2 gap-4">
               {showcaseImages.slice(4, 8).map((imageUrl, idx) => (
                 <div key={idx} className="relative aspect-square w-full rounded-[24px] overflow-hidden bg-latte/20 shadow-sm border border-latte/30 group">
                   <ImageWithFallback
@@ -301,13 +335,12 @@ export default async function Home() {
                     alt={`Gallery Right ${idx + 1}`}
                     fill
                     className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                    sizes="(max-width: 768px) 150px, 200px"
+                    sizes="200px"
                     fallbackEmoji="🥞"
                   />
                 </div>
               ))}
             </div>
-            
           </div>
         </div>
       </section>

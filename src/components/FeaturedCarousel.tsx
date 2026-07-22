@@ -104,16 +104,16 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
           {items.map((item) => (
             <div
               key={item.id}
-              className="snap-center flex-shrink-0 w-full px-4 md:w-[280px] lg:w-[300px] md:px-0"
+              className="snap-center flex-shrink-0 w-[85vw] max-w-[340px] px-2 md:w-[280px] lg:w-[300px] md:px-0"
             >
               <div className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-sm h-full">
-                <div className="relative h-52 md:h-auto md:aspect-[4/3] w-full bg-latte/20 overflow-hidden">
+                <div className="relative h-44 md:h-auto md:aspect-[4/3] w-full bg-latte/20 overflow-hidden">
                   <ImageWithFallback
                     src={item.image_url || '/images/menu/placeholder.jpg'}
                     alt={item.name}
                     fill
                     className="object-cover group-hover:scale-103 transition-transform duration-700"
-                    sizes="(max-width: 768px) 100vw, 300px"
+                    sizes="(max-width: 768px) 85vw, 300px"
                     fallbackEmoji="🥞"
                   />
                   {/* Bestseller Badge */}

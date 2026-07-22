@@ -70,7 +70,7 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
         <div
           role="tablist"
           aria-label="Filter menu by category"
-          className="flex overflow-x-auto gap-6 pb-2.5 mb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center"
+          className="flex overflow-x-auto gap-4 pb-2.5 mb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0 justify-start md:justify-center"
         >
           {categories.map((category) => (
             <button
@@ -78,11 +78,12 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
               role="tab"
               aria-selected={selectedCategory === category}
               onClick={() => setSelectedCategory(category)}
-              className={`whitespace-nowrap text-base font-serif italic transition-all duration-200 ${
+              className={`whitespace-nowrap text-base font-serif italic transition-all duration-200 py-2 px-1 ${
                 selectedCategory === category
                   ? 'text-roasted underline underline-offset-8 decoration-latte'
                   : 'text-mocha/80 hover:text-espresso'
               }`}
+              style={{ minHeight: '44px' }}
             >
               {category}
             </button>
@@ -121,16 +122,16 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
               </div>
 
               {/* Item Details */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-heading font-semibold text-lg text-espresso leading-tight">
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-start justify-between gap-1">
+                  <h3 className="font-heading font-semibold text-sm sm:text-base md:text-lg text-espresso leading-tight">
                     {item.name}
                   </h3>
-                  <span className="font-body text-roasted font-medium text-sm">
+                  <span className="font-body text-roasted font-medium text-xs sm:text-sm shrink-0">
                     Rs. {item.price}
                   </span>
                 </div>
-                <p className="font-body text-mocha/80 text-sm line-clamp-2">
+                <p className="font-body text-mocha/80 text-xs sm:text-sm line-clamp-2">
                   {item.description || 'Fresh & homemade daily with premium ingredients.'}
                 </p>
                 {item.is_available && (

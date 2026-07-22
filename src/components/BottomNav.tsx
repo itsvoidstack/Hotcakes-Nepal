@@ -56,7 +56,11 @@ export default function BottomNav() {
   ];
 
   return (
-    <nav aria-label="Bottom navigation" className="md:hidden fixed bottom-0 left-0 z-40 w-full h-16 bg-cream/92 backdrop-blur-md border-t border-latte flex items-center justify-around px-2 pb-safe shadow-[0_-2px_10px_rgba(46,34,27,0.05)]">
+    <nav
+      aria-label="Bottom navigation"
+      className="md:hidden fixed bottom-0 left-0 z-40 w-full bg-cream/95 backdrop-blur-md border-t border-latte/60 flex items-stretch justify-around shadow-[0_-4px_16px_rgba(46,34,27,0.07)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', minHeight: '64px' }}
+    >
       {navItems.map((item) => {
         const isActive = pathname === item.path;
         return (
@@ -64,13 +68,20 @@ export default function BottomNav() {
             key={item.path}
             href={item.path}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex flex-col items-center justify-center w-16 h-12 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-roasted ${
-              isActive ? 'text-roasted' : 'text-mocha hover:text-roasted'
+            className={`relative flex flex-col items-center justify-center py-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-roasted focus-visible:ring-inset rounded-xl ${
+              isActive ? 'text-roasted' : 'text-mocha/60 active:text-roasted'
             }`}
-            style={{ minWidth: '44px', minHeight: '44px' }}
+            style={{ minWidth: '52px', flex: 1 }}
           >
-            {item.icon}
-            <span className="text-[10px] font-medium mt-0.5">{item.label}</span>
+            {isActive && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-roasted" />
+            )}
+            <span className={`transition-transform duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}>
+              {item.icon}
+            </span>
+            <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? 'text-roasted' : 'text-mocha/60'}`}>
+              {item.label}
+            </span>
           </Link>
         );
       })}

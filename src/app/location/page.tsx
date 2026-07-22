@@ -94,7 +94,7 @@ export default async function LocationPage() {
   return (
     <div className="bg-cream text-espresso min-h-screen">
       {/* 1. Location Hero Section */}
-      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-14 md:py-18 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-10 md:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
         {/* Left column: Visit info card */}
         <div className="lg:col-span-5 space-y-6 text-left">
           <div className="space-y-3">
@@ -158,7 +158,7 @@ export default async function LocationPage() {
         {/* Right column: Visually dominant map card */}
         <div className="lg:col-span-7 w-full animate-fade-up">
           {/* Reduced desktop map container height to 400px */}
-          <div className="relative w-full aspect-[4/3] md:aspect-[16/10] lg:aspect-auto lg:h-[400px] rounded-[24px] overflow-hidden bg-latte/30 shadow-sm border border-latte/50">
+          <div className="relative w-full aspect-[4/3] md:aspect-auto md:h-[380px] lg:h-[400px] rounded-[24px] overflow-hidden bg-latte/30 shadow-sm border border-latte/50">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3531.97382605196!2d85.3363342!3d27.647707!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb170066805b63%3A0x49daabdd55ed2655!2sHOT%20CAKES!5e0!3m2!1sen!2snp!4v1719112000000!5m2!1sen!2snp"
               className="w-full h-full border-0 absolute inset-0"
@@ -184,7 +184,7 @@ export default async function LocationPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-8">
             {/* Address Info */}
             <div className="bg-cream rounded-[24px] border border-latte/50 p-7 space-y-3.5 shadow-sm">
               <div className="w-9 h-9 rounded-full bg-latte/40 flex items-center justify-center text-espresso text-base">
@@ -249,7 +249,7 @@ export default async function LocationPage() {
         </div>
 
         {/* Clean 2x2 Card Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           {finalPhotos.map((photo, index) => (
             <div
               key={index}

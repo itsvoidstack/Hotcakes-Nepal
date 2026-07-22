@@ -111,7 +111,7 @@ export default function Navbar({ logo }: NavbarProps) {
           <nav
             id="mobile-menu"
             aria-label="Mobile navigation"
-            className="absolute top-[calc(100%+8px)] left-0 right-0 z-50 bg-[#FCFBF8] border border-latte/20 rounded-[20px] shadow-lg p-5 flex flex-col gap-4 animate-fade-up lg:hidden pointer-events-auto"
+            className="absolute top-[calc(100%+8px)] left-0 right-0 z-[60] bg-[#FCFBF8] border border-latte/20 rounded-[20px] shadow-xl p-5 flex flex-col gap-1 animate-fade-up lg:hidden pointer-events-auto"
           >
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
@@ -120,9 +120,10 @@ export default function Navbar({ logo }: NavbarProps) {
                   key={link.path}
                   href={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`text-sm font-semibold tracking-wider transition-colors py-1 text-center ${
-                    isActive ? 'text-roasted' : 'text-mocha/80 hover:text-espresso'
+                  className={`text-sm font-semibold tracking-wider transition-colors py-3 px-3 text-center rounded-xl active:bg-latte/20 ${
+                    isActive ? 'text-roasted bg-latte/10' : 'text-mocha/80 hover:text-espresso hover:bg-latte/10'
                   }`}
+                  style={{ minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   {link.label}
                 </Link>
@@ -133,14 +134,16 @@ export default function Navbar({ logo }: NavbarProps) {
               <Link
                 href="/hc-dashboard"
                 onClick={() => setIsOpen(false)}
-                className="text-sm font-semibold text-mocha/80 hover:text-espresso transition-colors text-center py-1"
+                className="text-sm font-semibold text-mocha/80 hover:text-espresso transition-colors text-center py-3 px-3 rounded-xl hover:bg-latte/10 active:bg-latte/20"
+                style={{ minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 Sign in
               </Link>
               <Link
                 href="/order"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-widest font-semibold rounded-full shadow-md transition-all active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-widest font-semibold rounded-full shadow-md transition-all active:scale-[0.98]"
+                style={{ minHeight: '48px' }}
               >
                 Order Now
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

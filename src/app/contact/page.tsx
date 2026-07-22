@@ -106,8 +106,8 @@ export default async function ContactPage() {
   }
 
   return (
-    <div className="bg-cream min-h-screen flex items-center justify-center py-10 px-4 md:py-16">
-      <div className="w-full max-w-7xl relative h-[580px] md:h-[600px] bg-warm-white rounded-[32px] border border-latte/80 shadow-sm overflow-hidden flex flex-col items-center justify-center animate-fade-up">
+    <div className="bg-cream min-h-screen flex items-center justify-center py-8 px-4 md:py-16">
+      <div className="w-full max-w-7xl relative bg-warm-white rounded-[24px] md:rounded-[32px] border border-latte/80 shadow-sm overflow-hidden flex flex-col items-center justify-center animate-fade-up" style={{ minHeight: '520px' }}>
         {/* Background Grid Pattern (9 vertical dotted lines) */}
         <div className="absolute inset-0 flex justify-between pointer-events-none opacity-20 px-8 md:px-16">
           {[...Array(9)].map((_, i) => (
@@ -136,7 +136,7 @@ export default async function ContactPage() {
         })}
 
         {/* Center Content Block */}
-        <div className="relative z-10 w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[360px] md:max-w-[420px] text-center px-4 py-8 bg-warm-white/80 backdrop-blur-md rounded-3xl border border-latte/30 shadow-sm md:shadow-none md:border-none md:bg-transparent md:backdrop-blur-none">
+        <div className="relative z-10 w-full max-w-[300px] xs:max-w-[340px] sm:max-w-[380px] md:max-w-[440px] text-center px-5 py-10 my-10 md:my-16 bg-warm-white/90 backdrop-blur-md rounded-3xl border border-latte/30 shadow-sm md:shadow-none md:border-none md:bg-transparent md:backdrop-blur-none">
           <span className="inline-block px-3 py-1 bg-latte/40 text-roasted text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase rounded-full mb-3 md:mb-5">
             Connect
           </span>
@@ -194,7 +194,7 @@ export default async function ContactPage() {
           </div>
 
           {/* Minimal details block inside the card */}
-          <div className="mt-8 pt-5 border-t border-latte/40 text-[10px] md:text-xs text-mocha/70 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-body">
+          <div className="mt-6 pt-5 border-t border-latte/40 text-[10px] md:text-xs text-mocha/70 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-y-1 gap-x-3 font-body">
             {phoneNumber && (
               <Link
                 href={`tel:${phoneNumber}`}

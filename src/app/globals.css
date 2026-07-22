@@ -20,6 +20,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   max-width: 100%;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Ensure all interactive elements meet minimum touch target size */
+@layer base {
+  button, a, [role="button"], input[type="submit"], input[type="button"] {
+    touch-action: manipulation;
+  }
 }
 
 @layer utilities {
@@ -35,6 +45,30 @@ body {
   /* Single signature animation: Fade Up */
   .animate-fade-up {
     animation: fadeUp 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Safe area padding helpers for notched devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Smooth scrolling for horizontal scroll containers */
+  .scroll-x-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

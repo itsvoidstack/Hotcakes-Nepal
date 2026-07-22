@@ -1148,7 +1148,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           ) : (
             <div className="space-y-4">
               {/* Search & Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <input
                   type="text"
                   value={menuSearchQuery}
@@ -1218,8 +1218,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 </div>
               )}
 
-              {/* Menu Items Table */}
-              <div className="overflow-x-auto border border-latte rounded-2xl bg-warm-white">
+              {/* Menu Items Table — scrollable on mobile */}
+              <div className="overflow-x-auto border border-latte rounded-2xl bg-warm-white -mx-4 md:mx-0 rounded-none md:rounded-2xl">
+              <div className="min-w-[640px]">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-latte/20 font-body text-xs font-bold uppercase tracking-wider text-mocha border-b border-latte">
@@ -1310,6 +1311,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   )}
                 </tbody>
               </table>
+              </div>
               </div>
 
               {/* Bulk Delete Confirmation Dialog */}
@@ -1474,7 +1476,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             ) : streakRecords.length === 0 ? (
               <div className="text-center py-6 text-mocha text-sm">No customers found.</div>
             ) : (
-              <div className="overflow-x-auto border border-latte rounded-xl bg-warm-white">
+              <div className="overflow-x-auto border border-latte rounded-xl bg-warm-white -mx-2 md:mx-0">
+                <div className="min-w-[500px]">
                 <table className="w-full border-collapse text-left text-sm">
                   <thead>
                     <tr className="bg-latte/20 font-body text-xs font-bold uppercase tracking-wider text-mocha border-b border-latte">
@@ -1536,6 +1539,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     })}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
           </div>

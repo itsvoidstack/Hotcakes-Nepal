@@ -78,20 +78,20 @@ export default function StreakSearch() {
   const totalStreaks = 10;
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-md mx-auto w-full px-1">
       {/* Search Form */}
-      <form onSubmit={handleSearch} className="flex gap-2 mb-8">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mb-8">
         <input
           type="text"
           placeholder="Enter phone number or customer code..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-grow h-12 px-6 bg-warm-white border border-latte rounded-full font-body text-espresso placeholder-mocha/60 focus:outline-none focus:ring-2 focus:ring-roasted transition-all text-sm"
+          className="flex-grow h-12 px-5 bg-warm-white border border-latte rounded-full font-body text-espresso placeholder-mocha/60 focus:outline-none focus:ring-2 focus:ring-roasted transition-all text-sm"
         />
         <button
           type="submit"
           disabled={loading}
-          className="px-6 h-12 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 shadow-sm"
+          className="h-12 px-6 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 shadow-sm shrink-0"
         >
           {loading ? 'Searching...' : 'Search'}
         </button>
@@ -167,7 +167,7 @@ export default function StreakSearch() {
           </div>
 
           {/* Stamp Grid */}
-          <div className="grid grid-cols-5 gap-3 max-w-[280px] mx-auto">
+          <div className="grid grid-cols-5 gap-2 sm:gap-3 max-w-[260px] sm:max-w-[280px] mx-auto">
             {Array.from({ length: totalStreaks }).map((_, index) => {
               const isStamped = index < (result.streak_count || 0);
               const isReward = result.streak_count === totalStreaks;

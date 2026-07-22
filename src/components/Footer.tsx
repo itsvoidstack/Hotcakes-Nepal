@@ -82,30 +82,30 @@ export default async function Footer() {
         </svg>
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-12 md:py-16 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-10 md:py-16 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-8">
           {/* Column 1: Brand */}
-          <div>
-            <h3 className="font-heading font-semibold text-lg text-espresso mb-4 uppercase tracking-wider">
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="font-heading font-semibold text-base text-espresso mb-3 uppercase tracking-wider">
               Hot Cakes Nepal
             </h3>
-            <p className="font-body text-xs md:text-sm text-mocha/90 leading-relaxed">
+            <p className="font-body text-xs md:text-sm text-mocha/90 leading-relaxed max-w-xs">
               Good coffee, warm atmosphere, and moments that feel like home. Enjoy our fluffy hotcakes and hand-drip brews.
             </p>
           </div>
 
           {/* Column 2: Quick Links */}
           <div>
-            <h3 className="font-heading font-semibold text-sm text-espresso mb-4 uppercase tracking-wider">
+            <h3 className="font-heading font-semibold text-sm text-espresso mb-3 uppercase tracking-wider">
               Quick Links
             </h3>
             <nav aria-label="Footer quick links">
-              <ul className="space-y-2">
+              <ul className="space-y-1.5">
                 {quickLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="font-body text-xs md:text-sm text-mocha/80 hover:text-roasted transition-all duration-300 hover:translate-x-1 inline-block"
+                      className="font-body text-xs md:text-sm text-mocha/80 hover:text-roasted transition-all duration-300 hover:translate-x-1 inline-block py-0.5"
                     >
                       {link.label}
                     </Link>
@@ -117,16 +117,16 @@ export default async function Footer() {
 
           {/* Column 3: Locations */}
           <div>
-            <h3 className="font-heading font-semibold text-sm text-espresso mb-4 uppercase tracking-wider">
-              Locations
+            <h3 className="font-heading font-semibold text-sm text-espresso mb-3 uppercase tracking-wider">
+              Location
             </h3>
             <p className="font-body text-xs md:text-sm text-mocha/90 leading-relaxed font-semibold">
               {address}
             </p>
-            <p className="font-body text-xs md:text-sm text-mocha/70 leading-relaxed mt-1">
+            <p className="font-body text-xs text-mocha/70 leading-relaxed mt-1 hidden sm:block">
               Tucked away in the quiet street of Hattiban, Lalitpur.
             </p>
-            <div className="mt-3">
+            <div className="mt-2">
               <Link
                 href="/location"
                 className="font-body text-xs font-semibold text-roasted hover:text-dark-roast transition-colors duration-200"
@@ -137,8 +137,8 @@ export default async function Footer() {
           </div>
 
           {/* Column 4: Hours & Connect */}
-          <div>
-            <h3 className="font-heading font-semibold text-sm text-espresso mb-4 uppercase tracking-wider">
+          <div className="col-span-2 sm:col-span-1">
+            <h3 className="font-heading font-semibold text-sm text-espresso mb-3 uppercase tracking-wider">
               Hours
             </h3>
             <p className="font-body text-xs md:text-sm text-mocha/95 leading-relaxed font-semibold">
@@ -147,13 +147,13 @@ export default async function Footer() {
             <p className="font-body text-xs text-mocha/70 mt-0.5">
               {statusInfo.statusText}
             </p>
-            <div className="mt-4 space-y-2 pt-2 border-t border-latte/40">
+            <div className="mt-3 space-y-2 pt-2 border-t border-latte/40">
               <p className="font-body text-xs text-mocha/80">
                 <a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-roasted transition-colors duration-200">
                   📞 {phone}
                 </a>
               </p>
-              <div className="flex flex-wrap gap-2.5 items-center mt-3">
+              <div className="flex flex-wrap gap-2.5 items-center mt-2">
                 <a
                   href="/api/contact-info?redirect=instagram"
                   target="_blank"

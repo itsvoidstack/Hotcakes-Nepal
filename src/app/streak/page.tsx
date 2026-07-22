@@ -42,7 +42,7 @@ export default async function StreakPage() {
   };
 
   return (
-    <div className="bg-cream min-h-screen py-16 md:py-24 px-4 flex flex-col items-center">
+    <div className="bg-cream min-h-screen py-12 md:py-24 px-4 flex flex-col items-center">
       {/* Page Title & Leaf Wreath Ornament */}
       <div className="max-w-[1280px] w-full text-center mb-10">
         <h1 className="font-heading font-medium uppercase tracking-[0.12em] text-espresso text-[32px] md:text-[42px] lg:text-[48px] mb-2 leading-none">

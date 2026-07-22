@@ -48,7 +48,7 @@ export default async function OrderPage() {
   const foodmanduUrl = activeLinks.find(l => l.platform === 'foodmandu')?.url || '#';
 
   return (
-    <div className="bg-warm-white min-h-screen py-16 md:py-24 px-4 flex flex-col items-center relative overflow-hidden">
+    <div className="bg-warm-white min-h-screen py-12 md:py-24 px-4 flex flex-col items-center relative overflow-hidden">
       {/* Subtle Floating Decorative Elements */}
       {/* Floating Coffee Bean Top Left */}
       <div className="absolute top-20 left-6 lg:left-24 text-roasted opacity-[0.07] pointer-events-none hidden sm:block animate-pulse duration-[4s]">
@@ -73,43 +73,43 @@ export default async function OrderPage() {
       </div>
 
       {/* 1. Hero Section */}
-      <section className="max-w-[1240px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center mb-16 md:mb-20 px-4 animate-fade-up">
+      <section className="max-w-[1240px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center mb-12 md:mb-20 px-4 animate-fade-up">
         {/* Left Column (Content) */}
         <div className="lg:col-span-7 flex flex-col text-left items-start">
-          <span className="font-body text-[#A97A4C] text-[11px] font-semibold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+          <span className="font-body text-[#A97A4C] text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
             <span>Good food. Great moments.</span>
             <span className="text-xs">❦</span>
           </span>
-          <h1 className="font-heading font-medium text-4xl sm:text-5xl lg:text-[56px] text-[#2D2118] leading-[1.1] mb-6 tracking-tight">
+          <h1 className="font-heading font-medium text-3xl sm:text-5xl lg:text-[56px] text-[#2D2118] leading-[1.1] mb-4 tracking-tight">
             ORDER YOUR FAVORITES
           </h1>
-          <p className="font-body text-mocha text-sm md:text-base leading-relaxed mb-8 max-w-xl">
+          <p className="font-body text-mocha text-sm md:text-base leading-relaxed mb-6 max-w-xl">
             Enjoy Hotcakes Nepal your way. Choose your preferred platform or place a custom order made just for you.
           </p>
           
           {/* Highlights */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full pt-6 border-t border-latte/60">
+          <div className="grid grid-cols-3 gap-4 w-full pt-5 border-t border-latte/60">
             <div className="flex flex-col items-start">
-              <span className="text-xl mb-2">☕</span>
-              <h4 className="font-heading font-bold text-xs text-[#2D2118] uppercase tracking-wider mb-1">Freshly Prepared</h4>
-              <p className="font-body text-mocha/80 text-[11px] leading-snug">Made with quality ingredients</p>
+              <span className="text-lg mb-1.5">☕</span>
+              <h4 className="font-heading font-bold text-[10px] sm:text-xs text-[#2D2118] uppercase tracking-wider mb-0.5">Freshly Prepared</h4>
+              <p className="font-body text-mocha/80 text-[10px] leading-snug hidden sm:block">Made with quality ingredients</p>
             </div>
             <div className="flex flex-col items-start">
-              <span className="text-xl mb-2">🛵</span>
-              <h4 className="font-heading font-bold text-xs text-[#2D2118] uppercase tracking-wider mb-1">Fast Delivery</h4>
-              <p className="font-body text-mocha/80 text-[11px] leading-snug">Quick delivery to your doorstep</p>
+              <span className="text-lg mb-1.5">🛵</span>
+              <h4 className="font-heading font-bold text-[10px] sm:text-xs text-[#2D2118] uppercase tracking-wider mb-0.5">Fast Delivery</h4>
+              <p className="font-body text-mocha/80 text-[10px] leading-snug hidden sm:block">Quick delivery to your doorstep</p>
             </div>
             <div className="flex flex-col items-start">
-              <span className="text-xl mb-2">🤎</span>
-              <h4 className="font-heading font-bold text-xs text-[#2D2118] uppercase tracking-wider mb-1">Made with Love</h4>
-              <p className="font-body text-mocha/80 text-[11px] leading-snug">Every order is made just for you</p>
+              <span className="text-lg mb-1.5">🤎</span>
+              <h4 className="font-heading font-bold text-[10px] sm:text-xs text-[#2D2118] uppercase tracking-wider mb-0.5">Made with Love</h4>
+              <p className="font-body text-mocha/80 text-[10px] leading-snug hidden sm:block">Every order is made just for you</p>
             </div>
           </div>
         </div>
 
         {/* Right Column (Hero Image) */}
         <div className="lg:col-span-5 w-full flex justify-center">
-          <div className="relative aspect-[4/3] rounded-[32px] overflow-hidden bg-latte/10 shadow-sm border border-latte/40 max-w-md w-full">
+          <div className="relative aspect-[4/3] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-latte/10 shadow-sm border border-latte/40 max-w-sm sm:max-w-md w-full">
             <Image
               src="/images/order_hero.png"
               alt="Order — Chocolate Cake slice and Coffee"
@@ -135,9 +135,9 @@ export default async function OrderPage() {
       </div>
 
       {/* 3. Ordering Options Cards */}
-      <div className="max-w-[1240px] w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 md:mb-24 px-4 animate-fade-up">
+      <div className="max-w-[1240px] w-full mx-auto grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-8 mb-14 md:mb-24 px-4 animate-fade-up">
         {/* Bhoj Card */}
-        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
+        <div className="bg-white border border-latte rounded-[24px] p-6 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
           <div>
             {/* Custom Bhoj Logo with Splash */}
             <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
@@ -177,7 +177,7 @@ export default async function OrderPage() {
         </div>
 
         {/* Foodmandu Card */}
-        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
+        <div className="bg-white border border-latte rounded-[24px] p-6 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
           <div>
             {/* Custom Foodmandu Logo with Splash */}
             <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
@@ -225,7 +225,7 @@ export default async function OrderPage() {
         </div>
 
         {/* Custom Order Card */}
-        <div className="bg-white border border-latte rounded-[24px] p-8 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
+        <div className="bg-white border border-latte rounded-[24px] p-6 md:p-10 text-center shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
           <div>
             {/* Custom Order Icon with Splash */}
             <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">

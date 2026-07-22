@@ -86,7 +86,7 @@ export default async function VacanciesPage() {
   const activeVacancies = vacancies || [];
 
   return (
-    <div className="bg-cream min-h-screen py-16 md:py-24 px-4 flex flex-col items-center">
+    <div className="bg-cream min-h-screen py-12 md:py-24 px-4 flex flex-col items-center">
       {/* Page Title & Leaf Wreath Ornament */}
       <div className="max-w-[1280px] w-full text-center mb-12 md:mb-16 animate-fade-up">
         <h1 className="font-heading font-medium uppercase tracking-[0.15em] text-espresso text-[36px] md:text-[48px] lg:text-[54px] mb-3 leading-none">
