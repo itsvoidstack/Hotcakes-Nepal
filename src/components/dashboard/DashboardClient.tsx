@@ -848,16 +848,16 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   };
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8">
+    <div className="w-full max-w-[1280px] mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8">
       {/* Header and Logout */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-latte pb-6 mb-8">
-        <div className="text-center sm:text-left">
-          <h1 className="font-heading font-bold text-3xl text-espresso">Owner Dashboard</h1>
-          <p className="font-body text-xs text-mocha mt-1">Logged in as Administrator</p>
+      <div className="flex flex-row justify-between items-start gap-3 border-b border-latte pb-5 mb-6">
+        <div>
+          <h1 className="font-heading font-bold text-xl sm:text-2xl md:text-3xl text-espresso">Owner Dashboard</h1>
+          <p className="font-body text-xs text-mocha mt-0.5">Logged in as Administrator</p>
         </div>
         <button
           onClick={onLogout}
-          className="px-5 py-2 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-full text-xs font-semibold transition-colors"
+          className="shrink-0 px-4 py-2 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-full text-xs font-semibold transition-colors"
         >
           Sign Out
         </button>
@@ -876,57 +876,58 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       )}
 
       {/* Tab Navigation */}
-      <div className="w-full overflow-hidden">
-        <div className="flex overflow-x-auto gap-2 border-b border-latte pb-2 mb-8 -mx-4 px-4 md:mx-0 md:px-0">
-        {(['menu', 'streak', 'order', 'vacancies', 'settings'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => {
-              setActiveTab(tab);
-              setEditingItem(null);
-              setEditingVacancy(null);
-            }}
-            className={`px-6 py-2.5 rounded-full text-sm font-semibold capitalize transition-all whitespace-nowrap ${
-              activeTab === tab
-                ? 'bg-roasted text-white shadow-sm'
-                : 'text-mocha hover:bg-latte/10'
-            }`}
-          >
-            {tab === 'order' ? 'Delivery Links' : tab}
-          </button>
-        ))}
+      <div className="w-full">
+        <div className="flex overflow-x-auto gap-1.5 border-b border-latte pb-2 mb-6 -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {(['menu', 'streak', 'order', 'vacancies', 'settings'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab);
+                setEditingItem(null);
+                setEditingVacancy(null);
+              }}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold capitalize transition-all whitespace-nowrap ${
+                activeTab === tab
+                  ? 'bg-roasted text-white shadow-sm'
+                  : 'text-mocha hover:bg-latte/10'
+              }`}
+              style={{ minHeight: '40px' }}
+            >
+              {tab === 'order' ? 'Delivery Links' : tab}
+            </button>
+          ))}
         </div>
       </div>
 
       {loading && <div className="text-center py-12 text-mocha font-body">Updating dashboard records...</div>}
 
       {/* Dashboard Health Card */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <div className="glass-card p-4 rounded-xl border border-latte text-center">
-          <p className="text-xs font-semibold text-mocha uppercase">Menu Items</p>
-          <p className="font-heading font-bold text-2xl text-espresso mt-1">{menuItems.length}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        <div className="glass-card p-3 sm:p-4 rounded-xl border border-latte text-center">
+          <p className="text-[10px] sm:text-xs font-semibold text-mocha uppercase leading-tight">Menu Items</p>
+          <p className="font-heading font-bold text-xl sm:text-2xl text-espresso mt-1">{menuItems.length}</p>
         </div>
-        <div className="glass-card p-4 rounded-xl border border-latte text-center">
-          <p className="text-xs font-semibold text-mocha uppercase">Featured</p>
-          <p className="font-heading font-bold text-2xl text-roasted mt-1">
+        <div className="glass-card p-3 sm:p-4 rounded-xl border border-latte text-center">
+          <p className="text-[10px] sm:text-xs font-semibold text-mocha uppercase leading-tight">Featured</p>
+          <p className="font-heading font-bold text-xl sm:text-2xl text-roasted mt-1">
             {menuItems.filter(item => item.is_featured && item.is_available).length}
           </p>
         </div>
-        <div className="glass-card p-4 rounded-xl border border-latte text-center">
-          <p className="text-xs font-semibold text-mocha uppercase">Active Vacancies</p>
-          <p className="font-heading font-bold text-2xl text-espresso mt-1">
+        <div className="glass-card p-3 sm:p-4 rounded-xl border border-latte text-center">
+          <p className="text-[10px] sm:text-xs font-semibold text-mocha uppercase leading-tight">Vacancies</p>
+          <p className="font-heading font-bold text-xl sm:text-2xl text-espresso mt-1">
             {vacancies.filter(v => v.is_active).length}
           </p>
         </div>
-        <div className="glass-card p-4 rounded-xl border border-latte text-center">
-          <p className="text-xs font-semibold text-mocha uppercase">Loyalty Customers</p>
-          <p className="font-heading font-bold text-2xl text-espresso mt-1">
+        <div className="glass-card p-3 sm:p-4 rounded-xl border border-latte text-center">
+          <p className="text-[10px] sm:text-xs font-semibold text-mocha uppercase leading-tight">Loyalty</p>
+          <p className="font-heading font-bold text-xl sm:text-2xl text-espresso mt-1">
             {streakMetrics?.total_customers || 0}
           </p>
         </div>
-        <div className="glass-card p-4 rounded-xl border border-latte text-center">
-          <p className="text-xs font-semibold text-mocha uppercase">Campaign</p>
-          <p className={`font-heading font-bold text-lg mt-1 ${campaign ? 'text-olive' : 'text-mocha'}`}>
+        <div className="glass-card p-3 sm:p-4 rounded-xl border border-latte text-center col-span-2 sm:col-span-1">
+          <p className="text-[10px] sm:text-xs font-semibold text-mocha uppercase leading-tight">Campaign</p>
+          <p className={`font-heading font-bold text-base sm:text-lg mt-1 ${campaign ? 'text-olive' : 'text-mocha'}`}>
             {campaign ? 'Active' : 'None'}
           </p>
         </div>
@@ -965,7 +966,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 {editingItem.id ? 'Edit Item' : 'New Menu Item'}
               </h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-mocha uppercase mb-1">Category</label>
                   <select
@@ -1011,7 +1012,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-mocha uppercase mb-1">Price (Rs.)</label>
                   <input
@@ -1035,7 +1036,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-mocha uppercase mb-1">Description</label>
                   <textarea
@@ -1094,7 +1095,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 </div>
               </div>
 
-              <div className="flex gap-6 py-2">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 py-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer">
                   <input
                     type="checkbox"
@@ -1353,7 +1354,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         <div className="space-y-8 max-w-2xl mx-auto">
           {/* Loyalty Analytics Summary */}
           {streakMetrics && (
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="glass-card p-4 rounded-xl border border-latte text-center">
                 <span className="block text-xs font-semibold text-mocha uppercase">Registered Customers</span>
                 <span className="block font-heading font-bold text-2xl text-espresso mt-1">{streakMetrics.total_customers}</span>
@@ -2212,7 +2213,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
                     <input

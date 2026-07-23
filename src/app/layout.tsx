@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import BottomNav from "@/components/BottomNav";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import Footer from "@/components/Footer";
 import SiteLogo from "@/components/SiteLogo";
+import MobileChrome from "@/components/MobileChrome";
+import BodyPadding from "@/components/BodyPadding";
 import { headers } from "next/headers";
 
 const playfair = Playfair_Display({
@@ -152,7 +152,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const headersList = headers();
-  const pathname = headersList.get('x-pathname') || '';
+  const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '';
   const isAdminPage = pathname.startsWith('/hc-dashboard') || pathname.startsWith('/hc-dev') || pathname.startsWith('/api');
   
   return (
@@ -166,9 +166,8 @@ export default function RootLayout({
       </head>
       <body
         className={`${playfair.variable} ${inter.variable} font-body bg-cream text-espresso antialiased min-h-screen overflow-x-hidden w-full max-w-full`}
-        style={{ paddingBottom: 'max(80px, calc(64px + env(safe-area-inset-bottom, 0px)))' }}
       >
-        <style>{`@media (min-width: 768px) { body { padding-bottom: 0 !important; } }`}</style>
+        <BodyPadding />
         {/* Skip to main content — hidden until focused, for keyboard/screen reader users */}
         <a
           href="#main-content"
@@ -184,26 +183,7 @@ export default function RootLayout({
           </main>
         </MaintenanceWrapper>
         {!isAdminPage && <Footer />}
-        <BottomNav />
-        
-        {/* Floating Order Button (Mobile Only) */}
-        {!isAdminPage && (
-          <Link
-            href="/order"
-            aria-label="Order now from Hotcakes Nepal"
-            className="md:hidden fixed z-30 flex items-center gap-2 px-5 py-3 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-bold rounded-full shadow-xl transition-all duration-300 active:scale-[0.96]"
-            style={{
-              bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
-              right: '16px',
-              minHeight: '44px',
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Order Now
-          </Link>
-        )}
+        <MobileChrome />
       </body>
     </html>
   );

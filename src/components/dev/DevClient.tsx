@@ -201,7 +201,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
   };
 
   return (
-    <div className="max-w-[1280px] w-full px-4 md:px-6 py-8">
+    <div className="w-full max-w-[1280px] mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-latte pb-6 mb-8">
         <div className="text-center sm:text-left">

@@ -52,7 +52,7 @@ export default function DevPage() {
   }
 
   return (
-    <div className="bg-cream min-h-[calc(100vh-80px)] py-12 px-4 flex flex-col justify-start items-center">
+    <div className="bg-cream min-h-[calc(100vh-80px)] py-6 md:py-12 w-full overflow-x-hidden">
       <DevClient token={token} onLogout={handleLogout} />
     </div>
   );
