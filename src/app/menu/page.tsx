@@ -28,9 +28,10 @@ export default async function MenuPage() {
 
   return (
     <div className="bg-cream min-h-screen pt-6 pb-16">
-      <div className="max-w-[1280px] mx-auto px-4 md:px-6 text-center mb-6">
-        <h1 className="font-heading font-medium uppercase tracking-[0.1em] leading-tight text-espresso text-[32px] md:text-[42px] lg:text-[48px]">
-          OUR MENU
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 text-center mb-8 md:mb-10">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2 block">Our Offerings</span>
+        <h1 className="font-heading font-medium uppercase tracking-[0.08em] leading-tight text-espresso text-[32px] md:text-[44px] lg:text-[52px]">
+          Our Menu
         </h1>
       </div>
 

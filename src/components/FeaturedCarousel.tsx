@@ -106,8 +106,8 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
               key={item.id}
               className="snap-center flex-shrink-0 w-[85vw] max-w-[340px] px-2 md:w-[280px] lg:w-[300px] md:px-0"
             >
-              <div className="group flex flex-col bg-warm-white rounded-[20px] overflow-hidden border border-latte hover:-translate-y-1 transition-all duration-300 hover:shadow-sm h-full">
-                <div className="relative h-44 md:h-auto md:aspect-[4/3] w-full bg-latte/20 overflow-hidden">
+              <div className="group flex flex-col bg-warm-white rounded-[18px] overflow-hidden border border-latte/60 hover:border-latte transition-all duration-300 hover:shadow-md h-full">
+                <div className="relative h-44 md:h-48 w-full bg-latte/20 overflow-hidden">
                   <ImageWithFallback
                     src={item.image_url || '/images/menu/placeholder.jpg'}
                     alt={item.name}
@@ -126,24 +126,24 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
                     </span>
                   </div>
                 </div>
-                <div className="p-5 flex flex-col flex-grow">
-                  <div className="flex items-baseline justify-between gap-2 mb-2">
-                    <h3 className="font-heading font-medium text-lg text-espresso leading-tight">
+                <div className="p-4 flex flex-col flex-grow">
+                  <div className="flex items-baseline justify-between gap-2 mb-1.5">
+                    <h3 className="font-heading font-medium text-base text-espresso leading-tight">
                       {item.name}
                     </h3>
-                    <span className="font-body text-roasted font-semibold text-sm">
+                    <span className="font-body text-roasted font-semibold text-sm shrink-0">
                       Rs. {item.price}
                     </span>
                   </div>
-                  <p className="font-body text-mocha/80 text-xs leading-relaxed mb-5 line-clamp-2">
+                  <p className="font-body text-mocha/65 text-xs leading-relaxed mb-4 line-clamp-2">
                     {item.description || 'Prepared fresh daily with premium ingredients.'}
                   </p>
                   <Link
                     href="/order"
-                    className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:shadow-md"
+                    className="mt-auto w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[10px] uppercase tracking-[0.12em] font-semibold rounded-full transition-colors duration-300"
                   >
                     Order Now
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                     </svg>
                   </Link>

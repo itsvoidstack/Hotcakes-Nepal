@@ -40,7 +40,7 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
   return (
     <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-0 pb-12">
       {/* Search Bar */}
-      <div className="max-w-md mx-auto mb-5">
+      <div className="max-w-sm mx-auto mb-6">
         <div className="relative">
           <label htmlFor="menu-search" className="sr-only">Search our menu</label>
           <input
@@ -50,7 +50,7 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search our menu"
-            className="w-full h-12 pl-12 pr-4 bg-warm-white border border-latte rounded-full font-body text-espresso placeholder-mocha/60 focus:outline-none focus:ring-2 focus:ring-roasted transition-all"
+            className="w-full h-11 pl-11 pr-4 bg-warm-white border border-latte/80 rounded-full font-body text-sm text-espresso placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-roasted/40 transition-all"
           />
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +59,7 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
             strokeWidth={1.5}
             stroke="currentColor"
             aria-hidden="true"
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-mocha/60"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-mocha/50"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.636Z" />
           </svg>
@@ -78,10 +78,10 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
               role="tab"
               aria-selected={selectedCategory === category}
               onClick={() => setSelectedCategory(category)}
-              className={`whitespace-nowrap text-base font-serif italic transition-all duration-200 py-2 px-1 ${
+              className={`whitespace-nowrap text-sm font-body transition-all duration-200 py-2 px-1 ${
                 selectedCategory === category
-                  ? 'text-roasted underline underline-offset-8 decoration-latte'
-                  : 'text-mocha/80 hover:text-espresso'
+                  ? 'text-espresso font-semibold border-b-2 border-espresso'
+                  : 'text-mocha/60 hover:text-espresso font-medium'
               }`}
               style={{ minHeight: '44px' }}
             >
@@ -92,15 +92,15 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
       </div>
 
       {/* Menu Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-7">
         {filteredItems.length > 0 ? (
           filteredItems.map((item) => (
             <div
               key={item.id}
-              className={`group flex flex-col hover:-translate-y-1 transition-all duration-250 ease-out ${!item.is_available ? 'opacity-50' : ''}`}
+              className={`group flex flex-col ${!item.is_available ? 'opacity-50' : ''}`}
             >
               {/* Image Container */}
-              <div className="relative aspect-[4/3] w-full bg-latte/30 rounded-3xl overflow-hidden mb-4 group-hover:shadow-sm transition-all duration-250 ease-out">
+              <div className="relative aspect-[4/3] w-full bg-latte/20 rounded-2xl overflow-hidden mb-3 group-hover:shadow-sm transition-shadow duration-300">
                 <ImageWithFallback
                   src={item.image_url || '/images/menu/placeholder.jpg'}
                   alt={item.name}
@@ -122,27 +122,27 @@ export default function MenuClient({ initialItems }: MenuClientProps) {
               </div>
 
               {/* Item Details */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-start justify-between gap-1">
-                  <h3 className="font-heading font-semibold text-sm sm:text-base md:text-lg text-espresso leading-tight">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-baseline justify-between gap-2 mt-0.5">
+                  <h3 className="font-heading font-medium text-sm sm:text-base text-espresso leading-tight">
                     {item.name}
                   </h3>
-                  <span className="font-body text-roasted font-medium text-xs sm:text-sm shrink-0">
+                  <span className="font-body text-roasted font-semibold text-xs sm:text-sm shrink-0">
                     Rs. {item.price}
                   </span>
                 </div>
-                <p className="font-body text-mocha/80 text-xs sm:text-sm line-clamp-2">
+                <p className="font-body text-mocha/65 text-[11px] sm:text-xs leading-relaxed line-clamp-2">
                   {item.description || 'Fresh & homemade daily with premium ingredients.'}
                 </p>
                 {item.is_available && (
                   <Link
                     href="/order"
-                    className="group/btn inline-flex items-center justify-center gap-1.5 mt-1 py-2 bg-roasted/5 hover:bg-roasted text-roasted hover:text-white text-[10px] uppercase tracking-widest font-semibold rounded-full transition-all duration-300 border border-roasted/20"
+                    className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-semibold text-roasted hover:text-dark-roast uppercase tracking-wider transition-colors duration-200"
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
                     Order Now
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
                   </Link>
                 )}
               </div>

@@ -88,7 +88,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-cream w-full max-w-full overflow-x-hidden">
       {/* 1. Hero Section */}
-      <section className="relative w-full max-w-full flex items-center justify-center pt-24 pb-16 md:pt-32 md:pb-20 overflow-x-hidden">
+      <section className="relative w-full max-w-full flex items-center justify-center pt-16 pb-12 md:pt-24 md:pb-16 overflow-x-hidden">
         <div className="max-w-[1240px] w-full mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           {/* Hero Left Content */}
           <div className="lg:col-span-6 flex flex-col text-center lg:text-left items-center lg:items-start animate-fade-up">
@@ -107,22 +107,22 @@ export default async function Home() {
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
               Welcome to
             </span>
-            <h1 className="font-heading font-medium text-4xl sm:text-5xl lg:text-6xl text-espresso leading-[1.1] mb-6 tracking-tight">
+            <h1 className="font-heading font-medium text-[42px] sm:text-5xl lg:text-[62px] text-espresso leading-[1.08] mb-5 tracking-tight">
               Hotcakes Nepal
             </h1>
-            <p className="font-body text-mocha/80 text-sm md:text-base lg:text-lg leading-relaxed mb-8 max-w-md">
+            <p className="font-body text-mocha/75 text-sm md:text-base leading-relaxed mb-7 max-w-[360px]">
               Good coffee, warm atmosphere, and moments that feel like home. Hand-drip brews, fluffy stacks, and quiet corners.
             </p>
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
               <Link
                 href="/menu"
-                className="inline-flex items-center justify-center px-6 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+                className="inline-flex items-center justify-center px-6 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[10px] uppercase tracking-[0.15em] font-semibold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
               >
                 Explore Menu
               </Link>
               <Link
                 href="/location"
-                className="inline-flex items-center justify-center px-6 py-2.5 border border-espresso/20 text-espresso hover:bg-espresso hover:text-white text-[11px] uppercase tracking-widest font-semibold rounded-full hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+                className="inline-flex items-center justify-center px-6 py-2.5 border border-espresso/25 text-espresso hover:bg-espresso hover:text-white text-[10px] uppercase tracking-[0.15em] font-semibold rounded-full hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
               >
                 Visit Us
               </Link>
@@ -131,10 +131,10 @@ export default async function Home() {
 
           {/* Hero Right Image Card */}
           <div className="lg:col-span-6 w-full animate-fade-up" style={{ animationDelay: '150ms' }}>
-            <div className="relative aspect-[4/3] sm:aspect-[1.5/1] lg:aspect-[4/3] rounded-[32px] overflow-hidden bg-latte/30 shadow-md border border-latte/40 max-w-2xl mx-auto w-full">
+            <div className="relative aspect-[4/3] sm:aspect-[3/2] lg:aspect-[4/3] rounded-[28px] overflow-hidden bg-latte/30 shadow-sm border border-latte/30 max-w-2xl mx-auto w-full">
               <ImageWithFallback
                 src={heroImageUrl}
-                alt="Hotcakes Nepal Hero"
+                alt="Hotcakes Nepal — Coffee and food"
                 fill
                 className="object-cover"
                 priority
@@ -145,54 +145,52 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 2. Brew Streak Campaign Strip */}
+      {/* 2. Campaign Strip */}
       {campaign ? (
-        <section className="px-4 z-10 w-full max-w-full overflow-x-hidden">
-          <div className="max-w-[1240px] mx-auto px-6 py-4 bg-[#FCFBF8] border border-latte/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm text-center sm:text-left">
-            <span className="text-espresso font-body text-sm font-medium">
-              ☕ <span className="font-semibold text-roasted">{campaign.name}</span>: {campaign.tagline}
+        <section className="px-4 z-10 w-full max-w-full overflow-x-hidden mt-2">
+          <div className="max-w-[1240px] mx-auto px-5 py-3 bg-warm-white border border-latte/25 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <span className="text-espresso/80 font-body text-xs">
+              <span className="font-semibold text-roasted">{campaign.name}:</span> {campaign.tagline}
             </span>
             <Link
               href="/streak"
-              className="inline-flex items-center justify-center px-5 py-2 bg-roasted hover:bg-dark-roast text-cream text-[10px] uppercase tracking-wider font-semibold rounded-full shadow-sm transition-all active:scale-[0.98]"
+              className="shrink-0 inline-flex items-center justify-center px-4 py-1.5 bg-roasted hover:bg-dark-roast text-cream text-[10px] uppercase tracking-wider font-semibold rounded-full transition-all active:scale-[0.98]"
             >
               View Campaigns
             </Link>
           </div>
         </section>
       ) : (
-        <section className="px-4 z-10 w-full max-w-full overflow-x-hidden">
-          <div className="max-w-[1240px] mx-auto px-6 py-3.5 bg-[#FCFBF8] border border-latte/20 rounded-2xl flex items-center justify-center gap-2.5 shadow-sm text-center">
-            <svg className="w-4 h-4 text-roasted flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span className="text-mocha/80 font-body text-xs md:text-sm font-medium tracking-wide">
-              Check back soon for our next seasonal reward events & specials!
+        <section className="px-4 z-10 w-full max-w-full overflow-x-hidden mt-2">
+          <div className="max-w-[1240px] mx-auto px-5 py-3 bg-warm-white border border-latte/20 rounded-xl flex items-center justify-center gap-2 text-center">
+            <span className="w-1 h-1 rounded-full bg-roasted/50 shrink-0" />
+            <span className="text-mocha/60 font-body text-xs">
+              Check back soon for our next seasonal reward events &amp; specials.
             </span>
           </div>
         </section>
       )}
 
       {/* 3. Most Loved (Featured Menu Carousel) */}
-      <section className="py-16 md:py-24 lg:py-32 w-full max-w-[1200px] mx-auto px-4 md:px-6 overflow-x-hidden">
-        <div className="text-center max-w-xl mx-auto mb-12 px-4">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
+      <section className="py-14 md:py-20 lg:py-28 w-full max-w-[1200px] mx-auto px-4 md:px-6 overflow-x-hidden">
+        <div className="text-center max-w-xl mx-auto mb-10 px-4">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
             Customer Favorites
           </span>
-          <h2 className="font-heading font-medium text-3xl md:text-4xl text-espresso mb-4 leading-tight">
+          <h2 className="font-heading font-medium text-[32px] md:text-[40px] text-espresso mb-3 leading-tight">
             Most Loved
           </h2>
-          <p className="font-body text-mocha/80 text-sm md:text-base leading-relaxed">
+          <p className="font-body text-mocha/70 text-sm leading-relaxed">
             Hand-picked customer favorites prepared fresh every single morning.
           </p>
         </div>
 
         <FeaturedCarousel items={featuredItems} />
 
-        <div className="flex justify-center px-4 mt-12">
+        <div className="flex justify-center px-4 mt-10">
           <Link
             href="/menu"
-            className="inline-flex items-center justify-center px-6 py-2.5 border border-espresso/20 text-espresso hover:bg-espresso hover:text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 shadow-sm"
+            className="inline-flex items-center justify-center px-7 py-2.5 border border-espresso/20 text-espresso/80 hover:border-espresso hover:text-espresso text-[10px] uppercase tracking-[0.15em] font-semibold rounded-full transition-all duration-300"
           >
             Explore Full Menu
           </Link>
@@ -200,42 +198,42 @@ export default async function Home() {
       </section>
 
       {/* 4. Location Teaser (Visit Our Space) */}
-      <section className="py-16 md:py-24 lg:py-32 border-y border-latte/30 bg-warm-white w-full max-w-full overflow-x-hidden">
+      <section className="py-14 md:py-20 lg:py-28 border-y border-latte/30 bg-warm-white w-full max-w-full overflow-x-hidden">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-14 items-center">
           {/* Location Content (Left) */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md mx-auto md:mx-0 order-1">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
               Visit Us
             </span>
-            <h2 className="font-heading font-medium text-3xl md:text-4xl text-espresso mb-4 leading-tight">
+            <h2 className="font-heading font-medium text-[32px] md:text-[40px] text-espresso mb-4 leading-tight">
               Find Our Locations
             </h2>
-            <p className="font-body text-mocha/80 text-sm md:text-base leading-relaxed mb-6">
+            <p className="font-body text-mocha/70 text-sm leading-relaxed mb-6">
               {"We'd love to welcome you to one of our cafes. Tucked away from the main streets, offering a quiet, rustic atmosphere for reading, study, or slow mornings."}
             </p>
             
-            <div className="text-sm space-y-1.5 mb-8 text-espresso/90 font-body">
-              <p>
+            <div className="space-y-1 mb-7 font-body text-sm">
+              <p className="text-espresso/80">
                 <span className="font-semibold text-roasted">Address:</span> {getContact('address') || 'Hattiban, Lalitpur'}
               </p>
-              <p>
-                <span className="font-semibold text-roasted">Hours:</span> {statusInfo.todayHoursText} <span className="text-xs text-mocha">({statusInfo.statusText})</span>
+              <p className="text-espresso/80">
+                <span className="font-semibold text-roasted">Hours:</span> {statusInfo.todayHoursText} <span className="text-xs text-mocha/60">({statusInfo.statusText})</span>
               </p>
             </div>
             
             <Link
               href="/location"
-              className="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+              className="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 bg-roasted hover:bg-dark-roast text-cream text-[10px] uppercase tracking-[0.15em] font-semibold rounded-full transition-colors duration-300"
             >
               View Locations
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
               </svg>
             </Link>
           </div>
           
           {/* Location Image (Right) */}
-          <div className="relative aspect-[4/3] md:h-[300px] lg:h-[340px] rounded-[24px] overflow-hidden bg-latte/10 group border border-latte/30 w-full max-w-md mx-auto order-2 shadow-sm">
+          <div className="relative aspect-[4/3] md:h-[300px] lg:h-[340px] rounded-[20px] overflow-hidden bg-latte/10 group border border-latte/30 w-full max-w-md mx-auto order-2">
             <ImageWithFallback
               src={visitUsImage}
               alt="Hotcakes Nepal Locations"
@@ -249,51 +247,54 @@ export default async function Home() {
       </section>
 
       {/* 5. Follow Our Journey Section */}
-      <section className="py-16 md:py-24 lg:py-32 bg-cream text-espresso w-full max-w-full overflow-x-hidden">
+      <section className="py-16 md:py-20 lg:py-28 bg-cream text-espresso w-full max-w-full overflow-x-hidden">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-          {/* Center Content — always on top on mobile */}
-          <div className="text-center max-w-sm mx-auto flex flex-col items-center mb-10 lg:hidden">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-3 block">
-              FOLLOW OUR JOURNEY
+          {/* Mobile: text on top, 4 images below */}
+          <div className="text-center max-w-sm mx-auto flex flex-col items-center mb-8 lg:hidden">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-roasted mb-2.5 block">
+              Follow Our Journey
             </span>
-            <h2 className="font-heading font-medium text-3xl text-espresso mb-4 leading-tight">
-              Stay Connected With Hotcakes
+            <h2 className="font-heading font-medium text-3xl text-espresso mb-3 leading-tight">
+              Stay Connected
             </h2>
-            <p className="font-body text-mocha/80 text-xs md:text-sm leading-relaxed mb-6">
-              Get updates on seasonal specials, menu launches, community events and cafe stories.
+            <p className="font-body text-mocha/70 text-xs leading-relaxed mb-5">
+              Get updates on seasonal specials, menu launches, and cafe stories.
             </p>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center gap-1.5 px-7 py-3 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-300"
-            >
-              Contact Us
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-              </svg>
-            </Link>
+            <div className="flex items-center gap-3">
+              <a href="/api/contact-info?redirect=instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"
+                className="w-9 h-9 rounded-full border border-espresso/20 flex items-center justify-center text-espresso/70 hover:border-roasted hover:text-roasted transition-all duration-200">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                </svg>
+              </a>
+              <a href="/api/contact-info?redirect=whatsapp" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
+                className="w-9 h-9 rounded-full border border-espresso/20 flex items-center justify-center text-espresso/70 hover:border-roasted hover:text-roasted transition-all duration-200">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26C.158 6.44 4.593 2.006 10.045 2.006c2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26"/>
+                </svg>
+              </a>
+              <a href="/api/contact-info?redirect=tiktok" target="_blank" rel="noopener noreferrer" aria-label="TikTok"
+                className="w-9 h-9 rounded-full border border-espresso/20 flex items-center justify-center text-espresso/70 hover:border-roasted hover:text-roasted transition-all duration-200">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12.525.02c1.31-.03 2.61-.01 3.91-.02.08 1.53.63 3.05 1.62 4.2 1.12 1.27 2.7 2.06 4.36 2.29v3.83c-1.35-.09-2.69-.58-3.79-1.39-.77-.57-1.39-1.33-1.83-2.2v8.9c-.06 2.05-.85 4.09-2.29 5.53-1.78 1.78-4.4 2.5-6.87 1.94-2.47-.56-4.52-2.38-5.37-4.76-.92-2.58-.45-5.6 1.25-7.75 1.56-1.99 4.13-2.99 6.64-2.6v3.8c-1.42-.32-2.96.08-3.99 1.1-.96.95-1.36 2.37-1.07 3.7.28 1.28 1.21 2.36 2.45 2.78 1.41.49 3.09.07 4.06-1.04.53-.61.8-1.39.79-2.19V.02z"/>
+                </svg>
+              </a>
+            </div>
           </div>
 
-          {/* Mobile: single 4-col image row; Desktop: three-column layout */}
           <div className="grid grid-cols-4 gap-3 lg:hidden">
             {showcaseImages.slice(0, 4).map((imageUrl, idx) => (
-              <div key={idx} className="relative aspect-square w-full rounded-2xl overflow-hidden bg-latte/20 shadow-sm border border-latte/30">
-                <ImageWithFallback
-                  src={imageUrl}
-                  alt={`Gallery ${idx + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="25vw"
-                  fallbackEmoji="☕"
-                />
+              <div key={idx} className="relative aspect-square w-full rounded-2xl overflow-hidden bg-latte/20 border border-latte/30">
+                <ImageWithFallback src={imageUrl} alt={`Gallery ${idx + 1}`} fill className="object-cover" sizes="25vw" fallbackEmoji="☕" />
               </div>
             ))}
           </div>
 
           <div className="hidden lg:grid lg:grid-cols-12 gap-10 items-center">
             {/* Left Image Grid (2x2) */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-4">
+            <div className="lg:col-span-4 grid grid-cols-2 gap-3">
               {showcaseImages.slice(0, 4).map((imageUrl, idx) => (
-                <div key={idx} className="relative aspect-square w-full rounded-[24px] overflow-hidden bg-latte/20 shadow-sm border border-latte/30 group">
+                <div key={idx} className="relative aspect-square w-full rounded-[18px] overflow-hidden bg-latte/20 group">
                   <ImageWithFallback
                     src={imageUrl}
                     alt={`Gallery Left ${idx + 1}`}
@@ -307,29 +308,40 @@ export default async function Home() {
             </div>
             {/* Center Content */}
             <div className="lg:col-span-4 text-center px-4 max-w-sm mx-auto flex flex-col items-center">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roasted mb-3 block">
-                FOLLOW OUR JOURNEY
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-roasted mb-3 block">
+                Follow Our Journey
               </span>
               <h2 className="font-heading font-medium text-4xl text-espresso mb-4 leading-tight">
                 Stay Connected With Hotcakes
               </h2>
-              <p className="font-body text-mocha/80 text-sm leading-relaxed mb-8">
+              <p className="font-body text-mocha/70 text-sm leading-relaxed mb-7">
                 Get updates on seasonal specials, menu launches, community events and cafe stories.
               </p>
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-1.5 px-7 py-3 bg-roasted hover:bg-dark-roast text-cream text-[11px] uppercase tracking-widest font-semibold rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
-              >
-                Contact Us
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                </svg>
-              </Link>
+              <div className="flex items-center gap-3">
+                <a href="/api/contact-info?redirect=instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"
+                  className="w-10 h-10 rounded-full border border-espresso/20 flex items-center justify-center text-espresso/70 hover:border-roasted hover:text-roasted transition-all duration-200">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                  </svg>
+                </a>
+                <a href="/api/contact-info?redirect=whatsapp" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
+                  className="w-10 h-10 rounded-full border border-espresso/20 flex items-center justify-center text-espresso/70 hover:border-roasted hover:text-roasted transition-all duration-200">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.456h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                </a>
+                <a href="/api/contact-info?redirect=tiktok" target="_blank" rel="noopener noreferrer" aria-label="TikTok"
+                  className="w-10 h-10 rounded-full border border-espresso/20 flex items-center justify-center text-espresso/70 hover:border-roasted hover:text-roasted transition-all duration-200">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12.525.02c1.31-.03 2.61-.01 3.91-.02.08 1.53.63 3.05 1.62 4.2 1.12 1.27 2.7 2.06 4.36 2.29v3.83c-1.35-.09-2.69-.58-3.79-1.39-.77-.57-1.39-1.33-1.83-2.2v8.9c-.06 2.05-.85 4.09-2.29 5.53-1.78 1.78-4.4 2.5-6.87 1.94-2.47-.56-4.52-2.38-5.37-4.76-.92-2.58-.45-5.6 1.25-7.75 1.56-1.99 4.13-2.99 6.64-2.6v3.8c-1.42-.32-2.96.08-3.99 1.1-.96.95-1.36 2.37-1.07 3.7.28 1.28 1.21 2.36 2.45 2.78 1.41.49 3.09.07 4.06-1.04.53-.61.8-1.39.79-2.19V.02z"/>
+                  </svg>
+                </a>
+              </div>
             </div>
             {/* Right Image Grid (2x2) */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-4">
+            <div className="lg:col-span-4 grid grid-cols-2 gap-3">
               {showcaseImages.slice(4, 8).map((imageUrl, idx) => (
-                <div key={idx} className="relative aspect-square w-full rounded-[24px] overflow-hidden bg-latte/20 shadow-sm border border-latte/30 group">
+                <div key={idx} className="relative aspect-square w-full rounded-[18px] overflow-hidden bg-latte/20 group">
                   <ImageWithFallback
                     src={imageUrl}
                     alt={`Gallery Right ${idx + 1}`}
