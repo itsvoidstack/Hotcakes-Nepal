@@ -84,27 +84,45 @@ export interface Database {
           name: string
           tagline: string | null
           is_active: boolean
+          status: string
+          type: string
+          priority: number
+          placement: string
           start_date: string | null
           end_date: string | null
+          metadata: Record<string, unknown> | null
           created_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: string
           name: string
           tagline?: string | null
           is_active?: boolean
+          status?: string
+          type?: string
+          priority?: number
+          placement?: string
           start_date?: string | null
           end_date?: string | null
+          metadata?: Record<string, unknown> | null
           created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
           name?: string
           tagline?: string | null
           is_active?: boolean
+          status?: string
+          type?: string
+          priority?: number
+          placement?: string
           start_date?: string | null
           end_date?: string | null
+          metadata?: Record<string, unknown> | null
           created_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

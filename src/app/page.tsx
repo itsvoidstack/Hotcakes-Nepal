@@ -43,8 +43,11 @@ export default async function Home() {
     openingHoursResult,
     siteDescResult
   ] = await Promise.all([
-    // 1. Fetch active campaign
-    supabase.from('campaigns').select('*').eq('is_active', true).single(),
+    // 1. Fetch active general campaigns for home banner (exclude streak, filter by placement + status)
+    supabase.from('campaigns')
+      .select('*')
+      .eq('is_active', true)
+      .neq('name', 'Brew Streak Rewards'),
     // 2. Fetch featured menu items
     supabase.from('menu_items').select('*').eq('is_available', true).eq('is_featured', true).order('category', { ascending: true }),
     // 3. Fetch cafe open/closed settings
@@ -63,11 +66,31 @@ export default async function Home() {
     supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
   ]);
 
-  const campaignData = campaignResult.data;
   const now = new Date();
-  const campaign = campaignData && (!campaignData.end_date || new Date(campaignData.end_date) > now)
-    ? campaignData
-    : null;
+
+  // Campaign visibility logic:
+  // 1. status must be 'active' (is_active=true already filtered above)
+  // 2. Must not be expired (end_date null = unbounded)
+  // 3. Must not be a streak-type campaign
+  // 4. Placement must be home_banner or all_pages (or unset = legacy rows)
+  // 5. Highest priority wins
+  type CampaignRow = {
+    id: string; name: string; tagline: string | null; is_active: boolean;
+    start_date: string | null; end_date: string | null; created_at: string;
+    status?: string; type?: string; priority?: number; placement?: string;
+    metadata?: Record<string, unknown>;
+  };
+  const allActiveCampaigns: CampaignRow[] = campaignResult.data || [];
+  const campaign = allActiveCampaigns
+    .filter(c => {
+      if (c.type === 'streak') return false;                                          // never show streak on home
+      if (c.end_date && new Date(c.end_date) <= now) return false;                   // expired
+      if (c.start_date && new Date(c.start_date) > now) return false;                // not started yet
+      if (c.status && c.status !== 'active') return false;                           // draft / paused / ended
+      const placement = c.placement ?? 'home_banner';
+      return placement === 'home_banner' || placement === 'all_pages';               // placement check
+    })
+    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))[0] ?? null;             // highest priority wins
 
   const featuredItems = menuResult.data || [];
   const openSetting = openSettingResult.data;
@@ -170,12 +193,17 @@ export default async function Home() {
           <div className="max-w-[1240px] mx-auto px-5 py-3 bg-warm-white border border-latte/25 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <span className="text-espresso/80 font-body text-xs">
               <span className="font-semibold text-roasted">{campaign.name}:</span> {campaign.tagline}
+              {(campaign.metadata as { promo_code?: string } | null)?.promo_code && (
+                <span className="ml-2 font-mono font-bold text-roasted bg-roasted/10 px-1.5 py-0.5 rounded text-[10px]">
+                  {(campaign.metadata as { promo_code?: string }).promo_code}
+                </span>
+              )}
             </span>
             <Link
-              href="/streak"
+              href={(campaign.metadata as { cta_link?: string } | null)?.cta_link || '/streak'}
               className="shrink-0 inline-flex items-center justify-center px-4 py-1.5 bg-roasted hover:bg-dark-roast text-cream text-[10px] uppercase tracking-wider font-semibold rounded-full transition-all active:scale-[0.98]"
             >
-              View Campaigns
+              {(campaign.metadata as { cta_text?: string } | null)?.cta_text || 'View Campaigns'}
             </Link>
           </div>
         </section>

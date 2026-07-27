@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import CampaignsTab from '@/components/dashboard/CampaignsTab';
 
 import { useState, useEffect, useMemo } from 'react';
 import { Database } from '@/lib/supabase/database.types';
@@ -21,10 +22,6 @@ interface MenuItem {
 }
 interface OrderLink { platform: string; url: string | null; is_active: boolean; }
 interface ContactInfo { key: string; value: string; }
-interface Campaign {
-  name: string; tagline: string | null; is_active: boolean;
-  start_date: string | null; end_date: string | null;
-}
 interface Vacancy {
   id?: string; title: string; description: string | null;
   google_form_link: string; image_url: string | null; is_active: boolean;
@@ -33,7 +30,7 @@ interface SiteSetting { key: string; value: unknown; }
 interface DashboardClientProps { token: string; onLogout: () => void; }
 
 export default function DashboardClient({ token, onLogout }: DashboardClientProps) {
-  const [activeTab, setActiveTab] = useState<'menu' | 'streak' | 'order' | 'vacancies' | 'settings'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'streak' | 'order' | 'vacancies' | 'campaigns' | 'settings'>('menu');
 
   // Global loading / feedback
   const [loading, setLoading] = useState(false);
@@ -83,6 +80,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     total_active_rewards: number; total_rewards_redeemed?: number;
   } | null>(null);
   const [streakLoading, setStreakLoading] = useState(false);
+  const [streakCampaign, setStreakCampaign] = useState<{ id: string; name: string; tagline: string | null; is_active: boolean; start_date: string | null; end_date: string | null } | null>(null);
+  const [savingStreakCampaign, setSavingStreakCampaign] = useState(false);
 
   // 3. Order links
   const [orderLinks, setOrderLinks] = useState<OrderLink[]>([]);
@@ -95,7 +94,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [isOpen, setIsOpen] = useState(true);
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [contacts, setContacts] = useState<ContactInfo[]>([]);
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [openingHours, setOpeningHours] = useState<OpeningHours>(DEFAULT_OPENING_HOURS);
   const [applyAllTemplate, setApplyAllTemplate] = useState({ openTime: '08:00', closeTime: '20:00' });
   const [settingsSubTab, setSettingsSubTab] = useState<'overview' | 'opening-hours' | 'contact' | 'branding' | 'gallery' | 'others'>('overview');
@@ -125,8 +123,20 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const loadStreakData = async () => {
     setStreakLoading(true);
     try {
-      const res = await fetch('/api/admin/streak', { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) { const d = await res.json(); setStreakRecords(d.records || []); setStreakMetrics(d.metrics || null); }
+      const [streakRes, campaignRes] = await Promise.all([
+        fetch('/api/admin/streak', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/admin/settings?type=campaigns', { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      if (streakRes.ok) {
+        const d = await streakRes.json();
+        setStreakRecords(d.records || []);
+        setStreakMetrics(d.metrics || null);
+      }
+      if (campaignRes.ok) {
+        const d = await campaignRes.json();
+        const sc = (d.data || []).find((c: { name: string }) => c.name === 'Brew Streak Rewards') || null;
+        setStreakCampaign(sc);
+      }
     } catch (err) { console.error(err); } finally { setStreakLoading(false); }
   };
 
@@ -144,7 +154,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         setOrderLinks(s.orderLinks || []);
         setVacancies(s.vacancies || []);
         setContacts(s.contactInfo || []);
-        setCampaign(s.campaigns?.[0] || null);
         const ss: SiteSetting[] = s.siteSettings || [];
         const get = (k: string) => ss.find(x => x.key === k)?.value;
         setIsOpen((get('open_status') as { is_open?: boolean } | null)?.is_open ?? true);
@@ -165,6 +174,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, []);
 
   const showFeedback = (msg: string, isError = false) => {
@@ -449,12 +459,12 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-1.5 border-b border-latte pb-2 mb-6 -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {(['menu', 'streak', 'order', 'vacancies', 'settings'] as const).map(tab => (
+        {(['menu', 'streak', 'order', 'vacancies', 'campaigns', 'settings'] as const).map(tab => (
           <button key={tab}
             className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold capitalize transition-all whitespace-nowrap ${activeTab === tab ? 'bg-roasted text-white shadow-sm' : 'text-mocha hover:bg-latte/10'}`}
             style={{ minHeight: 40 }}
             onClick={() => { setActiveTab(tab); setEditingItem(null); setEditingVacancy(null); setSettingsSubTab('overview'); }}>
-            {tab === 'order' ? 'Delivery' : tab === 'settings' ? 'Settings' : tab}
+            {tab === 'order' ? 'Delivery' : tab === 'settings' ? 'Settings' : tab === 'campaigns' ? 'Campaigns' : tab}
           </button>
         ))}
       </div>
@@ -475,9 +485,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               <p className={`font-heading font-bold text-xl sm:text-2xl mt-1 ${color}`}>{value}</p>
             </div>
           ))}
-          <div className="glass-card p-3 sm:p-4 rounded-xl border border-latte text-center col-span-2 sm:col-span-1">
-            <p className="text-[10px] sm:text-xs font-semibold text-mocha uppercase leading-tight">Campaign</p>
-            <p className={`font-heading font-bold text-base sm:text-lg mt-1 ${campaign ? 'text-olive' : 'text-mocha'}`}>{campaign ? 'Active' : 'None'}</p>
+          <div className="glass-card p-3 sm:p-4 rounded-xl border border-latte text-center col-span-2 sm:col-span-1 cursor-pointer hover:border-roasted/40 transition-colors" onClick={() => setActiveTab('campaigns')}>
+            <p className="text-[10px] sm:text-xs font-semibold text-mocha uppercase leading-tight">Campaigns</p>
+            <p className="font-heading font-bold text-base sm:text-lg mt-1 text-roasted">Manage &rsaquo;</p>
           </div>
         </div>
       )}
@@ -733,6 +743,58 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               </div>
             )}
           </div>
+
+          {/* Streak Campaign Control */}
+          <div className="glass-card p-6 rounded-2xl border border-latte">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-heading font-bold text-lg text-espresso">Brew Streak Rewards</h2>
+                <p className="text-xs text-mocha mt-0.5">Controls the loyalty stamp campaign shown on the /streak page.</p>
+              </div>
+              {streakCampaign && (
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase ${streakCampaign.is_active ? 'bg-olive/15 text-olive' : 'bg-latte/30 text-mocha'}`}>
+                  {streakCampaign.is_active ? 'Active' : 'Paused'}
+                </span>
+              )}
+            </div>
+            {streakCampaign ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline</label>
+                  <input type="text" value={streakCampaign.tagline || ''} onChange={e => setStreakCampaign({ ...streakCampaign, tagline: e.target.value })} placeholder="10 visits. 1 free coffee." className={inputCls} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
+                    <input type="date" value={streakCampaign.start_date ? streakCampaign.start_date.slice(0, 10) : ''} onChange={e => setStreakCampaign({ ...streakCampaign, start_date: e.target.value || null })} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">End Date</label>
+                    <input type="date" value={streakCampaign.end_date ? streakCampaign.end_date.slice(0, 10) : ''} onChange={e => setStreakCampaign({ ...streakCampaign, end_date: e.target.value || null })} className={inputCls} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer">
+                    <input type="checkbox" checked={!!streakCampaign.is_active} onChange={e => setStreakCampaign({ ...streakCampaign, is_active: e.target.checked })} className="w-4 h-4 rounded accent-roasted" />
+                    Enable Streak Campaign
+                  </label>
+                  <button type="button" disabled={savingStreakCampaign} onClick={async () => {
+                    setSavingStreakCampaign(true);
+                    try {
+                      const res = await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'campaign', data: streakCampaign }) });
+                      const d = await res.json(); if (!res.ok) throw new Error(d.error || 'Save failed');
+                      showFeedback('Streak campaign saved!');
+                    } catch (e) { showFeedback(e instanceof Error ? e.message : 'Save failed', true); }
+                    finally { setSavingStreakCampaign(false); }
+                  }} className="px-5 py-2 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
+                    {savingStreakCampaign ? <><Spinner /> Saving&hellip;</> : 'Save Streak Campaign'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-mocha">Streak campaign not found. Run <code className="font-mono bg-latte/30 px-1 rounded">/api/seed</code> to initialise it.</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -835,6 +897,11 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             </div>
           )}
         </div>
+      )}
+
+      {/* ── CAMPAIGNS TAB ─────────────────────────────────────────────────── */}
+      {activeTab === 'campaigns' && !loading && (
+        <CampaignsTab token={token} />
       )}
 
       {/* ── SETTINGS TAB ──────────────────────────────────────────────────── */}
@@ -1263,9 +1330,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'order_description', data: { text: orderDescription } }) }),
                   fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'vacancies_description', data: { text: vacanciesDescription } }) }),
                 ];
-                if (campaign) {
-                  toSave.push(fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'campaign', data: campaign }) }));
-                }
                 await Promise.all(toSave);
                 showFeedback('Settings saved!');
               } catch { showFeedback('Save failed. Try again.', true); } finally { setSavingSettings(false); }
@@ -1328,36 +1392,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 </label>
               </div>
 
-              {/* Campaign */}
-              {campaign && (
-                <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-4">
-                  <h4 className="font-heading font-semibold text-sm text-espresso">Brew Streak Campaign</h4>
-                  <div>
-                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline</label>
-                    <input type="text" value={campaign.tagline || ''} onChange={e => setCampaign({ ...campaign, tagline: e.target.value })}
-                      placeholder="10 visits. 1 free coffee." className={inputCls} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
-                      <input type="date" value={campaign.start_date ? campaign.start_date.slice(0, 10) : ''}
-                        onChange={e => setCampaign({ ...campaign, start_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
-                        className={inputCls} />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">End Date</label>
-                      <input type="date" value={campaign.end_date ? campaign.end_date.slice(0, 10) : ''}
-                        onChange={e => setCampaign({ ...campaign, end_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
-                        className={inputCls} />
-                    </div>
-                  </div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer">
-                    <input type="checkbox" checked={!!campaign.is_active} onChange={e => setCampaign({ ...campaign, is_active: e.target.checked })}
-                      className="w-4 h-4 rounded accent-roasted" />
-                    Campaign Active
-                  </label>
-                </div>
-              )}
 
               <button type="submit" disabled={savingSettings}
                 className="px-8 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full text-sm flex items-center gap-2">

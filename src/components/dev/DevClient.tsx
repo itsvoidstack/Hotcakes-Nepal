@@ -114,7 +114,8 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
     }
   };
 
-  useEffect(() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
     if (activeTab === 'health' || activeTab === 'maintenance') {
       fetchHealthData();
     } else if (activeTab === 'database') {
@@ -122,6 +123,7 @@ export default function DevClient({ token, onLogout }: DevClientProps) {
     } else if (activeTab === 'auditor') {
       fetchTableData('audit_logs');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedTable]);
 
   const handleDeleteRow = async (row: DevTableRow) => {
