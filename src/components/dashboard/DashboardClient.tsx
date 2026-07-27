@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { Database } from '@/lib/supabase/database.types';
@@ -12,7 +12,7 @@ function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : '';
 }
 
-// ── Collapsible section component ──────────────────────────────────────────
+// â”€â”€ Collapsible section component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Section({
   title, defaultOpen = false, children
 }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
@@ -122,6 +122,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [openingHours, setOpeningHours] = useState<OpeningHours>(DEFAULT_OPENING_HOURS);
   const [applyAllTemplate, setApplyAllTemplate] = useState({ openTime: '08:00', closeTime: '20:00' });
+  const [settingsSubTab, setSettingsSubTab] = useState<'overview' | 'opening-hours' | 'contact' | 'branding' | 'gallery' | 'others'>('overview');
 
   // 6. Media
   const [locationPhotos, setLocationPhotos] = useState<string[]>([]);
@@ -139,7 +140,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [savingVacancy, setSavingVacancy] = useState(false);
   const [savingMenu, setSavingMenu] = useState(false);
 
-  // ── Data loaders ────────────────────────────────────────────────────────
+  // â”€â”€ Data loaders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const loadStreakData = async () => {
     setStreakLoading(true);
     try {
@@ -193,7 +194,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       return [...prev, { key, value: val }];
     });
 
-  // ── Menu handlers ────────────────────────────────────────────────────────
+  // â”€â”€ Menu handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleStartEdit = (item: MenuItem) => {
     let desc = item.description || '', tags = '';
     if (desc.includes(' | Tags: ')) { const p = desc.split(' | Tags: '); desc = p[0]; tags = p[1]; }
@@ -255,7 +256,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch (err: unknown) { showFeedback(getErrorMessage(err), true); }
   };
 
-  // ── Streak handlers ──────────────────────────────────────────────────────
+  // â”€â”€ Streak handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleStreakSearch = async (e: React.FormEvent) => {
     e.preventDefault(); if (!streakQuery.trim()) return;
     try {
@@ -292,7 +293,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch (err: unknown) { showFeedback(getErrorMessage(err), true); }
   };
 
-  // ── Order links handler ──────────────────────────────────────────────────
+  // â”€â”€ Order links handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSaveOrderLinks = async (e: React.FormEvent) => {
     e.preventDefault(); setSavingOrderLinks(true);
     try {
@@ -303,7 +304,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     finally { setSavingOrderLinks(false); }
   };
 
-  // ── Vacancy handlers ─────────────────────────────────────────────────────
+  // â”€â”€ Vacancy handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleUploadVacancyImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file || uploadingVacancy) return;
     setUploadingVacancy(true);
@@ -345,7 +346,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch (err: unknown) { showFeedback(getErrorMessage(err), true); loadData(); }
   };
 
-  // ── Media / settings handlers ────────────────────────────────────────────
+  // â”€â”€ Media / settings handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleUploadLocationPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file || uploadingLocation) return;
     setUploadingLocation(true);
@@ -452,11 +453,11 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     finally { setSavingSettings(false); }
   };
 
-  // ── Shared spinner helper ────────────────────────────────────────────────
+  // â”€â”€ Shared spinner helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const Spinner = () => <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />;
   const inputCls = "w-full h-11 px-3 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted";
 
-  // ── RENDER ───────────────────────────────────────────────────────────────
+  // â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div className="w-full max-w-[1280px] mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8">
 
@@ -478,17 +479,18 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-1.5 border-b border-latte pb-2 mb-6 -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {(['menu', 'streak', 'order', 'vacancies', 'settings'] as const).map(tab => (
-          <button key={tab} onClick={() => { setActiveTab(tab); setEditingItem(null); setEditingVacancy(null); }}
+          <button key={tab}
             className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold capitalize transition-all whitespace-nowrap ${activeTab === tab ? 'bg-roasted text-white shadow-sm' : 'text-mocha hover:bg-latte/10'}`}
-            style={{ minHeight: 40 }}>
+            style={{ minHeight: 40 }}
+            onClick={() => { setActiveTab(tab); setEditingItem(null); setEditingVacancy(null); setSettingsSubTab('overview'); }}>
             {tab === 'order' ? 'Delivery' : tab === 'settings' ? 'Settings' : tab}
           </button>
         ))}
       </div>
 
-      {loading && <div className="text-center py-12 text-mocha font-body">Loading dashboard…</div>}
+      {loading && <div className="text-center py-12 text-mocha font-body">Loading dashboardâ€¦</div>}
 
-      {/* Health cards — always visible */}
+      {/* Health cards â€” always visible */}
       {!loading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
           {[
@@ -509,7 +511,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         </div>
       )}
 
-      {/* ── MENU TAB ──────────────────────────────────────────────────────── */}
+      {/* â”€â”€ MENU TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === 'menu' && !loading && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
@@ -554,11 +556,11 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-mocha uppercase mb-1">Description</label>
-                  <textarea value={editingItem.description || ''} onChange={e => setEditingItem({ ...editingItem, description: e.target.value })} placeholder="Optional details…" className="w-full h-24 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none" />
+                  <textarea value={editingItem.description || ''} onChange={e => setEditingItem({ ...editingItem, description: e.target.value })} placeholder="Optional detailsâ€¦" className="w-full h-24 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-mocha uppercase mb-1">Dietary Tags</label>
-                  <input type="text" value={editingItem.dietary_tags || ''} onChange={e => setEditingItem({ ...editingItem, dietary_tags: e.target.value })} placeholder="Veg, Gluten-Free…" className={`${inputCls} mb-1`} />
+                  <input type="text" value={editingItem.dietary_tags || ''} onChange={e => setEditingItem({ ...editingItem, dietary_tags: e.target.value })} placeholder="Veg, Gluten-Freeâ€¦" className={`${inputCls} mb-1`} />
                   <span className="text-[10px] text-mocha">Separate with commas</span>
                 </div>
               </div>
@@ -567,10 +569,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <div className="flex gap-3 items-start">
                   {editingItem.image_url && <img src={editingItem.image_url} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-latte flex-shrink-0" />}
                   <div className="flex-grow space-y-1.5">
-                    <input type="text" value={editingItem.image_url || ''} onChange={e => setEditingItem({ ...editingItem, image_url: e.target.value })} placeholder="/images/menu/…" className={inputCls} />
+                    <input type="text" value={editingItem.image_url || ''} onChange={e => setEditingItem({ ...editingItem, image_url: e.target.value })} placeholder="/images/menu/â€¦" className={inputCls} />
                     <div className="flex items-center gap-2">
                       <input type="file" accept="image/*" onChange={handleUploadMenuItemImage} disabled={uploadingMenu} className="text-xs text-mocha font-body" />
-                      {uploadingMenu && <span className="text-xs text-mocha animate-pulse">Uploading…</span>}
+                      {uploadingMenu && <span className="text-xs text-mocha animate-pulse">Uploadingâ€¦</span>}
                     </div>
                   </div>
                 </div>
@@ -588,14 +590,14 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               <div className="flex gap-3 pt-2 justify-end">
                 <button type="button" onClick={() => setEditingItem(null)} disabled={savingMenu || uploadingMenu} className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold">Cancel</button>
                 <button type="submit" disabled={savingMenu || uploadingMenu} className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
-                  {uploadingMenu ? <><Spinner /> Uploading…</> : savingMenu ? <><Spinner /> Saving…</> : 'Save Item'}
+                  {uploadingMenu ? <><Spinner /> Uploadingâ€¦</> : savingMenu ? <><Spinner /> Savingâ€¦</> : 'Save Item'}
                 </button>
               </div>
             </form>
           ) : (
             <div className="space-y-4">
               <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <input type="text" value={menuSearchQuery} onChange={e => setMenuSearchQuery(e.target.value)} placeholder="Search items…" className={inputCls} />
+                <input type="text" value={menuSearchQuery} onChange={e => setMenuSearchQuery(e.target.value)} placeholder="Search itemsâ€¦" className={inputCls} />
                 <select value={menuCategoryFilter} onChange={e => setMenuCategoryFilter(e.target.value)} className={inputCls}>
                   <option value="all">All Categories</option>
                   {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -636,8 +638,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                           <td className="p-4 font-heading font-semibold">{item.name}</td>
                           <td className="p-4">{item.category}</td>
                           <td className="p-4">Rs. {item.price}</td>
-                          <td className="p-4">{item.is_featured ? '⭐ Yes' : 'No'}</td>
-                          <td className="p-4">{item.image_url ? <span className="px-2 py-0.5 bg-olive/15 text-olive rounded-full text-xs">✓ Set</span> : <span className="px-2 py-0.5 bg-muted-red/15 text-muted-red rounded-full text-xs">Missing</span>}</td>
+                          <td className="p-4">{item.is_featured ? 'â­ Yes' : 'No'}</td>
+                          <td className="p-4">{item.image_url ? <span className="px-2 py-0.5 bg-olive/15 text-olive rounded-full text-xs">âœ“ Set</span> : <span className="px-2 py-0.5 bg-muted-red/15 text-muted-red rounded-full text-xs">Missing</span>}</td>
                           <td className="p-4"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${item.is_available ? 'bg-olive/15 text-olive' : 'bg-muted-red/15 text-muted-red'}`}>{item.is_available ? 'In Stock' : 'Out of Stock'}</span></td>
                           <td className="p-4 text-right space-x-2">
                             <button onClick={() => handleStartEdit(item)} className="px-3 py-1 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium">Edit</button>
@@ -666,7 +668,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         </div>
       )}
 
-      {/* ── STREAK TAB ────────────────────────────────────────────────────── */}
+      {/* â”€â”€ STREAK TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === 'streak' && !loading && (
         <div className="space-y-6 max-w-2xl mx-auto">
           {streakMetrics && (
@@ -674,7 +676,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               {[
                 { label: 'Customers', value: streakMetrics.total_customers, color: 'text-espresso' },
                 { label: 'Stamps', value: streakMetrics.total_stamps, color: 'text-espresso' },
-                { label: 'Active Rewards', value: `${streakMetrics.total_active_rewards} 🎁`, color: 'text-olive' },
+                { label: 'Active Rewards', value: `${streakMetrics.total_active_rewards} ðŸŽ`, color: 'text-olive' },
                 { label: 'Redeemed', value: streakMetrics.total_rewards_redeemed || 0, color: 'text-roasted' },
               ].map(({ label, value, color }) => (
                 <div key={label} className="glass-card p-4 rounded-xl border border-latte text-center">
@@ -688,7 +690,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           <div className="glass-card p-6 rounded-2xl border border-latte">
             <h2 className="font-heading font-bold text-lg text-espresso mb-4">Barista Stamp Station</h2>
             <form onSubmit={e => { e.preventDefault(); handleAddStamp(streakStampPhone); }} className="flex flex-col sm:flex-row gap-3">
-              <input type="text" required value={streakStampPhone} onChange={e => setStreakStampPhone(e.target.value)} placeholder="Customer phone number…" className="flex-grow h-11 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted" />
+              <input type="text" required value={streakStampPhone} onChange={e => setStreakStampPhone(e.target.value)} placeholder="Customer phone numberâ€¦" className="flex-grow h-11 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted" />
               <button type="submit" className="px-6 h-11 bg-roasted hover:bg-dark-roast text-white font-semibold rounded-xl text-xs shrink-0">+1 Stamp</button>
             </form>
             <p className="text-[10px] text-mocha font-body mt-2">Adds a stamp (+1). Creates a new profile if not registered. Locked to 1 stamp per 24 hours.</p>
@@ -697,7 +699,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           <div className="glass-card p-6 rounded-2xl border border-latte">
             <h2 className="font-heading font-bold text-lg text-espresso mb-4">Lookup Customer Profile</h2>
             <form onSubmit={handleStreakSearch} className="flex flex-col sm:flex-row gap-3 mb-4">
-              <input type="text" required value={streakQuery} onChange={e => setStreakQuery(e.target.value)} placeholder="Customer Code or Phone Number…" className="flex-grow h-11 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted" />
+              <input type="text" required value={streakQuery} onChange={e => setStreakQuery(e.target.value)} placeholder="Customer Code or Phone Numberâ€¦" className="flex-grow h-11 px-4 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted" />
               <button type="submit" className="px-6 h-11 bg-roasted hover:bg-dark-roast text-white font-semibold rounded-xl text-xs shrink-0">Search</button>
             </form>
             {streakResult && (
@@ -716,7 +718,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <div className="flex flex-wrap gap-2 justify-end">
                   {streakResult.streak_count < 10 && <button onClick={() => handleAddStamp(streakResult.phone_number)} className="px-4 py-2 bg-roasted hover:bg-dark-roast text-white rounded-lg text-xs font-semibold">+1 Stamp</button>}
                   <button onClick={() => handleResetStreak(streakResult.customer_code)} className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-all ${streakResult.streak_count === 10 ? 'bg-olive border-olive text-white hover:bg-olive/90 animate-pulse' : 'border-roasted text-roasted hover:bg-roasted/5'}`}>
-                    {streakResult.streak_count === 10 ? '🎁 Claim & Reset' : 'Reset Stamps'}
+                    {streakResult.streak_count === 10 ? 'ðŸŽ Claim & Reset' : 'Reset Stamps'}
                   </button>
                   <button onClick={() => handleDeleteStreak(streakResult.customer_code)} className="px-4 py-2 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-lg text-xs font-semibold">Delete Profile</button>
                 </div>
@@ -726,7 +728,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
           <div className="glass-card p-6 rounded-2xl border border-latte">
             <h2 className="font-heading font-bold text-lg text-espresso mb-4">Customer Registry</h2>
-            {streakLoading ? <div className="text-center py-6 text-mocha text-sm">Loading…</div> :
+            {streakLoading ? <div className="text-center py-6 text-mocha text-sm">Loadingâ€¦</div> :
               streakRecords.length === 0 ? <div className="text-center py-6 text-mocha text-sm">No customers yet.</div> : (
               <div className="overflow-x-auto border border-latte rounded-xl bg-warm-white -mx-2 md:mx-0">
                 <div className="min-w-[500px]">
@@ -748,7 +750,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                             <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
                               {record.streak_count < 10 && <button onClick={() => handleAddStamp(record.phone_number)} className="px-2.5 py-1 bg-roasted hover:bg-dark-roast text-white rounded text-xs font-medium">+1</button>}
                               <button onClick={() => handleResetStreak(record.customer_code)} className={`px-2.5 py-1 rounded text-xs font-medium border ${record.streak_count === 10 ? 'bg-olive border-olive text-white' : 'border-roasted text-roasted hover:bg-roasted/5'}`}>
-                                {record.streak_count === 10 ? '🎁 Claim' : 'Reset'}
+                                {record.streak_count === 10 ? 'ðŸŽ Claim' : 'Reset'}
                               </button>
                             </td>
                           </tr>
@@ -763,7 +765,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         </div>
       )}
 
-      {/* ── DELIVERY TAB ──────────────────────────────────────────────────── */}
+      {/* â”€â”€ DELIVERY TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === 'order' && !loading && (
         <form onSubmit={handleSaveOrderLinks} className="max-w-xl mx-auto glass-card p-6 md:p-8 rounded-[24px] border border-latte space-y-6">
           <h2 className="font-heading font-bold text-xl text-espresso">Delivery Platform Links</h2>
@@ -780,18 +782,18 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               </div>
               <input type="text" value={link.url || ''}
                 onChange={e => { const u = [...orderLinks]; u[idx].url = e.target.value; setOrderLinks(u); }}
-                placeholder={`Paste ${link.platform} store URL here…`}
+                placeholder={`Paste ${link.platform} store URL hereâ€¦`}
                 className="w-full h-11 px-3 bg-white border border-latte rounded-lg font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted" />
             </div>
           ))}
           <button type="submit" disabled={savingOrderLinks}
             className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2">
-            {savingOrderLinks ? <><Spinner /> Saving…</> : 'Save Delivery Links'}
+            {savingOrderLinks ? <><Spinner /> Savingâ€¦</> : 'Save Delivery Links'}
           </button>
         </form>
       )}
 
-      {/* ── VACANCIES TAB ─────────────────────────────────────────────────── */}
+      {/* â”€â”€ VACANCIES TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === 'vacancies' && !loading && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
@@ -812,21 +814,21 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               </div>
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Form Link</label>
-                <input type="text" required value={editingVacancy.google_form_link || ''} onChange={e => setEditingVacancy({ ...editingVacancy, google_form_link: e.target.value })} placeholder="https://forms.gle/…" className={inputCls} />
+                <input type="text" required value={editingVacancy.google_form_link || ''} onChange={e => setEditingVacancy({ ...editingVacancy, google_form_link: e.target.value })} placeholder="https://forms.gle/â€¦" className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Description</label>
-                <textarea required value={editingVacancy.description || ''} onChange={e => setEditingVacancy({ ...editingVacancy, description: e.target.value })} placeholder="Responsibilities, requirements…" className="w-full h-28 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none" />
+                <textarea required value={editingVacancy.description || ''} onChange={e => setEditingVacancy({ ...editingVacancy, description: e.target.value })} placeholder="Responsibilities, requirementsâ€¦" className="w-full h-28 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1">Banner Image</label>
                 <div className="flex gap-3 items-start">
                   {editingVacancy.image_url && <img src={editingVacancy.image_url} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-latte flex-shrink-0" />}
                   <div className="flex-grow space-y-1.5">
-                    <input type="text" value={editingVacancy.image_url || ''} onChange={e => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })} placeholder="/images/vacancies/…" className={inputCls} />
+                    <input type="text" value={editingVacancy.image_url || ''} onChange={e => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })} placeholder="/images/vacancies/â€¦" className={inputCls} />
                     <div className="flex items-center gap-2">
                       <input type="file" accept="image/*" onChange={handleUploadVacancyImage} disabled={uploadingVacancy} className="text-xs text-mocha font-body" />
-                      {uploadingVacancy && <span className="text-xs text-mocha animate-pulse">Uploading…</span>}
+                      {uploadingVacancy && <span className="text-xs text-mocha animate-pulse">Uploadingâ€¦</span>}
                     </div>
                   </div>
                 </div>
@@ -838,7 +840,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               <div className="flex gap-3 pt-2 justify-end">
                 <button type="button" onClick={() => setEditingVacancy(null)} disabled={savingVacancy || uploadingVacancy} className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold">Cancel</button>
                 <button type="submit" disabled={savingVacancy || uploadingVacancy} className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
-                  {uploadingVacancy ? <><Spinner /> Uploading…</> : savingVacancy ? <><Spinner /> Saving…</> : 'Save Campaign'}
+                  {uploadingVacancy ? <><Spinner /> Uploadingâ€¦</> : savingVacancy ? <><Spinner /> Savingâ€¦</> : 'Save Campaign'}
                 </button>
               </div>
             </form>
@@ -866,330 +868,489 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       {/* ── SETTINGS TAB ──────────────────────────────────────────────────── */}
       {activeTab === 'settings' && !loading && (
-        <form onSubmit={handleSaveSettings} className="space-y-5 max-w-2xl mx-auto">
-          <h2 className="font-heading font-bold text-xl text-espresso">Site Settings</h2>
+        <div className="space-y-0">
+          {/* Page header */}
+          <div className="mb-6">
+            <h2 className="font-heading font-bold text-2xl text-espresso">Settings</h2>
+            <p className="text-xs text-mocha mt-1">Manage your website, business information and preferences</p>
+          </div>
 
-          {/* ── Open / Closed Status ── */}
-          <Section title="Cafe Open/Closed Status" defaultOpen>
-            <div className="flex items-center justify-between p-4 bg-warm-white rounded-xl border border-latte">
-              <div>
-                <p className="font-heading font-semibold text-espresso text-sm">Cafe Status</p>
-                <p className="text-xs text-mocha mt-0.5">Toggle the cafe open or closed. When closed, the site shows a &quot;Closed&quot; banner regardless of opening hours.</p>
+          {/* Settings sub-nav */}
+          <div className="flex overflow-x-auto gap-1 border-b border-latte pb-0 mb-6 -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {([
+              { id: 'overview',      icon: '⊙', label: 'Overview' },
+              { id: 'opening-hours', icon: '◷', label: 'Opening Hours' },
+              { id: 'contact',       icon: '◎', label: 'Contact & Social' },
+              { id: 'branding',      icon: '◈', label: 'Branding' },
+              { id: 'gallery',       icon: '▣', label: 'Gallery' },
+              { id: 'others',        icon: '≡', label: 'Others' },
+            ] as const).map(({ id, icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setSettingsSubTab(id)}
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-all ${
+                  settingsSubTab === id
+                    ? 'border-roasted text-roasted'
+                    : 'border-transparent text-mocha hover:text-espresso hover:border-latte'
+                }`}
+              >
+                <span className="text-sm">{icon}</span>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── OVERVIEW sub-tab ── */}
+          {settingsSubTab === 'overview' && (
+            <div className="space-y-6">
+              {/* Welcome banner */}
+              <div className="p-5 bg-warm-white rounded-2xl border border-latte">
+                <p className="font-heading font-bold text-lg text-espresso mb-0.5">Welcome back! 👋</p>
+                <p className="text-xs text-mocha">Here&apos;s a quick overview of your website settings.</p>
+                <div className="flex flex-wrap gap-3 mt-4">
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 bg-cream rounded-xl border border-latte min-w-[140px]">
+                    <span className="text-lg">🌐</span>
+                    <div>
+                      <p className="text-[10px] font-semibold text-mocha uppercase">Website Status</p>
+                      <p className="text-xs font-bold text-olive mt-0.5">• Live</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 bg-cream rounded-xl border border-latte min-w-[140px]">
+                    <span className="text-lg">🕐</span>
+                    <div>
+                      <p className="text-[10px] font-semibold text-mocha uppercase">Last Updated</p>
+                      <p className="text-xs font-bold text-espresso mt-0.5">{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isOpen}
-                  onChange={e => setIsOpen(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-latte rounded-full peer peer-checked:bg-olive transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5" />
-                <span className={`ml-3 text-sm font-semibold ${isOpen ? 'text-olive' : 'text-muted-red'}`}>
-                  {isOpen ? 'Open' : 'Closed'}
-                </span>
-              </label>
-            </div>
-          </Section>
 
-          {/* ── Opening Hours ── */}
-          <Section title="Opening Hours">
-            <div className="space-y-2">
-              <div className="flex gap-3 p-3 bg-latte/10 rounded-xl border border-latte mb-4">
-                <div className="flex-1">
-                  <label className="block text-[10px] font-bold text-mocha uppercase mb-1">Apply to All — Open</label>
+              {/* Cafe Shop Status */}
+              <div className="p-5 bg-warm-white rounded-2xl border border-latte space-y-4">
+                <h3 className="font-heading font-bold text-sm text-espresso">Cafe Shop Status</h3>
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
-                    type="time"
-                    value={applyAllTemplate.openTime}
-                    onChange={e => setApplyAllTemplate(p => ({ ...p, openTime: e.target.value }))}
-                    className="w-full h-9 px-3 bg-warm-white border border-latte rounded-lg font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
+                    type="checkbox"
+                    checked={isOpen}
+                    onChange={e => setIsOpen(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-roasted border-latte focus:ring-roasted accent-roasted"
                   />
+                  <div>
+                    <p className="text-sm font-semibold text-espresso">Show cafe open banner site on home page</p>
+                    <p className="text-xs text-mocha mt-0.5">Display cafe open banner on the home page when cafe is open.</p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Cafe Opening Times preview */}
+              <div className="p-5 bg-warm-white rounded-2xl border border-latte">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-heading font-bold text-sm text-espresso">Cafe Opening Times</h3>
+                    <p className="text-xs text-mocha mt-0.5">Configure the opening (start) and closing (end) days for each day of the week.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setSettingsSubTab('opening-hours')}
+                      className="px-3 py-1.5 border border-latte text-mocha hover:bg-latte/10 rounded-lg text-xs font-semibold flex items-center gap-1">
+                      ↺ Apply to All Days
+                    </button>
+                    <button type="button" onClick={async () => {
+                      setSavingSettings(true);
+                      try {
+                        const res = await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'opening_hours', data: openingHours }) });
+                        if (!res.ok) throw new Error('Save failed');
+                        showFeedback('Opening hours saved!');
+                      } catch { showFeedback('Save failed', true); } finally { setSavingSettings(false); }
+                    }}
+                      disabled={savingSettings}
+                      className="px-4 py-1.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-lg text-xs font-semibold flex items-center gap-2">
+                      {savingSettings ? <><Spinner /> Saving…</> : '✓ Save Changes'}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <label className="block text-[10px] font-bold text-mocha uppercase mb-1">Apply to All — Close</label>
-                  <input
-                    type="time"
-                    value={applyAllTemplate.closeTime}
-                    onChange={e => setApplyAllTemplate(p => ({ ...p, closeTime: e.target.value }))}
-                    className="w-full h-9 px-3 bg-warm-white border border-latte rounded-lg font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted"
-                  />
+                <div className="space-y-1">
+                  {DAY_NAMES.map(day => {
+                    const d = openingHours[day];
+                    const label = day.charAt(0).toUpperCase() + day.slice(1);
+                    return (
+                      <div key={day} className="flex items-center gap-3 py-2 border-b border-latte/40 last:border-0">
+                        <span className="w-24 text-sm font-semibold text-espresso shrink-0">{label}</span>
+                        <label className="flex items-center gap-1.5 text-xs text-mocha cursor-pointer shrink-0 w-20">
+                          <input type="checkbox" checked={d.isClosed}
+                            onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], isClosed: e.target.checked } }))}
+                            className="w-3.5 h-3.5 rounded accent-muted-red" />
+                          Closed
+                        </label>
+                        {!d.isClosed ? (
+                          <>
+                            <span className="text-xs text-mocha shrink-0">Start</span>
+                            <input type="time" value={d.openTime}
+                              onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], openTime: e.target.value } }))}
+                              className="h-8 px-2 bg-cream border border-latte rounded-lg text-xs text-espresso focus:outline-none focus:ring-1 focus:ring-roasted" />
+                            <span className="text-xs text-mocha shrink-0">End</span>
+                            <input type="time" value={d.closeTime}
+                              onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], closeTime: e.target.value } }))}
+                              className="h-8 px-2 bg-cream border border-latte rounded-lg text-xs text-espresso focus:outline-none focus:ring-1 focus:ring-roasted" />
+                          </>
+                        ) : (
+                          <span className="text-xs text-muted-red font-medium">Closed all day</span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="flex items-end">
-                  <button
-                    type="button"
+              </div>
+
+              {/* Quick-nav cards — no Order Links since it's a separate tab */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {([
+                  { id: 'contact',  icon: '◎', label: 'Contact & Social Media',     desc: 'Update your contact details and social media links.' },
+                  { id: 'branding', icon: '◈', label: 'Branding',                   desc: 'Manage your logo, hero banner and brand identity.' },
+                  { id: 'gallery',  icon: '▣', label: 'Gallery',                    desc: 'Manage your location and showcase images.' },
+                  { id: 'others',   icon: '≡', label: 'Others',                     desc: 'Additional preferences and configurations.' },
+                ] as const).map(({ id, icon, label, desc }) => (
+                  <button key={id} type="button" onClick={() => setSettingsSubTab(id)}
+                    className="flex items-center gap-4 p-4 bg-warm-white rounded-2xl border border-latte hover:border-roasted/40 hover:shadow-sm text-left transition-all group">
+                    <span className="text-2xl text-mocha group-hover:text-roasted transition-colors">{icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-heading font-bold text-sm text-espresso">{label}</p>
+                      <p className="text-[11px] text-mocha mt-0.5 leading-relaxed">{desc}</p>
+                    </div>
+                    <svg className="w-4 h-4 text-mocha/40 group-hover:text-roasted shrink-0 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── OPENING HOURS sub-tab ── */}
+          {settingsSubTab === 'opening-hours' && (
+            <div className="space-y-4 max-w-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-heading font-bold text-base text-espresso">Cafe Opening Times</h3>
+                  <p className="text-xs text-mocha mt-0.5">Configure the opening (start) and closing (end) days for each day of the week.</p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button type="button"
                     onClick={() => {
                       const updated = { ...openingHours };
                       (Object.keys(updated) as (keyof typeof updated)[]).forEach(day => {
-                        if (!updated[day].isClosed) {
-                          updated[day] = { ...updated[day], openTime: applyAllTemplate.openTime, closeTime: applyAllTemplate.closeTime };
-                        }
+                        updated[day] = { ...updated[day], openTime: applyAllTemplate.openTime, closeTime: applyAllTemplate.closeTime, isClosed: false };
                       });
                       setOpeningHours(updated);
                     }}
-                    className="h-9 px-4 bg-roasted hover:bg-dark-roast text-white rounded-lg text-xs font-semibold whitespace-nowrap"
-                  >
-                    Apply All
+                    className="px-3 py-2 border border-latte text-mocha hover:bg-latte/10 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                    ↺ Apply to All Days
+                  </button>
+                  <button type="button"
+                    disabled={savingSettings}
+                    onClick={async () => {
+                      setSavingSettings(true);
+                      try {
+                        const res = await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'opening_hours', data: openingHours }) });
+                        if (!res.ok) throw new Error('Save failed');
+                        showFeedback('Opening hours saved!');
+                      } catch { showFeedback('Save failed', true); } finally { setSavingSettings(false); }
+                    }}
+                    className="px-4 py-2 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-xl text-xs font-semibold flex items-center gap-2">
+                    {savingSettings ? <><Spinner /> Saving…</> : '✓ Save Changes'}
                   </button>
                 </div>
               </div>
-              {DAY_NAMES.map(day => {
-                const d = openingHours[day];
-                const label = day.charAt(0).toUpperCase() + day.slice(1);
-                return (
-                  <div key={day} className="flex flex-wrap sm:flex-nowrap items-center gap-3 p-3 bg-warm-white rounded-xl border border-latte">
-                    <span className="w-24 shrink-0 text-sm font-semibold text-espresso">{label}</span>
-                    <label className="flex items-center gap-1.5 text-xs text-mocha font-semibold cursor-pointer shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={d.isClosed}
-                        onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], isClosed: e.target.checked } }))}
-                        className="w-4 h-4 rounded text-muted-red focus:ring-muted-red"
-                      />
-                      Closed
-                    </label>
-                    {!d.isClosed && (
-                      <>
-                        <input
-                          type="time"
-                          value={d.openTime}
-                          onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], openTime: e.target.value } }))}
-                          className="flex-1 h-9 px-3 bg-warm-white border border-latte rounded-lg font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted min-w-[100px]"
-                        />
-                        <span className="text-mocha text-xs shrink-0">to</span>
-                        <input
-                          type="time"
-                          value={d.closeTime}
-                          onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], closeTime: e.target.value } }))}
-                          className="flex-1 h-9 px-3 bg-warm-white border border-latte rounded-lg font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted min-w-[100px]"
-                        />
-                      </>
-                    )}
-                    {d.isClosed && <span className="text-xs text-muted-red font-medium">Closed all day</span>}
-                  </div>
-                );
-              })}
-            </div>
-          </Section>
 
-          {/* ── Contact Info ── */}
-          <Section title="Contact Information">
-            {[
-              { key: 'phone', label: 'Phone Number', placeholder: '+977 976-3687532' },
-              { key: 'whatsapp', label: 'WhatsApp Number', placeholder: '+977 976-3687532' },
-              { key: 'instagram', label: 'Instagram URL', placeholder: 'https://www.instagram.com/hotcakesnepal/' },
-              { key: 'tiktok', label: 'TikTok URL', placeholder: 'https://www.tiktok.com/@hotcakesnepal' },
-              { key: 'address', label: 'Address', placeholder: 'Hattiban, Lalitpur, Nepal' },
-            ].map(({ key, label, placeholder }) => (
-              <div key={key}>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">{label}</label>
-                <input
-                  type="text"
-                  value={contacts.find(c => c.key === key)?.value || ''}
-                  onChange={e => setContact(key, e.target.value)}
-                  placeholder={placeholder}
-                  className={inputCls}
-                />
-              </div>
-            ))}
-          </Section>
-
-          {/* ── Google Maps ── */}
-          <Section title="Google Maps Link">
-            <div>
-              <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Maps URL</label>
-              <input
-                type="text"
-                value={googleMapsUrl}
-                onChange={e => setGoogleMapsUrl(e.target.value)}
-                placeholder="https://maps.app.goo.gl/…"
-                className={inputCls}
-              />
-              <p className="text-[10px] text-mocha mt-1">Used on the Location page and footer.</p>
-            </div>
-          </Section>
-
-          {/* ── Brew Streak Campaign ── */}
-          {campaign && (
-            <Section title="Brew Streak Campaign">
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline</label>
-                <input
-                  type="text"
-                  value={campaign.tagline || ''}
-                  onChange={e => setCampaign({ ...campaign, tagline: e.target.value })}
-                  placeholder="10 visits. 1 free coffee."
-                  className={inputCls}
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
-                  <input
-                    type="date"
-                    value={campaign.start_date ? campaign.start_date.slice(0, 10) : ''}
-                    onChange={e => setCampaign({ ...campaign, start_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
-                    className={inputCls}
-                  />
+              {/* Apply-all time pickers */}
+              <div className="flex gap-3 p-4 bg-latte/10 rounded-xl border border-latte">
+                <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-mocha uppercase mb-1.5">Default Open Time</label>
+                  <input type="time" value={applyAllTemplate.openTime}
+                    onChange={e => setApplyAllTemplate(p => ({ ...p, openTime: e.target.value }))}
+                    className="w-full h-9 px-3 bg-warm-white border border-latte rounded-lg text-sm text-espresso focus:outline-none focus:ring-2 focus:ring-roasted" />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">End Date</label>
-                  <input
-                    type="date"
-                    value={campaign.end_date ? campaign.end_date.slice(0, 10) : ''}
-                    onChange={e => setCampaign({ ...campaign, end_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
-                    className={inputCls}
-                  />
+                <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-mocha uppercase mb-1.5">Default Close Time</label>
+                  <input type="time" value={applyAllTemplate.closeTime}
+                    onChange={e => setApplyAllTemplate(p => ({ ...p, closeTime: e.target.value }))}
+                    className="w-full h-9 px-3 bg-warm-white border border-latte rounded-lg text-sm text-espresso focus:outline-none focus:ring-2 focus:ring-roasted" />
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={!!campaign.is_active}
-                  onChange={e => setCampaign({ ...campaign, is_active: e.target.checked })}
-                  className="w-4 h-4 rounded text-roasted focus:ring-roasted"
-                />
-                Campaign Active
-              </label>
-            </Section>
+
+              {/* Per-day rows */}
+              <div className="bg-warm-white rounded-2xl border border-latte overflow-hidden">
+                {DAY_NAMES.map((day, idx) => {
+                  const d = openingHours[day];
+                  const label = day.charAt(0).toUpperCase() + day.slice(1);
+                  return (
+                    <div key={day} className={`flex flex-wrap sm:flex-nowrap items-center gap-3 px-5 py-3.5 ${idx < DAY_NAMES.length - 1 ? 'border-b border-latte/60' : ''}`}>
+                      <span className="w-24 shrink-0 text-sm font-semibold text-espresso">{label}</span>
+                      <label className="flex items-center gap-1.5 text-xs text-mocha cursor-pointer shrink-0 w-20">
+                        <input type="checkbox" checked={d.isClosed}
+                          onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], isClosed: e.target.checked } }))}
+                          className="w-4 h-4 rounded accent-muted-red" />
+                        Closed
+                      </label>
+                      {!d.isClosed ? (
+                        <>
+                          <span className="text-xs text-mocha shrink-0">Start</span>
+                          <input type="time" value={d.openTime}
+                            onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], openTime: e.target.value } }))}
+                            className="flex-1 h-9 px-3 bg-cream border border-latte rounded-lg text-sm text-espresso focus:outline-none focus:ring-1 focus:ring-roasted min-w-[110px]" />
+                          <span className="text-xs text-mocha shrink-0">End</span>
+                          <input type="time" value={d.closeTime}
+                            onChange={e => setOpeningHours(prev => ({ ...prev, [day]: { ...prev[day], closeTime: e.target.value } }))}
+                            className="flex-1 h-9 px-3 bg-cream border border-latte rounded-lg text-sm text-espresso focus:outline-none focus:ring-1 focus:ring-roasted min-w-[110px]" />
+                        </>
+                      ) : (
+                        <span className="text-xs text-muted-red font-medium">Closed all day</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
-          {/* ── Save Settings Button ── */}
-          <button
-            type="submit"
-            disabled={savingSettings}
-            className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2"
-          >
-            {savingSettings ? <><Spinner /> Saving…</> : 'Save Settings'}
-          </button>
-
-          {/* ── Media: Hero Image ── */}
-          <Section title="Hero Image">
-            <div className="space-y-3">
-              {heroImageUrl && (
-                <img src={heroImageUrl} alt="Hero preview" className="w-full max-h-40 object-cover rounded-xl border border-latte" />
-              )}
-              <label className="block text-xs font-semibold text-mocha uppercase mb-1">Upload New Hero Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleUploadHeroImage}
-                disabled={uploadingHero}
-                className="text-xs text-mocha font-body"
-              />
-              {uploadingHero && <span className="text-xs text-mocha animate-pulse">Uploading…</span>}
-              <p className="text-[10px] text-mocha">Recommended: 1920×1080px. Max 5MB. JPG/PNG/WEBP.</p>
-            </div>
-          </Section>
-
-          {/* ── Media: Logo ── */}
-          <Section title="Logo Image">
-            <div className="space-y-3">
-              {logoImageUrl && (
-                <div className="flex items-center gap-3">
-                  <img src={logoImageUrl} alt="Logo preview" className="h-16 w-16 object-contain rounded-xl border border-latte bg-warm-white p-1" />
-                  <button
-                    type="button"
-                    onClick={handleRemoveLogo}
-                    className="px-3 py-1.5 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-lg text-xs font-medium"
-                  >
-                    Remove Logo
-                  </button>
+          {/* ── CONTACT & SOCIAL sub-tab ── */}
+          {settingsSubTab === 'contact' && (
+            <form onSubmit={async e => {
+              e.preventDefault(); setSavingSettings(true);
+              try {
+                const results = await Promise.allSettled([
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'contact_info', data: contacts }) }),
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'google_maps', data: { url: googleMapsUrl } }) }),
+                ]);
+                if (results.some(r => r.status === 'rejected')) throw new Error('Save failed');
+                showFeedback('Contact info saved!');
+              } catch { showFeedback('Save failed. Try again.', true); } finally { setSavingSettings(false); }
+            }} className="space-y-5 max-w-xl">
+              <div>
+                <h3 className="font-heading font-bold text-base text-espresso">Contact & Social Media</h3>
+                <p className="text-xs text-mocha mt-0.5">Update your contact details and social media links.</p>
+              </div>
+              <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-4">
+                {([
+                  { key: 'phone',     label: 'Phone Number',   placeholder: '+977 976-3687532',                          type: 'tel' },
+                  { key: 'whatsapp',  label: 'WhatsApp',       placeholder: '+977 976-3687532',                          type: 'tel' },
+                  { key: 'instagram', label: 'Instagram URL',  placeholder: 'https://www.instagram.com/hotcakesnepal/',  type: 'url' },
+                  { key: 'tiktok',    label: 'TikTok URL',     placeholder: 'https://www.tiktok.com/@hotcakesnepal',     type: 'url' },
+                  { key: 'address',   label: 'Address',        placeholder: 'Hattiban, Lalitpur, Nepal',                  type: 'text' },
+                ] as const).map(({ key, label, placeholder, type }) => (
+                  <div key={key}>
+                    <label className="block text-xs font-semibold text-mocha uppercase tracking-wide mb-1.5">{label}</label>
+                    <input type={type} value={contacts.find(c => c.key === key)?.value || ''}
+                      onChange={e => setContact(key, e.target.value)}
+                      placeholder={placeholder} className={inputCls} />
+                  </div>
+                ))}
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase tracking-wide mb-1.5">Google Maps URL</label>
+                  <input type="url" value={googleMapsUrl} onChange={e => setGoogleMapsUrl(e.target.value)}
+                    placeholder="https://maps.app.goo.gl/…" className={inputCls} />
+                  <p className="text-[10px] text-mocha mt-1">Used on the Location page and footer.</p>
                 </div>
-              )}
-              <label className="block text-xs font-semibold text-mocha uppercase mb-1">Upload New Logo</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleUploadLogoImage}
-                disabled={uploadingLogo}
-                className="text-xs text-mocha font-body"
-              />
-              {uploadingLogo && <span className="text-xs text-mocha animate-pulse">Uploading…</span>}
-              <p className="text-[10px] text-mocha">Square or transparent PNG preferred. Max 5MB.</p>
-            </div>
-          </Section>
+              </div>
+              <button type="submit" disabled={savingSettings}
+                className="px-8 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full text-sm flex items-center gap-2">
+                {savingSettings ? <><Spinner /> Saving…</> : 'Save Changes'}
+              </button>
+            </form>
+          )}
 
-          {/* ── Media: Location Photos ── */}
-          <Section title="Location Photos (max 4)">
-            <div className="space-y-3">
-              {locationPhotos.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {locationPhotos.map(url => (
-                    <div key={url} className="relative group rounded-xl overflow-hidden border border-latte">
-                      <img src={url} alt="Location" className="w-full h-24 object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteLocationPhoto(url)}
-                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 hover:bg-muted-red text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Delete photo"
-                      >
-                        ✕
+          {/* ── BRANDING sub-tab ── */}
+          {settingsSubTab === 'branding' && (
+            <div className="space-y-5 max-w-xl">
+              <div>
+                <h3 className="font-heading font-bold text-base text-espresso">Branding</h3>
+                <p className="text-xs text-mocha mt-0.5">Manage your logo, hero banner and brand identity.</p>
+              </div>
+
+              {/* Logo */}
+              <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-4">
+                <h4 className="font-heading font-semibold text-sm text-espresso">Logo</h4>
+                {logoImageUrl ? (
+                  <div className="flex items-center gap-4">
+                    <img src={logoImageUrl} alt="Logo" className="h-16 w-16 object-contain rounded-xl border border-latte bg-cream p-1.5" />
+                    <div className="space-y-2">
+                      <p className="text-xs text-mocha">Current logo</p>
+                      <button type="button" onClick={handleRemoveLogo}
+                        className="px-3 py-1.5 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-lg text-xs font-medium">
+                        Remove Logo
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
-              {locationPhotos.length < 4 && (
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 rounded-xl border-2 border-dashed border-latte bg-cream flex items-center justify-center text-mocha/30 text-2xl">◈</div>
+                )}
                 <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">
-                    Upload Photo ({locationPhotos.length}/4)
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUploadLocationPhoto}
-                    disabled={uploadingLocation}
-                    className="text-xs text-mocha font-body"
-                  />
-                  {uploadingLocation && <span className="text-xs text-mocha animate-pulse">Uploading…</span>}
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Upload New Logo</label>
+                  <input type="file" accept="image/*" onChange={handleUploadLogoImage} disabled={uploadingLogo} className="text-xs text-mocha font-body" />
+                  {uploadingLogo && <span className="text-xs text-mocha animate-pulse ml-2">Uploading…</span>}
+                  <p className="text-[10px] text-mocha mt-1">Square or transparent PNG preferred. Max 5MB.</p>
                 </div>
-              )}
-              {locationPhotos.length >= 4 && (
-                <p className="text-xs text-mocha">Maximum 4 photos reached. Remove one to add another.</p>
-              )}
-            </div>
-          </Section>
+              </div>
 
-          {/* ── Media: Contact Showcase Images ── */}
-          <Section title="Contact Page Showcase Images (max 8)">
-            <div className="space-y-3">
-              {contactShowcaseImages.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {contactShowcaseImages.map(url => (
-                    <div key={url} className="relative group rounded-xl overflow-hidden border border-latte">
-                      <img src={url} alt="Showcase" className="w-full h-24 object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteContactShowcaseImage(url)}
-                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 hover:bg-muted-red text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Delete image"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {contactShowcaseImages.length < 8 && (
+              {/* Hero Image */}
+              <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-4">
+                <h4 className="font-heading font-semibold text-sm text-espresso">Hero Banner</h4>
+                {heroImageUrl && (
+                  <img src={heroImageUrl} alt="Hero" className="w-full max-h-40 object-cover rounded-xl border border-latte" />
+                )}
                 <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">
-                    Upload Image ({contactShowcaseImages.length}/8)
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Upload New Hero Image</label>
+                  <input type="file" accept="image/*" onChange={handleUploadHeroImage} disabled={uploadingHero} className="text-xs text-mocha font-body" />
+                  {uploadingHero && <span className="text-xs text-mocha animate-pulse ml-2">Uploading…</span>}
+                  <p className="text-[10px] text-mocha mt-1">Recommended: 1920×1080px. Max 5MB. JPG/PNG/WEBP.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── GALLERY sub-tab ── */}
+          {settingsSubTab === 'gallery' && (
+            <div className="space-y-5 max-w-2xl">
+              <div>
+                <h3 className="font-heading font-bold text-base text-espresso">Gallery</h3>
+                <p className="text-xs text-mocha mt-0.5">Manage your location and showcase images.</p>
+              </div>
+
+              {/* Location Photos */}
+              <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-heading font-semibold text-sm text-espresso">Location Photos</h4>
+                    <p className="text-[11px] text-mocha mt-0.5">Shown on the Location page. Max 4 photos.</p>
+                  </div>
+                  <span className="text-xs font-semibold text-mocha">{locationPhotos.length}/4</span>
+                </div>
+                {locationPhotos.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {locationPhotos.map(url => (
+                      <div key={url} className="relative group rounded-xl overflow-hidden border border-latte aspect-square">
+                        <img src={url} alt="Location" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => handleDeleteLocationPhoto(url)}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 hover:bg-muted-red text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Delete">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {locationPhotos.length < 4 ? (
+                  <div>
+                    <input type="file" accept="image/*" onChange={handleUploadLocationPhoto} disabled={uploadingLocation} className="text-xs text-mocha font-body" />
+                    {uploadingLocation && <span className="text-xs text-mocha animate-pulse ml-2">Uploading…</span>}
+                  </div>
+                ) : (
+                  <p className="text-xs text-mocha">Maximum reached. Remove a photo to upload another.</p>
+                )}
+              </div>
+
+              {/* Contact Showcase Images */}
+              <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-heading font-semibold text-sm text-espresso">Contact Page Showcase</h4>
+                    <p className="text-[11px] text-mocha mt-0.5">Image grid shown on the Contact page. Max 8 images.</p>
+                  </div>
+                  <span className="text-xs font-semibold text-mocha">{contactShowcaseImages.length}/8</span>
+                </div>
+                {contactShowcaseImages.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {contactShowcaseImages.map(url => (
+                      <div key={url} className="relative group rounded-xl overflow-hidden border border-latte aspect-square">
+                        <img src={url} alt="Showcase" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => handleDeleteContactShowcaseImage(url)}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 hover:bg-muted-red text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Delete">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {contactShowcaseImages.length < 8 ? (
+                  <div>
+                    <input type="file" accept="image/*" onChange={handleUploadContactShowcaseImage} disabled={uploadingContactShowcase} className="text-xs text-mocha font-body" />
+                    {uploadingContactShowcase && <span className="text-xs text-mocha animate-pulse ml-2">Uploading…</span>}
+                  </div>
+                ) : (
+                  <p className="text-xs text-mocha">Maximum reached. Remove an image to upload another.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── OTHERS sub-tab ── */}
+          {settingsSubTab === 'others' && (
+            <form onSubmit={async e => {
+              e.preventDefault(); setSavingSettings(true);
+              try {
+                const toSave: Promise<Response>[] = [
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'open_status', data: { is_open: isOpen } }) }),
+                ];
+                if (campaign) {
+                  toSave.push(fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'campaign', data: campaign }) }));
+                }
+                await Promise.all(toSave);
+                showFeedback('Settings saved!');
+              } catch { showFeedback('Save failed. Try again.', true); } finally { setSavingSettings(false); }
+            }} className="space-y-5 max-w-xl">
+              <div>
+                <h3 className="font-heading font-bold text-base text-espresso">Others</h3>
+                <p className="text-xs text-mocha mt-0.5">Additional preferences and configurations.</p>
+              </div>
+
+              {/* Cafe open status */}
+              <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-3">
+                <h4 className="font-heading font-semibold text-sm text-espresso">Cafe Shop Status</h4>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" checked={isOpen} onChange={e => setIsOpen(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded accent-roasted" />
+                  <div>
+                    <p className="text-sm font-semibold text-espresso">Show cafe open banner on home page</p>
+                    <p className="text-xs text-mocha mt-0.5">When enabled, an &quot;Open Now&quot; banner is displayed based on opening hours.</p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Campaign */}
+              {campaign && (
+                <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-4">
+                  <h4 className="font-heading font-semibold text-sm text-espresso">Brew Streak Campaign</h4>
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline</label>
+                    <input type="text" value={campaign.tagline || ''} onChange={e => setCampaign({ ...campaign, tagline: e.target.value })}
+                      placeholder="10 visits. 1 free coffee." className={inputCls} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
+                      <input type="date" value={campaign.start_date ? campaign.start_date.slice(0, 10) : ''}
+                        onChange={e => setCampaign({ ...campaign, start_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                        className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">End Date</label>
+                      <input type="date" value={campaign.end_date ? campaign.end_date.slice(0, 10) : ''}
+                        onChange={e => setCampaign({ ...campaign, end_date: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                        className={inputCls} />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer">
+                    <input type="checkbox" checked={!!campaign.is_active} onChange={e => setCampaign({ ...campaign, is_active: e.target.checked })}
+                      className="w-4 h-4 rounded accent-roasted" />
+                    Campaign Active
                   </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUploadContactShowcaseImage}
-                    disabled={uploadingContactShowcase}
-                    className="text-xs text-mocha font-body"
-                  />
-                  {uploadingContactShowcase && <span className="text-xs text-mocha animate-pulse">Uploading…</span>}
                 </div>
               )}
-              {contactShowcaseImages.length >= 8 && (
-                <p className="text-xs text-mocha">Maximum 8 images reached. Remove one to add another.</p>
-              )}
-            </div>
-          </Section>
-        </form>
+
+              <button type="submit" disabled={savingSettings}
+                className="px-8 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full text-sm flex items-center gap-2">
+                {savingSettings ? <><Spinner /> Saving…</> : 'Save Changes'}
+              </button>
+            </form>
+          )}
+
+        </div>
       )}
 
     </div>
