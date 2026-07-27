@@ -160,6 +160,14 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
+  // Per-section save states — prevent global loading spinner on simple saves
+  const [savingOrderLinks, setSavingOrderLinks] = useState(false);
+  const [savingVacancy, setSavingVacancy] = useState(false);
+  const [savingMenu, setSavingMenu] = useState(false);
+
+  // "Apply to all days" template state for opening hours
+  const [applyAllTemplate, setApplyAllTemplate] = useState({ openTime: '08:00', closeTime: '20:00' });
+
   // Fetch Streak analytics records
   const loadStreakData = async () => {
     setStreakLoading(true);
@@ -305,7 +313,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     e.preventDefault();
     if (!editingItem) return;
 
-    setLoading(true);
+    setSavingMenu(true);
     try {
       const isNew = !editingItem.id;
       const url = '/api/admin/menu';
@@ -325,13 +333,22 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       if (!res.ok) throw new Error(data.error || 'Failed to save menu item');
 
+      // Optimistic update — no full reload needed
+      const savedItem: MenuItem = data.item || { ...editingItem, id: data.id || editingItem.id, description: finalDescription } as MenuItem;
+      if (isNew) {
+        setMenuItems(prev => [...prev, savedItem]);
+      } else {
+        setMenuItems(prev => prev.map(i => i.id === savedItem.id ? savedItem : i));
+      }
+
       showFeedback('Saved successfully');
       setEditingItem(null);
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
+      // Fall back to full reload so list stays in sync
+      loadData();
     } finally {
-      setLoading(false);
+      setSavingMenu(false);
     }
   };
 
@@ -365,6 +382,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
   const handleDeleteMenu = async (id: string) => {
     if (!confirm('Are you sure you want to delete this menu item?')) return;
+    // Optimistic remove
+    setMenuItems(prev => prev.filter(i => i.id !== id));
     try {
       const res = await fetch(`/api/admin/menu?id=${id}`, {
         method: 'DELETE',
@@ -375,9 +394,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!res.ok) throw new Error(data.error || 'Failed to delete menu item');
 
       showFeedback('Menu item deleted successfully!');
-      loadData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
+      // Reload to restore list if deletion failed
+      loadData();
     }
   };
 
@@ -410,9 +430,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       console.log('=== [handleBulkDelete] Success response data ===', successData);
 
       showFeedback(`${successData.deletedCount} menu items deleted successfully!`);
+      // Optimistic remove — no reload
+      setMenuItems(prev => prev.filter(item => !selectedMenuItems.includes(item.id)));
       setSelectedMenuItems([]);
-      await loadData();
-      console.log('=== [handleBulkDelete] Load data completed ===');
+      console.log('=== [handleBulkDelete] Optimistic update applied ===');
     } catch (err: unknown) {
       console.error('=== [handleBulkDelete] Unhandled exception ===', err);
       showFeedback(getErrorMessage(err), true);
@@ -459,7 +480,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       showFeedback('Stamp added successfully (+1)!');
       setStreakResult(data.record);
       setStreakStampPhone('');
-      await loadData();
+      await loadStreakData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
     }
@@ -479,7 +500,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       showFeedback('Streak count reset to 0!');
       setStreakResult(data.record);
-      await loadData();
+      await loadStreakData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
     }
@@ -499,7 +520,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       showFeedback('Customer profile deleted successfully!');
       setStreakResult(null);
-      await loadData();
+      await loadStreakData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
     }
@@ -509,6 +530,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   // ==========================================
   const handleSaveOrderLinks = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSavingOrderLinks(true);
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -519,10 +541,12 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       if (!res.ok) throw new Error(data.error || 'Failed to save order links');
 
+      // State is already up to date (user edited it in place)
       showFeedback('Order links updated successfully!');
-      loadData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
+    } finally {
+      setSavingOrderLinks(false);
     }
   };
 
@@ -533,6 +557,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     e.preventDefault();
     if (!editingVacancy) return;
 
+    setSavingVacancy(true);
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -543,16 +568,34 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       if (!res.ok) throw new Error(data.error || 'Failed to save vacancy campaign');
 
+      // Optimistic update
+      const saved: Vacancy = data.vacancy || { ...editingVacancy } as Vacancy;
+      if (editingVacancy.id) {
+        setVacancies(prev => prev.map(v => v.id === saved.id ? saved : v));
+      } else {
+        // New vacancy — need the server-assigned id, so reload vacancies only
+        const settingsRes = await fetch('/api/admin/settings?type=vacancies', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (settingsRes.ok) {
+          const d = await settingsRes.json();
+          setVacancies(d.data || []);
+        }
+      }
+
       showFeedback('Vacancy campaign saved successfully!');
       setEditingVacancy(null);
-      loadData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
+    } finally {
+      setSavingVacancy(false);
     }
   };
 
   const handleDeleteVacancy = async (id: string) => {
     if (!confirm('Are you sure you want to delete this vacancy campaign?')) return;
+    // Optimistic remove
+    setVacancies(prev => prev.filter(v => v.id !== id));
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -564,9 +607,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!res.ok) throw new Error(data.error || 'Failed to delete vacancy campaign');
 
       showFeedback('Vacancy campaign deleted successfully!');
-      loadData();
     } catch (err: unknown) {
       showFeedback(getErrorMessage(err), true);
+      loadData();
     }
   };
 
@@ -603,9 +646,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!saveRes.ok) throw new Error('Failed to update settings');
 
       showFeedback('Saved successfully');
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
+      loadData(); // resync if upload succeeded but settings save failed
     } finally {
       setUploadingLocation(false);
     }
@@ -613,24 +656,20 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
   const handleDeleteLocationPhoto = async (photoUrl: string) => {
     if (!confirm('Are you sure you want to delete this location photo?')) return;
-    setLoading(true);
+    // Optimistic remove
+    const updatedPhotos = locationPhotos.filter(p => p !== photoUrl);
+    setLocationPhotos(updatedPhotos);
     try {
-      const updatedPhotos = locationPhotos.filter(p => p !== photoUrl);
-      setLocationPhotos(updatedPhotos);
-
       const saveRes = await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ type: 'location_photos', data: { photos: updatedPhotos } })
       });
       if (!saveRes.ok) throw new Error('Failed to update settings');
-
-      showFeedback('Saved successfully');
-      loadData();
+      showFeedback('Photo deleted successfully');
     } catch {
       showFeedback('Something went wrong. Try again.', true);
-    } finally {
-      setLoading(false);
+      loadData(); // restore on failure
     }
   };
 
@@ -668,9 +707,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!saveRes.ok) throw new Error('Failed to update settings');
 
       showFeedback('Image uploaded successfully');
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
+      loadData();
     } finally {
       setUploadingContactShowcase(false);
     }
@@ -678,24 +717,20 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
   const handleDeleteContactShowcaseImage = async (imageUrl: string) => {
     if (!confirm('Are you sure you want to delete this showcase image?')) return;
-    setLoading(true);
+    // Optimistic remove
+    const updatedImages = contactShowcaseImages.filter(p => p !== imageUrl);
+    setContactShowcaseImages(updatedImages);
     try {
-      const updatedImages = contactShowcaseImages.filter(p => p !== imageUrl);
-      setContactShowcaseImages(updatedImages);
-
       const saveRes = await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ type: 'contact_showcase_images', data: { images: updatedImages } })
       });
       if (!saveRes.ok) throw new Error('Failed to update settings');
-
       showFeedback('Image deleted successfully');
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
-    } finally {
-      setLoading(false);
+      loadData(); // restore on failure
     }
   };
 
@@ -728,7 +763,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!saveRes.ok) throw new Error('Failed to update settings');
 
       showFeedback('Saved successfully');
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
     } finally {
@@ -765,7 +799,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       if (!saveRes.ok) throw new Error('Failed to update settings');
 
       showFeedback('Saved successfully');
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
     } finally {
@@ -784,9 +817,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       });
       if (!saveRes.ok) throw new Error('Failed to update settings');
       showFeedback('Logo removed successfully');
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
+      setLogoImageUrl(logoImageUrl); // restore on failure
     }
   };
 
@@ -794,52 +827,46 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     e.preventDefault();
     setSavingSettings(true);
     try {
-      // 1. Save open_status
-      await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ type: 'open_status', data: { is_open: isOpen } })
-      });
-
-      // 2. Save google_maps
-      await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ type: 'google_maps', data: { url: googleMapsUrl } })
-      });
-
-      // 3. Save contacts
-      await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ type: 'contact_info', data: contacts })
-      });
-
-      // 4. Save order links
-      await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ type: 'order_links', data: orderLinks })
-      });
-
-      // 5. Save campaign details (if loaded)
-      if (campaign) {
-        await fetch('/api/admin/settings', {
+      // Fire all saves in parallel — no interdependencies
+      const results = await Promise.allSettled([
+        fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ type: 'open_status', data: { is_open: isOpen } })
+        }),
+        fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ type: 'google_maps', data: { url: googleMapsUrl } })
+        }),
+        fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ type: 'contact_info', data: contacts })
+        }),
+        fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ type: 'order_links', data: orderLinks })
+        }),
+        ...(campaign ? [fetch('/api/admin/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ type: 'campaign', data: campaign })
-        });
-      }
+        })] : []),
+        fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ type: 'opening_hours', data: openingHours })
+        }),
+      ]);
 
-      // 6. Save opening hours
-      await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ type: 'opening_hours', data: openingHours })
-      });
+      // Check if any failed
+      const failed = results.some(r => r.status === 'rejected');
+      if (failed) throw new Error('One or more settings failed to save');
 
+      // State is already up to date — no reload needed
       showFeedback('Saved successfully');
-      loadData();
     } catch {
       showFeedback('Something went wrong. Try again.', true);
     } finally {
@@ -1120,14 +1147,14 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  disabled={loading || uploadingMenu}
+                  disabled={savingMenu || uploadingMenu}
                   className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || uploadingMenu}
+                  disabled={savingMenu || uploadingMenu}
                   className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
                 >
                   {uploadingMenu ? (
@@ -1135,7 +1162,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Uploading...
                     </>
-                  ) : loading ? (
+                  ) : savingMenu ? (
                     <>
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Saving...
@@ -1588,9 +1615,17 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
           <button
             type="submit"
-            className="w-full py-3 bg-roasted hover:bg-dark-roast text-white font-semibold rounded-full shadow-sm text-sm"
+            disabled={savingOrderLinks}
+            className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2"
           >
-            Save Delivery Links
+            {savingOrderLinks ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Delivery Links'
+            )}
           </button>
         </form>
       )}
@@ -1707,14 +1742,14 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <button
                   type="button"
                   onClick={() => setEditingVacancy(null)}
-                  disabled={loading || uploadingVacancy}
+                  disabled={savingVacancy || uploadingVacancy}
                   className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || uploadingVacancy}
+                  disabled={savingVacancy || uploadingVacancy}
                   className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
                 >
                   {uploadingVacancy ? (
@@ -1722,7 +1757,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Uploading...
                     </>
-                  ) : loading ? (
+                  ) : savingVacancy ? (
                     <>
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Saving...
@@ -1797,7 +1832,52 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             <div className="glass-card p-6 rounded-2xl border border-latte space-y-4">
               <h2 className="font-heading font-bold text-lg text-espresso">Cafe Opening Hours</h2>
               <p className="text-xs text-mocha font-body">Configure the opening times and closed days for each day of the week.</p>
-              
+
+              {/* ── Apply to All Days ── */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-latte/20 border border-latte rounded-xl">
+                <span className="text-xs font-bold uppercase tracking-wider text-mocha whitespace-nowrap">Apply to all days:</span>
+                <div className="flex flex-wrap items-center gap-3 flex-grow">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] uppercase font-bold text-mocha">Open:</span>
+                    <input
+                      type="time"
+                      value={applyAllTemplate.openTime}
+                      onChange={(e) => setApplyAllTemplate(prev => ({ ...prev, openTime: e.target.value }))}
+                      className="h-8 px-2 bg-warm-white border border-latte rounded-lg font-body text-espresso text-xs focus:outline-none focus:ring-2 focus:ring-roasted"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] uppercase font-bold text-mocha">Close:</span>
+                    <input
+                      type="time"
+                      value={applyAllTemplate.closeTime}
+                      onChange={(e) => setApplyAllTemplate(prev => ({ ...prev, closeTime: e.target.value }))}
+                      className="h-8 px-2 bg-warm-white border border-latte rounded-lg font-body text-espresso text-xs focus:outline-none focus:ring-2 focus:ring-roasted"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpeningHours(prev => {
+                        const updated = { ...prev };
+                        DAY_NAMES.forEach(day => {
+                          updated[day] = {
+                            ...prev[day],
+                            openTime: applyAllTemplate.openTime,
+                            closeTime: applyAllTemplate.closeTime,
+                          };
+                        });
+                        return updated;
+                      });
+                      showFeedback(`Applied ${applyAllTemplate.openTime} – ${applyAllTemplate.closeTime} to all days. Save to confirm.`);
+                    }}
+                    className="px-4 py-1.5 bg-roasted hover:bg-dark-roast text-white rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+                  >
+                    Apply to All Days
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 {DAY_NAMES.map((day) => {
                   const dayHours = openingHours[day] || DEFAULT_OPENING_HOURS[day];
