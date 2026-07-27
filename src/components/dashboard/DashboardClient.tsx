@@ -12,30 +12,6 @@ function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : '';
 }
 
-// â”€â”€ Collapsible section component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function Section({
-  title, defaultOpen = false, children
-}: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="glass-card rounded-2xl border border-latte overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-latte/10 transition-colors"
-      >
-        <span className="font-heading font-bold text-base text-espresso">{title}</span>
-        <svg
-          className={`w-4 h-4 text-mocha transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {open && <div className="px-6 pb-6 pt-1 space-y-4">{children}</div>}
-    </div>
-  );
-}
 
 interface MenuItem {
   id: string; category: string; name: string; slug: string;
@@ -437,21 +413,6 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch { showFeedback('Something went wrong.', true); setLogoImageUrl(prev); }
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault(); setSavingSettings(true);
-    try {
-      const results = await Promise.allSettled([
-        fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'open_status', data: { is_open: isOpen } }) }),
-        fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'google_maps', data: { url: googleMapsUrl } }) }),
-        fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'contact_info', data: contacts }) }),
-        fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'opening_hours', data: openingHours }) }),
-        ...(campaign ? [fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'campaign', data: campaign }) })] : []),
-      ]);
-      if (results.some(r => r.status === 'rejected')) throw new Error('One or more saves failed');
-      showFeedback('Settings saved!');
-    } catch { showFeedback('Something went wrong. Try again.', true); }
-    finally { setSavingSettings(false); }
-  };
 
   // â”€â”€ Shared spinner helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const Spinner = () => <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />;
