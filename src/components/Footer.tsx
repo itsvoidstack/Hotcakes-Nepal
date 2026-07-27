@@ -19,13 +19,15 @@ export default async function Footer() {
   let hasTiktok = false;
   let address = 'Hattiban, Lalitpur';
   let phone = '+977 976-3687532';
+  let siteDescription = 'Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur. Fluffy pancakes, hand-drip brews, fresh baked desserts — open daily near Little Angels School.';
 
   try {
     const supabase = getSupabaseAdmin();
-    const [contactRes, hoursRes, openRes] = await Promise.all([
+    const [contactRes, hoursRes, openRes, descRes] = await Promise.all([
       supabase.from('contact_info').select('*'),
       supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
-      supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle()
+      supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle(),
+      supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle(),
     ]);
 
     contacts = contactRes.data || [];
@@ -37,6 +39,7 @@ export default async function Footer() {
 
     address = contacts.find(c => c.key === 'address')?.value || address;
     phone = contacts.find(c => c.key === 'phone')?.value || phone;
+    siteDescription = (descRes.data?.value as { text?: string })?.text || siteDescription;
   } catch (err) {
     console.error('Error loading footer settings:', err);
   }
@@ -54,7 +57,7 @@ export default async function Footer() {
               Hot Cakes Nepal
             </p>
             <p className="font-body text-xs text-cream/60 leading-relaxed max-w-[200px]">
-              Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur. Fluffy pancakes, hand-drip brews, fresh baked muffins, and handcrafted desserts — open daily near Little Angels School.
+              {siteDescription}
             </p>
             {/* Social icons */}
             <div className="flex items-center gap-3 mt-5">
@@ -127,15 +130,12 @@ export default async function Footer() {
             <p className="font-body text-xs text-cream/80 leading-relaxed">
               {address}
             </p>
-            <p className="font-body text-xs text-cream/50 leading-relaxed mt-1">
-              Hattiban, Lalitpur — near Little Angels School &amp; Ekantakuna
-            </p>
             <div className="mt-3">
               <Link
                 href="/location"
                 className="font-body text-xs text-roasted hover:text-cream transition-colors duration-200"
               >
-                Get Directions →
+                Get Directions &rarr;
               </Link>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default async function Footer() {
               {statusInfo.statusText}
             </p>
             <p className="font-body text-[10px] text-cream/40 mt-1 leading-relaxed">
-              Open daily — breakfast café &amp; specialty coffee in Lalitpur
+              Open daily &mdash; breakfast caf&eacute; &amp; specialty coffee in Lalitpur
             </p>
             <div className="mt-3">
               <a href={`tel:${phone.replace(/\s+/g, '')}`} className="font-body text-xs text-cream/70 hover:text-cream transition-colors duration-200">
@@ -166,7 +166,7 @@ export default async function Footer() {
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
         <p className="font-body text-[10px] text-cream/30">
-          © {new Date().getFullYear()} Hot Cakes Nepal. All rights reserved.
+          &copy; {new Date().getFullYear()} Hot Cakes Nepal. All rights reserved.
         </p>
         <Link
           href="/hc-dashboard"
@@ -178,4 +178,3 @@ export default async function Footer() {
     </footer>
   );
 }
-

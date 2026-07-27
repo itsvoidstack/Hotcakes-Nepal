@@ -11,7 +11,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Visit Us — Location, Directions & Opening Hours | Hattiban, Lalitpur",
-  description: "Find Hotcakes Nepal at Hattiban, Lalitpur — one of the best cafés near Little Angels School, Ekantakuna, and Jawalakhel. Get directions, opening hours (8 AM–8 PM daily), and explore our cozy café space.",
+  description: "Find Hotcakes Nepal at Hattiban, Lalitpur — one of the best cafés near Little Angels School and Jawalakhel. Get directions, opening hours, and explore our cozy café space.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app/location"
   },
@@ -39,13 +39,15 @@ export default async function LocationPage() {
     mapsResult,
     locPhotosResult,
     openingHoursResult,
-    openStatusResult
+    openStatusResult,
+    siteDescResult
   ] = await Promise.all([
     supabase.from('contact_info').select('*'),
     supabase.from('site_settings').select('value').eq('key', 'google_maps').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
-    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
   ]);
 
   const isOpen = (openStatusResult?.data?.value as { is_open?: boolean })?.is_open ?? true;
@@ -68,6 +70,8 @@ export default async function LocationPage() {
   const mapsLink = mapsValue?.url ?? 'https://maps.app.goo.gl/Akbsp1cgDmTLDPy18';
   const phoneNumber = getContact('phone') || '+977 976-3687532';
   const email = getContact('email');
+  const siteDescription = (siteDescResult?.data?.value as { text?: string })?.text ||
+    'Find Hotcakes Nepal in Hattiban, Lalitpur — a cozy café near Little Angels School and Jawalakhel.';
 
   const instagram = getContact('instagram');
   const whatsapp = getContact('whatsapp');
@@ -111,7 +115,7 @@ export default async function LocationPage() {
               Visit Us
             </h1>
             <p className="font-body text-mocha/90 text-sm md:text-base leading-relaxed max-w-md">
-              Find Hotcakes Nepal in Hattiban, Lalitpur — a cozy café near Little Angels School, Ekantakuna, and Jawalakhel. Come for slow mornings, quiet coffee corners, and freshly prepared hotcakes and specialty brews.
+              {siteDescription}
             </p>
           </div>
 
@@ -297,49 +301,7 @@ export default async function LocationPage() {
         </div>
       </section>
 
-      {/* 5. FAQ Section */}
-      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-14 md:py-20">
-        <div className="text-center max-w-xl mx-auto mb-10">
-          <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-1 block">FAQ</span>
-          <h2 className="font-heading font-bold text-2xl md:text-3xl text-espresso mb-3">
-            Frequently Asked Questions
-          </h2>
-          <p className="font-body text-mocha/80 text-sm">
-            Everything you need to know before visiting our café in Hattiban, Lalitpur.
-          </p>
-        </div>
-        <div className="max-w-3xl mx-auto space-y-4">
-          {[
-            {
-              q: "Where exactly is Hotcakes Nepal located?",
-              a: `Hotcakes Nepal is in Hattiban, Lalitpur — close to Little Angels School, Ekantakuna, and Jawalakhel. You can get directions on Google Maps: https://maps.app.goo.gl/Akbsp1cgDmTLDPy18`
-            },
-            {
-              q: "What time does Hotcakes Nepal open?",
-              a: "We open at 8:00 AM every day and close at 8:00 PM, including weekends and public holidays. We are one of the few breakfast cafés in Lalitpur open early in the morning."
-            },
-            {
-              q: "Is Hotcakes Nepal good for studying or working?",
-              a: "Yes — we have free high-speed Wi-Fi, dedicated quiet zones, and power outlets at seating corners. We are a favourite study café and quiet work spot in Lalitpur."
-            },
-            {
-              q: "Does Hotcakes Nepal serve specialty coffee?",
-              a: "Absolutely. We serve hand-drip pour-over coffee, espresso-based drinks, and cold brew — making us one of the top specialty coffee shops in the Hattiban area."
-            },
-            {
-              q: "What food is Hotcakes Nepal known for?",
-              a: "Our signature fluffy pancakes (hotcakes), fresh baked muffins, peanut butter cookies, and handcrafted desserts are customer favourites. We also serve full breakfast and brunch items daily."
-            },
-          ].map(({ q, a }, i) => (
-            <div key={i} className="bg-cream rounded-[20px] border border-latte/50 p-6 shadow-sm">
-              <h3 className="font-heading font-bold text-base text-espresso mb-2">{q}</h3>
-              <p className="font-body text-mocha/80 text-sm leading-relaxed">{a}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 6. Social Connection Section */}
+      {/* 5. Social Connection Section */}
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 md:py-20 text-center space-y-6">
         <div className="space-y-1.5">
           <span className="text-xs font-semibold uppercase tracking-widest text-roasted block">Connect</span>

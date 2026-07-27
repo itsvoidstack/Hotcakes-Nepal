@@ -27,12 +27,14 @@ export const metadata: Metadata = {
 
 export default async function MenuPage() {
   const supabase = getSupabaseAdmin();
-  // Fetch all available menu items
-  const { data: items } = await supabase
-    .from('menu_items')
-    .select('*')
-    .eq('is_available', true)
-    .order('category', { ascending: true });
+  const [menuRes, descRes] = await Promise.all([
+    supabase.from('menu_items').select('*').eq('is_available', true).order('category', { ascending: true }),
+    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle(),
+  ]);
+
+  const items = menuRes.data;
+  const siteDescription = (descRes?.data?.value as { text?: string })?.text ||
+    'Freshly made every day in Hattiban, Lalitpur — fluffy pancakes, hand-drip specialty coffee, pour-over brews, and handcrafted desserts.';
 
   return (
     <div className="bg-cream min-h-screen pt-6 pb-16">
@@ -42,7 +44,7 @@ export default async function MenuPage() {
           Our Menu
         </h1>
         <p className="font-body text-mocha/70 text-sm leading-relaxed mt-3 max-w-xl mx-auto">
-          Freshly made every day in Hattiban, Lalitpur — fluffy pancakes, hand-drip specialty coffee, pour-over brews, chocolate muffins, peanut butter cookies, and handcrafted desserts. The best breakfast café menu in Lalitpur.
+          {siteDescription}
         </p>
       </div>
 

@@ -245,6 +245,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    if (type === 'site_description') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'site_description', value: { text: data.text }, updated_at: new Date().toISOString() });
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
     if (type === 'contact_showcase_images') {
       const { error } = await supabase
         .from('site_settings')

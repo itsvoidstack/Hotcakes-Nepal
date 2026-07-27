@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { Database } from '@/lib/supabase/database.types';
@@ -105,6 +105,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [contactShowcaseImages, setContactShowcaseImages] = useState<string[]>([]);
   const [heroImageUrl, setHeroImageUrl] = useState('');
   const [logoImageUrl, setLogoImageUrl] = useState('');
+  const [siteDescription, setSiteDescription] = useState('');
   const [uploadingMenu, setUploadingMenu] = useState(false);
   const [uploadingVacancy, setUploadingVacancy] = useState(false);
   const [uploadingLocation, setUploadingLocation] = useState(false);
@@ -147,6 +148,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         setLocationPhotos((get('location_photos') as string[]) || []);
         setHeroImageUrl((get('hero_image') as { url?: string } | null)?.url || '');
         setLogoImageUrl((get('logo_image') as { url?: string } | null)?.url || '');
+        setSiteDescription((get('site_description') as { text?: string } | null)?.text || '');
         setContactShowcaseImages((get('contact_showcase_images') as string[]) || []);
         const hrs = get('opening_hours');
         setOpeningHours(hrs ? (hrs as OpeningHours) : DEFAULT_OPENING_HOURS);
@@ -449,7 +451,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         ))}
       </div>
 
-      {loading && <div className="text-center py-12 text-mocha font-body">Loading dashboardâ€¦</div>}
+      {loading && <div className="text-center py-12 text-mocha font-body">Loading dashboard&hellip;</div>}
 
       {/* Health cards â€” always visible */}
       {!loading && (
@@ -530,10 +532,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <div className="flex gap-3 items-start">
                   {editingItem.image_url && <img src={editingItem.image_url} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-latte flex-shrink-0" />}
                   <div className="flex-grow space-y-1.5">
-                    <input type="text" value={editingItem.image_url || ''} onChange={e => setEditingItem({ ...editingItem, image_url: e.target.value })} placeholder="/images/menu/â€¦" className={inputCls} />
+                    <input type="text" value={editingItem.image_url || ''} onChange={e => setEditingItem({ ...editingItem, image_url: e.target.value })} placeholder="/images/menu/…" className={inputCls} />
                     <div className="flex items-center gap-2">
                       <input type="file" accept="image/*" onChange={handleUploadMenuItemImage} disabled={uploadingMenu} className="text-xs text-mocha font-body" />
-                      {uploadingMenu && <span className="text-xs text-mocha animate-pulse">Uploadingâ€¦</span>}
+                      {uploadingMenu && <span className="text-xs text-mocha animate-pulse">Uploading&hellip;</span>}
                     </div>
                   </div>
                 </div>
@@ -551,7 +553,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               <div className="flex gap-3 pt-2 justify-end">
                 <button type="button" onClick={() => setEditingItem(null)} disabled={savingMenu || uploadingMenu} className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold">Cancel</button>
                 <button type="submit" disabled={savingMenu || uploadingMenu} className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
-                  {uploadingMenu ? <><Spinner /> Uploadingâ€¦</> : savingMenu ? <><Spinner /> Savingâ€¦</> : 'Save Item'}
+                  {uploadingMenu ? <><Spinner /> Uploading&hellip;</> : savingMenu ? <><Spinner /> Saving&hellip;</> : 'Save Item'}
                 </button>
               </div>
             </form>
@@ -599,8 +601,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                           <td className="p-4 font-heading font-semibold">{item.name}</td>
                           <td className="p-4">{item.category}</td>
                           <td className="p-4">Rs. {item.price}</td>
-                          <td className="p-4">{item.is_featured ? 'â­ Yes' : 'No'}</td>
-                          <td className="p-4">{item.image_url ? <span className="px-2 py-0.5 bg-olive/15 text-olive rounded-full text-xs">âœ“ Set</span> : <span className="px-2 py-0.5 bg-muted-red/15 text-muted-red rounded-full text-xs">Missing</span>}</td>
+                          <td className="p-4">{item.is_featured ? '⭐ Yes' : 'No'}</td>
+                          <td className="p-4">{item.image_url ? <span className="px-2 py-0.5 bg-olive/15 text-olive rounded-full text-xs">✓ Set</span> : <span className="px-2 py-0.5 bg-muted-red/15 text-muted-red rounded-full text-xs">Missing</span>}</td>
                           <td className="p-4"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${item.is_available ? 'bg-olive/15 text-olive' : 'bg-muted-red/15 text-muted-red'}`}>{item.is_available ? 'In Stock' : 'Out of Stock'}</span></td>
                           <td className="p-4 text-right space-x-2">
                             <button onClick={() => handleStartEdit(item)} className="px-3 py-1 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium">Edit</button>
@@ -637,7 +639,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               {[
                 { label: 'Customers', value: streakMetrics.total_customers, color: 'text-espresso' },
                 { label: 'Stamps', value: streakMetrics.total_stamps, color: 'text-espresso' },
-                { label: 'Active Rewards', value: `${streakMetrics.total_active_rewards} ðŸŽ`, color: 'text-olive' },
+                { label: 'Active Rewards', value: `${streakMetrics.total_active_rewards} 🎁`, color: 'text-olive' },
                 { label: 'Redeemed', value: streakMetrics.total_rewards_redeemed || 0, color: 'text-roasted' },
               ].map(({ label, value, color }) => (
                 <div key={label} className="glass-card p-4 rounded-xl border border-latte text-center">
@@ -679,7 +681,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <div className="flex flex-wrap gap-2 justify-end">
                   {streakResult.streak_count < 10 && <button onClick={() => handleAddStamp(streakResult.phone_number)} className="px-4 py-2 bg-roasted hover:bg-dark-roast text-white rounded-lg text-xs font-semibold">+1 Stamp</button>}
                   <button onClick={() => handleResetStreak(streakResult.customer_code)} className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-all ${streakResult.streak_count === 10 ? 'bg-olive border-olive text-white hover:bg-olive/90 animate-pulse' : 'border-roasted text-roasted hover:bg-roasted/5'}`}>
-                    {streakResult.streak_count === 10 ? 'ðŸŽ Claim & Reset' : 'Reset Stamps'}
+                    {streakResult.streak_count === 10 ? '🎁 Claim & Reset' : 'Reset Stamps'}
                   </button>
                   <button onClick={() => handleDeleteStreak(streakResult.customer_code)} className="px-4 py-2 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-lg text-xs font-semibold">Delete Profile</button>
                 </div>
@@ -711,7 +713,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                             <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
                               {record.streak_count < 10 && <button onClick={() => handleAddStamp(record.phone_number)} className="px-2.5 py-1 bg-roasted hover:bg-dark-roast text-white rounded text-xs font-medium">+1</button>}
                               <button onClick={() => handleResetStreak(record.customer_code)} className={`px-2.5 py-1 rounded text-xs font-medium border ${record.streak_count === 10 ? 'bg-olive border-olive text-white' : 'border-roasted text-roasted hover:bg-roasted/5'}`}>
-                                {record.streak_count === 10 ? 'ðŸŽ Claim' : 'Reset'}
+                                {record.streak_count === 10 ? '🎁 Claim' : 'Reset'}
                               </button>
                             </td>
                           </tr>
@@ -743,13 +745,13 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               </div>
               <input type="text" value={link.url || ''}
                 onChange={e => { const u = [...orderLinks]; u[idx].url = e.target.value; setOrderLinks(u); }}
-                placeholder={`Paste ${link.platform} store URL hereâ€¦`}
+                placeholder={`Paste ${link.platform} store URL here\u2026`}
                 className="w-full h-11 px-3 bg-white border border-latte rounded-lg font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted" />
             </div>
           ))}
           <button type="submit" disabled={savingOrderLinks}
             className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2">
-            {savingOrderLinks ? <><Spinner /> Savingâ€¦</> : 'Save Delivery Links'}
+          {savingOrderLinks ? <><Spinner /> Saving&hellip;</> : 'Save Delivery Links'}
           </button>
         </form>
       )}
@@ -786,10 +788,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <div className="flex gap-3 items-start">
                   {editingVacancy.image_url && <img src={editingVacancy.image_url} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-latte flex-shrink-0" />}
                   <div className="flex-grow space-y-1.5">
-                    <input type="text" value={editingVacancy.image_url || ''} onChange={e => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })} placeholder="/images/vacancies/â€¦" className={inputCls} />
+                    <input type="text" value={editingVacancy.image_url || ''} onChange={e => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })} placeholder="/images/vacancies/…" className={inputCls} />
                     <div className="flex items-center gap-2">
                       <input type="file" accept="image/*" onChange={handleUploadVacancyImage} disabled={uploadingVacancy} className="text-xs text-mocha font-body" />
-                      {uploadingVacancy && <span className="text-xs text-mocha animate-pulse">Uploadingâ€¦</span>}
+                      {uploadingVacancy && <span className="text-xs text-mocha animate-pulse">Uploading&hellip;</span>}
                     </div>
                   </div>
                 </div>
@@ -801,7 +803,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               <div className="flex gap-3 pt-2 justify-end">
                 <button type="button" onClick={() => setEditingVacancy(null)} disabled={savingVacancy || uploadingVacancy} className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold">Cancel</button>
                 <button type="submit" disabled={savingVacancy || uploadingVacancy} className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
-                  {uploadingVacancy ? <><Spinner /> Uploadingâ€¦</> : savingVacancy ? <><Spinner /> Savingâ€¦</> : 'Save Campaign'}
+                  {uploadingVacancy ? <><Spinner /> Uploading&hellip;</> : savingVacancy ? <><Spinner /> Saving&hellip;</> : 'Save Campaign'}
                 </button>
               </div>
             </form>
@@ -1247,6 +1249,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
               try {
                 const toSave: Promise<Response>[] = [
                   fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'open_status', data: { is_open: isOpen } }) }),
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'site_description', data: { text: siteDescription } }) }),
                 ];
                 if (campaign) {
                   toSave.push(fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'campaign', data: campaign }) }));
@@ -1260,6 +1263,22 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <p className="text-xs text-mocha mt-0.5">Additional preferences and configurations.</p>
               </div>
 
+
+              {/* Site Tagline / Description */}
+              <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-3">
+                <div>
+                  <h4 className="font-heading font-semibold text-sm text-espresso">Site Tagline / Description</h4>
+                  <p className="text-[11px] text-mocha mt-0.5">Shown on every page header and in the footer. Describes the caf&eacute; to visitors.</p>
+                </div>
+                <textarea
+                  value={siteDescription}
+                  onChange={e => setSiteDescription(e.target.value)}
+                  placeholder="A cozy caf&eacute; in Hattiban, Lalitpur &mdash; hand-drip specialty coffee, fluffy pancakes, and freshly baked desserts&hellip;"
+                  rows={3}
+                  className="w-full px-3 py-2.5 bg-cream border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted resize-none leading-relaxed"
+                />
+                <p className="text-[10px] text-mocha">{siteDescription.length} characters</p>
+              </div>
               {/* Cafe open status */}
               <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-3">
                 <h4 className="font-heading font-semibold text-sm text-espresso">Cafe Shop Status</h4>

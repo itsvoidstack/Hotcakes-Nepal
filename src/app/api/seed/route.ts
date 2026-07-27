@@ -112,15 +112,19 @@ export async function GET() {
     }
 
     // 5. Seed Site Settings
-    const { count: settingsCount } = await supabase
+    const { data: existingSettings } = await supabase
       .from('site_settings')
-      .select('*', { count: 'exact', head: true });
+      .select('key');
 
-    if (settingsCount === 0) {
-      const { error } = await supabase.from('site_settings').insert([
-        { key: 'open_status', value: { is_open: true } },
-        { key: 'google_maps', value: { url: 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9' } }
-      ]);
+    const existingKeys = new Set((existingSettings || []).map((r: { key: string }) => r.key));
+
+    const settingsToInsert = [];
+    if (!existingKeys.has('open_status')) settingsToInsert.push({ key: 'open_status', value: { is_open: true } });
+    if (!existingKeys.has('google_maps')) settingsToInsert.push({ key: 'google_maps', value: { url: 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9' } });
+    if (!existingKeys.has('site_description')) settingsToInsert.push({ key: 'site_description', value: { text: 'A cozy café in Hattiban, Lalitpur — hand-drip specialty coffee, fluffy pancakes, and freshly baked desserts. One of the best breakfast cafés near Little Angels School and Jawalakhel.' } });
+
+    if (settingsToInsert.length > 0) {
+      const { error } = await supabase.from('site_settings').insert(settingsToInsert);
       if (error) throw new Error(`site_settings seed error: ${error.message}`);
     }
 

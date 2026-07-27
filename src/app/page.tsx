@@ -40,7 +40,8 @@ export default async function Home() {
     contactsResult,
     locPhotosResult,
     showcaseResult,
-    openingHoursResult
+    openingHoursResult,
+    siteDescResult
   ] = await Promise.all([
     // 1. Fetch active campaign
     supabase.from('campaigns').select('*').eq('is_active', true).single(),
@@ -57,7 +58,9 @@ export default async function Home() {
     // 7. Fetch contact showcase images
     supabase.from('site_settings').select('value').eq('key', 'contact_showcase_images').maybeSingle(),
     // 8. Fetch opening hours settings
-    supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
+    // 9. Fetch site description
+    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
   ]);
 
   const campaignData = campaignResult.data;
@@ -73,6 +76,9 @@ export default async function Home() {
   const hoursSetting = openingHoursResult?.data;
   const openingHours = hoursSetting?.value ? (hoursSetting.value as OpeningHours) : null;
   const statusInfo = getOpeningHoursStatus(openingHours, isOpen);
+
+  const siteDescription = (siteDescResult?.data?.value as { text?: string })?.text ||
+    'A cozy café in Hattiban, Lalitpur — hand-drip specialty coffee, fluffy pancakes, and freshly baked desserts. One of the best breakfast cafés near Little Angels School and Jawalakhel.';
 
   const heroImageUrl = (heroImageResult?.data?.value as { url?: string })?.url || "/images/hero/hero-main.jpg";
 
@@ -124,7 +130,7 @@ export default async function Home() {
               Hotcakes Nepal
             </h1>
             <p className="font-body text-mocha/75 text-sm md:text-base leading-relaxed mb-7 max-w-[360px]">
-              A cozy café in Hattiban, Lalitpur — hand-drip specialty coffee, fluffy pancakes, and freshly baked desserts. One of the best breakfast cafés near Little Angels School, Ekantakuna, and Jawalakhel.
+              {siteDescription}
             </p>
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
               <Link

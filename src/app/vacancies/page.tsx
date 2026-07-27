@@ -85,11 +85,13 @@ function parseVacancyDetails(description: string | null) {
 
 export default async function VacanciesPage() {
   const supabase = getSupabaseAdmin();
-  // Fetch active vacancies
-  const { data: vacancies } = await supabase
-    .from('vacancies')
-    .select('*')
-    .eq('is_active', true);
+  const [vacanciesResult, siteDescResult] = await Promise.all([
+    supabase.from('vacancies').select('*').eq('is_active', true),
+    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
+  ]);
+  const { data: vacancies } = vacanciesResult;
+  const siteDescription = (siteDescResult?.data?.value as { text?: string })?.text ||
+    'Build meaningful experiences, serve great specialty coffee, and grow with one of Lalitpur\'s most loved breakfast cafés.';
 
   const activeVacancies = vacancies || [];
 
@@ -110,7 +112,7 @@ export default async function VacanciesPage() {
           Join the Hotcakes Nepal team in Hattiban, Lalitpur
         </h2>
         <p className="font-body text-[#6B5B52] text-sm md:text-base max-w-md mx-auto leading-relaxed">
-          Build meaningful experiences, serve great specialty coffee, and grow with one of Lalitpur&apos;s most loved breakfast cafés.
+          {siteDescription}
         </p>
       </div>
 

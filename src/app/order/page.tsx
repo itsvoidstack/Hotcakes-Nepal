@@ -30,11 +30,12 @@ export const metadata: Metadata = {
 export default async function OrderPage() {
   const supabase = getSupabaseAdmin();
   // Fetch active order links, contact details, opening hours, and open status in parallel
-  const [linksResult, contactResult, openingHoursResult, openStatusResult] = await Promise.all([
+  const [linksResult, contactResult, openingHoursResult, openStatusResult, siteDescResult] = await Promise.all([
     supabase.from('order_links').select('*').eq('is_active', true),
     supabase.from('contact_info').select('*'),
     supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
-    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
   ]);
 
   const activeLinks = linksResult.data || [];
@@ -48,6 +49,8 @@ export default async function OrderPage() {
 
   const phoneNumber = getContact('phone') || '01-5432100';
   const displayAddress = getContact('address') || 'Lalitpur, Kathmandu & Nearby';
+  const siteDescription = (siteDescResult?.data?.value as { text?: string })?.text ||
+    'Get your favourite Hotcakes Nepal items delivered — fluffy pancakes, hand-drip specialty coffee, fresh baked desserts, and more.';
 
   const isBhojActive = activeLinks.some(l => l.platform === 'bhoj');
   const bhojUrl = activeLinks.find(l => l.platform === 'bhoj')?.url || '#';
@@ -92,7 +95,7 @@ export default async function OrderPage() {
             ORDER YOUR FAVORITES
           </h1>
           <p className="font-body text-mocha text-sm md:text-base leading-relaxed mb-6 max-w-xl">
-            Get your favourite Hotcakes Nepal items delivered — fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, and handcrafted desserts. Choose your preferred platform or place a custom order made just for you.
+            {siteDescription}
           </p>
           
           {/* Highlights */}

@@ -74,12 +74,14 @@ export default async function ContactPage() {
     contactResult, 
     showcaseResult,
     openingHoursResult,
-    openStatusResult
+    openStatusResult,
+    siteDescResult
   ] = await Promise.all([
     supabase.from('contact_info').select('*'),
     supabase.from('site_settings').select('value').eq('key', 'contact_showcase_images').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
-    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
   ]);
 
   const isOpen = (openStatusResult?.data?.value as { is_open?: boolean })?.is_open ?? true;
@@ -95,6 +97,8 @@ export default async function ContactPage() {
   const hasTiktok = !!getContact('tiktok');
   const phoneNumber = getContact('phone') || '+977 976-3687532';
   const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
+  const siteDescription = (siteDescResult?.data?.value as { text?: string })?.text ||
+    'Stay connected with Hotcakes Nepal — your favourite cozy café in Hattiban, Lalitpur.';
 
   const savedShowcaseImages = Array.isArray(showcaseResult?.data?.value) ? (showcaseResult.data.value as string[]) : [];
   
@@ -152,7 +156,7 @@ export default async function ContactPage() {
             Follow Our Journey
           </h1>
           <p className="font-body text-mocha text-xs md:text-sm lg:text-base leading-relaxed mb-6 md:mb-8 max-w-sm mx-auto">
-            Stay connected with Hotcakes Nepal — your favourite cozy café in Hattiban, Lalitpur. Get updates on seasonal specials, new menu items, community events, and fresh bakery releases.
+            {siteDescription}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
