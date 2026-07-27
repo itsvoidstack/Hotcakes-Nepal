@@ -873,8 +873,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
           <Section title="Cafe Open/Closed Status" defaultOpen>
             <div className="flex items-center justify-between p-4 bg-warm-white rounded-xl border border-latte">
               <div>
-                <p className="font-heading font-semibold text-espresso text-sm">Manual Override</p>
-                <p className="text-xs text-mocha mt-0.5">Force the cafe to appear closed regardless of opening hours.</p>
+                <p className="font-heading font-semibold text-espresso text-sm">Cafe Status</p>
+                <p className="text-xs text-mocha mt-0.5">Toggle the cafe open or closed. When closed, the site shows a &quot;Closed&quot; banner regardless of opening hours.</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
