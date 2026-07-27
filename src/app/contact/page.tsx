@@ -81,7 +81,7 @@ export default async function ContactPage() {
     supabase.from('site_settings').select('value').eq('key', 'contact_showcase_images').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle(),
-    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'contact_description').maybeSingle()
   ]);
 
   const isOpen = (openStatusResult?.data?.value as { is_open?: boolean })?.is_open ?? true;

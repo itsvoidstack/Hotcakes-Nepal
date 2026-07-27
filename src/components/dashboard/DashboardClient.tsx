@@ -106,6 +106,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [heroImageUrl, setHeroImageUrl] = useState('');
   const [logoImageUrl, setLogoImageUrl] = useState('');
   const [siteDescription, setSiteDescription] = useState('');
+  const [menuDescription, setMenuDescription] = useState('');
+  const [contactDescription, setContactDescription] = useState('');
+  const [orderDescription, setOrderDescription] = useState('');
+  const [vacanciesDescription, setVacanciesDescription] = useState('');
   const [uploadingMenu, setUploadingMenu] = useState(false);
   const [uploadingVacancy, setUploadingVacancy] = useState(false);
   const [uploadingLocation, setUploadingLocation] = useState(false);
@@ -149,6 +153,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         setHeroImageUrl((get('hero_image') as { url?: string } | null)?.url || '');
         setLogoImageUrl((get('logo_image') as { url?: string } | null)?.url || '');
         setSiteDescription((get('site_description') as { text?: string } | null)?.text || '');
+        setMenuDescription((get('menu_description') as { text?: string } | null)?.text || '');
+        setContactDescription((get('contact_description') as { text?: string } | null)?.text || '');
+        setOrderDescription((get('order_description') as { text?: string } | null)?.text || '');
+        setVacanciesDescription((get('vacancies_description') as { text?: string } | null)?.text || '');
         setContactShowcaseImages((get('contact_showcase_images') as string[]) || []);
         const hrs = get('opening_hours');
         setOpeningHours(hrs ? (hrs as OpeningHours) : DEFAULT_OPENING_HOURS);
@@ -1250,6 +1258,10 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 const toSave: Promise<Response>[] = [
                   fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'open_status', data: { is_open: isOpen } }) }),
                   fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'site_description', data: { text: siteDescription } }) }),
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'menu_description', data: { text: menuDescription } }) }),
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'contact_description', data: { text: contactDescription } }) }),
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'order_description', data: { text: orderDescription } }) }),
+                  fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'vacancies_description', data: { text: vacanciesDescription } }) }),
                 ];
                 if (campaign) {
                   toSave.push(fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'campaign', data: campaign }) }));
@@ -1279,6 +1291,30 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 />
                 <p className="text-[10px] text-mocha">{siteDescription.length} characters</p>
               </div>
+
+              {/* Per-Page Descriptions */}
+              {([
+                { key: 'menu',      label: 'Menu Page',     state: menuDescription,      setter: setMenuDescription,      placeholder: 'Freshly made every day in Hattiban, Lalitpur — fluffy pancakes, hand-drip specialty coffee, and handcrafted desserts.' },
+                { key: 'contact',   label: 'Contact Page',  state: contactDescription,   setter: setContactDescription,   placeholder: 'Stay connected with Hotcakes Nepal — your favourite cozy café in Hattiban, Lalitpur.' },
+                { key: 'order',     label: 'Order Page',    state: orderDescription,     setter: setOrderDescription,     placeholder: 'Get your favourite Hotcakes Nepal items delivered — fluffy pancakes, specialty coffee, and more.' },
+                { key: 'vacancies', label: 'Vacancies Page', state: vacanciesDescription, setter: setVacanciesDescription, placeholder: 'Build meaningful experiences and grow with one of Lalitpur\'s most loved breakfast cafés.' },
+              ] as const).map(({ key, label, state, setter, placeholder }) => (
+                <div key={key} className="bg-warm-white rounded-2xl border border-latte p-5 space-y-3">
+                  <div>
+                    <h4 className="font-heading font-semibold text-sm text-espresso">{label} Tagline</h4>
+                    <p className="text-[11px] text-mocha mt-0.5">Shown at the top of the {label.toLowerCase()} as the page description.</p>
+                  </div>
+                  <textarea
+                    value={state}
+                    onChange={e => setter(e.target.value)}
+                    placeholder={placeholder}
+                    rows={2}
+                    className="w-full px-3 py-2.5 bg-cream border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted resize-none leading-relaxed"
+                  />
+                  <p className="text-[10px] text-mocha">{state.length} characters</p>
+                </div>
+              ))}
+
               {/* Cafe open status */}
               <div className="bg-warm-white rounded-2xl border border-latte p-5 space-y-3">
                 <h4 className="font-heading font-semibold text-sm text-espresso">Cafe Shop Status</h4>

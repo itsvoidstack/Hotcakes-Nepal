@@ -122,6 +122,10 @@ export async function GET() {
     if (!existingKeys.has('open_status')) settingsToInsert.push({ key: 'open_status', value: { is_open: true } });
     if (!existingKeys.has('google_maps')) settingsToInsert.push({ key: 'google_maps', value: { url: 'https://maps.app.goo.gl/y2qh1TqYovxSpzDL9' } });
     if (!existingKeys.has('site_description')) settingsToInsert.push({ key: 'site_description', value: { text: 'A cozy café in Hattiban, Lalitpur — hand-drip specialty coffee, fluffy pancakes, and freshly baked desserts. One of the best breakfast cafés near Little Angels School and Jawalakhel.' } });
+    if (!existingKeys.has('menu_description')) settingsToInsert.push({ key: 'menu_description', value: { text: 'Freshly made every day in Hattiban, Lalitpur — fluffy pancakes, hand-drip specialty coffee, handcrafted desserts, and fresh baked goods.' } });
+    if (!existingKeys.has('contact_description')) settingsToInsert.push({ key: 'contact_description', value: { text: 'Stay connected with Hotcakes Nepal — your favourite cozy café in Hattiban, Lalitpur. Get updates on seasonal specials, new menu items, and fresh bakery releases.' } });
+    if (!existingKeys.has('order_description')) settingsToInsert.push({ key: 'order_description', value: { text: 'Get your favourite Hotcakes Nepal items delivered — fluffy pancakes, hand-drip specialty coffee, fresh baked desserts, and more.' } });
+    if (!existingKeys.has('vacancies_description')) settingsToInsert.push({ key: 'vacancies_description', value: { text: 'Build meaningful experiences, serve great specialty coffee, and grow with one of Lalitpur\'s most loved breakfast cafés.' } });
 
     if (settingsToInsert.length > 0) {
       const { error } = await supabase.from('site_settings').insert(settingsToInsert);

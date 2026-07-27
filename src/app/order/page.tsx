@@ -35,7 +35,7 @@ export default async function OrderPage() {
     supabase.from('contact_info').select('*'),
     supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle(),
-    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'order_description').maybeSingle()
   ]);
 
   const activeLinks = linksResult.data || [];

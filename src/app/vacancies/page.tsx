@@ -87,7 +87,7 @@ export default async function VacanciesPage() {
   const supabase = getSupabaseAdmin();
   const [vacanciesResult, siteDescResult] = await Promise.all([
     supabase.from('vacancies').select('*').eq('is_active', true),
-    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'vacancies_description').maybeSingle()
   ]);
   const { data: vacancies } = vacanciesResult;
   const siteDescription = (siteDescResult?.data?.value as { text?: string })?.text ||
