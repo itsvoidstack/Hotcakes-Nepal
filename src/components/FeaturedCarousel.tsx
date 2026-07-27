@@ -110,7 +110,7 @@ export default function FeaturedCarousel({ items }: FeaturedCarouselProps) {
                 <div className="relative h-44 md:h-48 w-full bg-latte/20 overflow-hidden">
                   <ImageWithFallback
                     src={item.image_url || '/images/menu/placeholder.jpg'}
-                    alt={item.name}
+                    alt={`${item.name} — fresh from Hotcakes Nepal café in Hattiban, Lalitpur`}
                     fill
                     className="object-cover group-hover:scale-103 transition-transform duration-700"
                     sizes="(max-width: 768px) 85vw, 300px"

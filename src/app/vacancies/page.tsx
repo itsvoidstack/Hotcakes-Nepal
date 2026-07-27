@@ -8,15 +8,23 @@ type Vacancy = Database['public']['Tables']['vacancies']['Row'];
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Careers — Join Our Team",
-  description: "Join the Hotcakes Nepal team in Hattiban, Lalitpur. View open positions, browse current job vacancies, and apply to work at one of Lalitpur's most loved cafés.",
+  title: "Careers — Join the Hotcakes Nepal Team in Hattiban, Lalitpur",
+  description: "Join the Hotcakes Nepal team — one of the most loved cafés in Hattiban, Lalitpur. View open positions for barista, kitchen, and service roles. Apply to work at a cozy breakfast café near Little Angels School.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app/vacancies"
   },
   openGraph: {
-    title: "Careers — Hotcakes Nepal",
-    description: "View open positions and apply to work at Hotcakes Nepal — one of Lalitpur's most loved cafés in Hattiban.",
+    title: "Careers — Hotcakes Nepal | Jobs in Hattiban, Lalitpur",
+    description: "View open positions and apply to work at Hotcakes Nepal — a beloved breakfast and specialty coffee café in Hattiban, Lalitpur near Little Angels School.",
     url: "https://hotcakes-nepal.vercel.app/vacancies",
+    images: [
+      {
+        url: "https://hotcakes-nepal.vercel.app/images/hero/hero-main.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hotcakes Nepal — cozy café in Hattiban, Lalitpur hiring team members",
+      },
+    ],
   },
 };
 
@@ -99,10 +107,10 @@ export default async function VacanciesPage() {
           <div className="w-8 h-px bg-latte/70" />
         </div>
         <h2 className="font-heading font-medium text-xl md:text-2xl text-espresso/90 mb-2">
-          Join the Hotcakes Nepal team
+          Join the Hotcakes Nepal team in Hattiban, Lalitpur
         </h2>
         <p className="font-body text-[#6B5B52] text-sm md:text-base max-w-md mx-auto leading-relaxed">
-          Build meaningful experiences, serve great coffee, and grow with us.
+          Build meaningful experiences, serve great specialty coffee, and grow with one of Lalitpur&apos;s most loved breakfast cafés.
         </p>
       </div>
 

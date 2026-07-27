@@ -5,15 +5,23 @@ import type { Metadata } from 'next';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Menu — Pancakes, Coffee & Desserts",
-  description: "Browse the full Hotcakes Nepal menu. Fluffy pancakes, specialty coffee, handcrafted desserts, fresh breakfast items, and more — all made fresh daily in Hattiban, Lalitpur.",
+  title: "Menu — Fluffy Pancakes, Specialty Coffee & Handcrafted Desserts",
+  description: "Browse the full Hotcakes Nepal menu. Fluffy pancakes, hand-drip specialty coffee, pour-over coffee, chocolate muffins, peanut butter cookies, handcrafted desserts, and fresh breakfast items — all made daily in Hattiban, Lalitpur.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app/menu"
   },
   openGraph: {
-    title: "Menu — Hotcakes Nepal",
-    description: "Fluffy pancakes, specialty coffee, handcrafted desserts, and fresh breakfast items. All made fresh daily at our café in Hattiban, Lalitpur.",
+    title: "Menu — Hotcakes Nepal | Pancakes, Coffee & Desserts in Hattiban, Lalitpur",
+    description: "Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, peanut butter cookies, and handcrafted desserts. All made fresh daily at our café in Hattiban, Lalitpur.",
     url: "https://hotcakes-nepal.vercel.app/menu",
+    images: [
+      {
+        url: "https://hotcakes-nepal.vercel.app/images/menu/Cappuccino.jpeg",
+        width: 1200,
+        height: 630,
+        alt: "Specialty coffee and pancakes at Hotcakes Nepal — café menu in Hattiban, Lalitpur",
+      },
+    ],
   },
 };
 
@@ -33,6 +41,9 @@ export default async function MenuPage() {
         <h1 className="font-heading font-medium uppercase tracking-[0.08em] leading-tight text-espresso text-[32px] md:text-[44px] lg:text-[52px]">
           Our Menu
         </h1>
+        <p className="font-body text-mocha/70 text-sm leading-relaxed mt-3 max-w-xl mx-auto">
+          Freshly made every day in Hattiban, Lalitpur — fluffy pancakes, hand-drip specialty coffee, pour-over brews, chocolate muffins, peanut butter cookies, and handcrafted desserts. The best breakfast café menu in Lalitpur.
+        </p>
       </div>
 
       <MenuClient initialItems={items || []} />

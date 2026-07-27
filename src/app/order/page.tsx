@@ -7,15 +7,23 @@ import type { Metadata } from 'next';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Order Online — Delivery & Custom Orders",
-  description: "Order Hotcakes Nepal online via Bhoj or Foodmandu, or place a custom order for events and celebrations. Fast delivery to Lalitpur, Kathmandu, and nearby areas.",
+  title: "Order Online — Pancakes, Coffee & Desserts Delivered to Lalitpur & Kathmandu",
+  description: "Order Hotcakes Nepal online via Bhoj or Foodmandu — fluffy pancakes, specialty coffee, fresh baked muffins, cookies, and handcrafted desserts delivered to Lalitpur, Kathmandu, and nearby areas. Custom orders available for events and celebrations.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app/order"
   },
   openGraph: {
-    title: "Order Online — Hotcakes Nepal",
-    description: "Order via Bhoj or Foodmandu, or place a custom order for events. Fast delivery to Lalitpur, Kathmandu, and nearby areas.",
+    title: "Order Online — Hotcakes Nepal | Delivery to Lalitpur & Kathmandu",
+    description: "Order fluffy pancakes, hand-drip specialty coffee, and fresh baked desserts via Bhoj or Foodmandu. Fast delivery to Lalitpur, Kathmandu, and nearby areas. Custom orders also available.",
     url: "https://hotcakes-nepal.vercel.app/order",
+    images: [
+      {
+        url: "https://hotcakes-nepal.vercel.app/images/order_hero.png",
+        width: 1200,
+        height: 630,
+        alt: "Order Hotcakes Nepal online — pancakes, coffee and desserts delivered to Lalitpur and Kathmandu",
+      },
+    ],
   },
 };
 
@@ -84,7 +92,7 @@ export default async function OrderPage() {
             ORDER YOUR FAVORITES
           </h1>
           <p className="font-body text-mocha text-sm md:text-base leading-relaxed mb-6 max-w-xl">
-            Enjoy Hotcakes Nepal your way. Choose your preferred platform or place a custom order made just for you.
+            Get your favourite Hotcakes Nepal items delivered — fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, and handcrafted desserts. Choose your preferred platform or place a custom order made just for you.
           </p>
           
           {/* Highlights */}
@@ -112,7 +120,7 @@ export default async function OrderPage() {
           <div className="relative aspect-[4/3] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-latte/10 shadow-sm border border-latte/40 max-w-sm sm:max-w-md w-full">
             <Image
               src="/images/order_hero.png"
-              alt="Order — Chocolate Cake slice and Coffee"
+              alt="Hotcakes Nepal order — fluffy pancakes, specialty coffee, and handcrafted desserts delivered to Lalitpur and Kathmandu"
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 480px"
@@ -268,8 +276,8 @@ export default async function OrderPage() {
             <h2 className="font-heading font-medium text-3xl md:text-4xl text-[#2D2118] mb-4">
               CUSTOM ORDER
             </h2>
-            <p className="font-body text-mocha text-sm md:text-base leading-relaxed mb-6">
-              Planning a celebration, event or something special? Tell us what you need and we&apos;ll create it with love.
+            <p className="font-body text-mocha text-sm leading-relaxed mb-6">
+              Planning a celebration, event, or something special? Tell us what you need — custom cakes, desserts, or pancake platters — and we&apos;ll create it with love.
             </p>
             
             {/* 3 bullet highlights */}
@@ -301,7 +309,7 @@ export default async function OrderPage() {
             <div className="relative aspect-[4/3] rounded-[24px] overflow-hidden bg-latte/10 shadow-sm border border-latte/40 max-w-md w-full">
               <Image
                 src="/images/custom_order_banner.png"
-                alt="Custom Chocolate Cake and Coffee Cup"
+                alt="Custom cake and dessert order at Hotcakes Nepal — handcrafted for events and celebrations in Lalitpur"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 480px"
@@ -352,9 +360,16 @@ export default async function OrderPage() {
       <div className="max-w-[1240px] w-full text-center border-t border-latte/60 pt-8 mt-4 px-4 animate-fade-up">
         <p className="font-serif italic text-roasted text-sm flex items-center justify-center gap-2">
           <span>🤎</span>
-          <span>Thank you for supporting local & choosing Hotcakes Nepal.</span>
+          <span>Thank you for supporting local &amp; choosing Hotcakes Nepal.</span>
           <span>🌿</span>
         </p>
+        <div className="flex justify-center gap-4 mt-4 font-body text-xs text-mocha/60">
+          <Link href="/menu" className="hover:text-roasted transition-colors">View Full Menu →</Link>
+          <span>·</span>
+          <Link href="/location" className="hover:text-roasted transition-colors">Visit Us in Hattiban →</Link>
+          <span>·</span>
+          <Link href="/contact" className="hover:text-roasted transition-colors">Contact Us →</Link>
+        </div>
       </div>
     </div>
   );

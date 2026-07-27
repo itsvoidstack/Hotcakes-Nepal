@@ -54,7 +54,7 @@ export default async function Footer() {
               Hot Cakes Nepal
             </p>
             <p className="font-body text-xs text-cream/60 leading-relaxed max-w-[200px]">
-              Good coffee, warm atmosphere, and moments that feel like home. Enjoy our fluffy hotcakes and hand-drip brews.
+              Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur. Fluffy pancakes, hand-drip brews, fresh baked muffins, and handcrafted desserts — open daily near Little Angels School.
             </p>
             {/* Social icons */}
             <div className="flex items-center gap-3 mt-5">
@@ -128,7 +128,7 @@ export default async function Footer() {
               {address}
             </p>
             <p className="font-body text-xs text-cream/50 leading-relaxed mt-1">
-              Hattiban, Lalitpur, Nepal
+              Hattiban, Lalitpur — near Little Angels School &amp; Ekantakuna
             </p>
             <div className="mt-3">
               <Link
@@ -150,6 +150,9 @@ export default async function Footer() {
             </p>
             <p className="font-body text-[10px] text-cream/50 mt-0.5">
               {statusInfo.statusText}
+            </p>
+            <p className="font-body text-[10px] text-cream/40 mt-1 leading-relaxed">
+              Open daily — breakfast café &amp; specialty coffee in Lalitpur
             </p>
             <div className="mt-3">
               <a href={`tel:${phone.replace(/\s+/g, '')}`} className="font-body text-xs text-cream/70 hover:text-cream transition-colors duration-200">

@@ -8,10 +8,23 @@ import type { Metadata } from 'next';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Hotcakes Nepal | Café in Hattiban, Lalitpur — Pancakes, Coffee & Desserts",
-  description: "Hotcakes Nepal is a cozy aesthetic café in Hattiban, Lalitpur. We serve fluffy pancakes, specialty coffee, handcrafted desserts, and fresh breakfast. A vibe café near Lalitpur — perfect for slow mornings, study sessions, and quiet corners.",
+  title: "Hotcakes Nepal | Best Café in Hattiban, Lalitpur — Pancakes, Specialty Coffee & Desserts",
+  description: "Hotcakes Nepal is a cozy café in Hattiban, Lalitpur near Little Angels School. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, peanut butter cookies, and handcrafted desserts. Open daily 8 AM–8 PM — perfect for slow mornings, brunch, study sessions, and date spots in Lalitpur.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app"
+  },
+  openGraph: {
+    title: "Hotcakes Nepal | Best Café in Hattiban, Lalitpur — Pancakes, Specialty Coffee & Desserts",
+    description: "Cozy café in Hattiban, Lalitpur near Little Angels School. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins and cookies. Open daily 8 AM–8 PM.",
+    url: "https://hotcakes-nepal.vercel.app",
+    images: [
+      {
+        url: "https://hotcakes-nepal.vercel.app/images/hero/hero-main.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hotcakes Nepal — cozy café in Hattiban, Lalitpur serving fluffy pancakes and specialty coffee",
+      },
+    ],
   },
 };
 
@@ -111,7 +124,7 @@ export default async function Home() {
               Hotcakes Nepal
             </h1>
             <p className="font-body text-mocha/75 text-sm md:text-base leading-relaxed mb-7 max-w-[360px]">
-              Good coffee, warm atmosphere, and moments that feel like home. Hand-drip brews, fluffy stacks, and quiet corners.
+              A cozy café in Hattiban, Lalitpur — hand-drip specialty coffee, fluffy pancakes, and freshly baked desserts. One of the best breakfast cafés near Little Angels School, Ekantakuna, and Jawalakhel.
             </p>
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
               <Link
@@ -134,7 +147,7 @@ export default async function Home() {
             <div className="relative aspect-[4/3] sm:aspect-[3/2] lg:aspect-[4/3] rounded-[28px] overflow-hidden bg-latte/30 shadow-sm border border-latte/30 max-w-2xl mx-auto w-full">
               <ImageWithFallback
                 src={heroImageUrl}
-                alt="Hotcakes Nepal — Coffee and food"
+                alt="Hotcakes Nepal — best café in Hattiban, Lalitpur serving fluffy pancakes, specialty coffee, and handcrafted desserts near Little Angels School"
                 fill
                 className="object-cover"
                 priority
@@ -181,7 +194,7 @@ export default async function Home() {
             Most Loved
           </h2>
           <p className="font-body text-mocha/70 text-sm leading-relaxed">
-            Hand-picked customer favorites prepared fresh every single morning.
+            Hand-picked customer favorites — fluffy pancakes, pour-over coffee, and handcrafted desserts prepared fresh every single morning in our Hattiban kitchen.
           </p>
         </div>
 
@@ -209,7 +222,7 @@ export default async function Home() {
               Find Our Locations
             </h2>
             <p className="font-body text-mocha/70 text-sm leading-relaxed mb-6">
-              {"We'd love to welcome you to one of our cafes. Tucked away from the main streets, offering a quiet, rustic atmosphere for reading, study, or slow mornings."}
+              {"We'd love to welcome you. Tucked away from the main streets in Hattiban, Lalitpur — a quiet, rustic café perfect for slow mornings, study sessions, and brunch near Little Angels School."}
             </p>
             
             <div className="space-y-1 mb-7 font-body text-sm">
@@ -236,7 +249,7 @@ export default async function Home() {
           <div className="relative aspect-[4/3] md:h-[300px] lg:h-[340px] rounded-[20px] overflow-hidden bg-latte/10 group border border-latte/30 w-full max-w-md mx-auto order-2">
             <ImageWithFallback
               src={visitUsImage}
-              alt="Hotcakes Nepal Locations"
+              alt="Interior of Hotcakes Nepal café in Hattiban, Lalitpur — cozy seating and warm ambiance"
               fill
               className="object-cover group-hover:scale-[1.02] transition-transform duration-700"
               sizes="(max-width: 768px) 100vw, 400px"
@@ -285,7 +298,7 @@ export default async function Home() {
           <div className="grid grid-cols-4 gap-3 lg:hidden">
             {showcaseImages.slice(0, 4).map((imageUrl, idx) => (
               <div key={idx} className="relative aspect-square w-full rounded-2xl overflow-hidden bg-latte/20 border border-latte/30">
-                <ImageWithFallback src={imageUrl} alt={`Gallery ${idx + 1}`} fill className="object-cover" sizes="25vw" fallbackEmoji="☕" />
+                <ImageWithFallback src={imageUrl} alt={`Hotcakes Nepal café — food, coffee and desserts gallery image ${idx + 1}`} fill className="object-cover" sizes="25vw" fallbackEmoji="☕" />
               </div>
             ))}
           </div>
@@ -297,7 +310,7 @@ export default async function Home() {
                 <div key={idx} className="relative aspect-square w-full rounded-[18px] overflow-hidden bg-latte/20 group">
                   <ImageWithFallback
                     src={imageUrl}
-                    alt={`Gallery Left ${idx + 1}`}
+                    alt={`Hotcakes Nepal café gallery — pancakes, specialty coffee, and desserts in Hattiban Lalitpur ${idx + 1}`}
                     fill
                     className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
                     sizes="200px"
@@ -344,7 +357,7 @@ export default async function Home() {
                 <div key={idx} className="relative aspect-square w-full rounded-[18px] overflow-hidden bg-latte/20 group">
                   <ImageWithFallback
                     src={imageUrl}
-                    alt={`Gallery Right ${idx + 1}`}
+                    alt={`Hotcakes Nepal café gallery — aesthetic interiors and fresh baked goods in Lalitpur ${idx + 1}`}
                     fill
                     className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
                     sizes="200px"

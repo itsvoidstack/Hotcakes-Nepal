@@ -10,15 +10,23 @@ type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Contact & Follow Us",
-  description: "Get in touch with Hotcakes Nepal. Follow us on Instagram, WhatsApp, and TikTok for seasonal specials, new menu items, and events at our café in Hattiban, Lalitpur.",
+  title: "Contact Hotcakes Nepal — Follow Us & Get in Touch",
+  description: "Contact Hotcakes Nepal in Hattiban, Lalitpur. Follow us on Instagram, WhatsApp, and TikTok for seasonal specials, new menu items, and café events. Open daily 8 AM–8 PM near Little Angels School.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app/contact"
   },
   openGraph: {
-    title: "Contact Hotcakes Nepal",
-    description: "Follow us on Instagram, WhatsApp, and TikTok for seasonal specials, new menu items, and events at our café in Hattiban, Lalitpur.",
+    title: "Contact Hotcakes Nepal — Café in Hattiban, Lalitpur",
+    description: "Follow us on Instagram, WhatsApp, and TikTok for seasonal specials, new menu items, and café events. Open daily 8 AM–8 PM at Hattiban, Lalitpur.",
     url: "https://hotcakes-nepal.vercel.app/contact",
+    images: [
+      {
+        url: "https://hotcakes-nepal.vercel.app/images/hero/hero-main.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hotcakes Nepal — cozy café in Hattiban, Lalitpur",
+      },
+    ],
   },
 };
 
@@ -125,7 +133,7 @@ export default async function ContactPage() {
             >
               <ImageWithFallback
                 src={imageUrl}
-                alt={`Café Showcase ${index + 1}`}
+                alt={`Hotcakes Nepal café — pancakes, specialty coffee, and desserts in Hattiban Lalitpur (${index + 1})`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 90px, (max-width: 1024px) 110px, 160px"
@@ -144,7 +152,7 @@ export default async function ContactPage() {
             Follow Our Journey
           </h1>
           <p className="font-body text-mocha text-xs md:text-sm lg:text-base leading-relaxed mb-6 md:mb-8 max-w-sm mx-auto">
-            Get updates on seasonal specials, new menu items, community events, and fresh bakery releases.
+            Stay connected with Hotcakes Nepal — your favourite cozy café in Hattiban, Lalitpur. Get updates on seasonal specials, new menu items, community events, and fresh bakery releases.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
