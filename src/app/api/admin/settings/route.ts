@@ -371,6 +371,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    if (type === 'vacancy_notifications_settings') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'vacancy_notifications_settings', value: data, updated_at: new Date().toISOString() });
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
     if (type === 'vacancy_delete') {
       if (!data.id) {
         return NextResponse.json({ error: 'Vacancy ID is required to delete' }, { status: 400 });

@@ -21,7 +21,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, updated: 0, message: 'No vacancies found to sync.' });
     }
 
+    // Fetch stored notification email
+    let notifEmail = '';
+    const { data: settingsData } = await supabase.from('site_settings').select('value').eq('key', 'vacancy_notifications_settings').single();
+    if (settingsData && settingsData.value) {
+      const parsed = typeof settingsData.value === 'string' ? JSON.parse(settingsData.value) : settingsData.value;
+      notifEmail = parsed.notification_email || '';
+    }
+
     let updatedCount = 0;
+    let totalNewApplications = 0;
 
     for (const vac of vacancies) {
       if (!vac.google_sheet_url || !vac.google_sheet_url.trim().startsWith('http')) {
@@ -63,6 +72,8 @@ export async function POST(req: NextRequest) {
 
           if (diff > 0) {
             lastAppAt = new Date().toISOString();
+            totalNewApplications += diff;
+            console.log(`🔔 DETECTED ${diff} NEW APPLICATION(S) FOR "${vac.title}". Notification Email: ${notifEmail || 'None'}`);
           }
 
           await supabase
@@ -87,7 +98,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       updated: updatedCount,
-      message: `Successfully synced ${updatedCount} vacancy application logs.`,
+      new_applications_detected: totalNewApplications,
+      notification_email: notifEmail,
+      message: `Synced ${updatedCount} vacancy application logs. Detected ${totalNewApplications} new applications.`,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Sync failed';

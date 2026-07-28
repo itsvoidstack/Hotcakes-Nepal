@@ -202,6 +202,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         setContactDescription((get('contact_description') as { text?: string } | null)?.text || '');
         setOrderDescription((get('order_description') as { text?: string } | null)?.text || '');
         setVacanciesDescription((get('vacancies_description') as { text?: string } | null)?.text || '');
+        setNotificationEmail((get('vacancy_notifications_settings') as { notification_email?: string } | null)?.notification_email || '');
         setLocationDescription((get('location_description') as { text?: string } | null)?.text || 'Located in Hattiban, Lalitpur — close to Little Angels School and Ekantakuna. Easily accessible with parking available for bikes and cars.');
         setAmenitiesDescription((get('amenities_description') as { text?: string } | null)?.text || '• High-speed complimentary Wi-Fi\n• Comfortable seating for individuals\n• Power outlets at all seating areas\n• Friendly barista & warm hospitality');
         setContactShowcaseImages((get('contact_showcase_images') as string[]) || []);
@@ -409,6 +410,104 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [testingConnection, setTestingConnection] = useState(false);
   const [testConnectionResult, setTestConnectionResult] = useState<{ success?: boolean; message?: string; error?: string; application_count?: number } | null>(null);
   const [syncingVacancies, setSyncingVacancies] = useState(false);
+  const [notificationEmail, setNotificationEmail] = useState('');
+  const [savingNotifSettings, setSavingNotifSettings] = useState(false);
+  const [pushStatus, setPushStatus] = useState<'connected' | 'not_enabled' | 'unsupported'>('not_enabled');
+  const [testingNotification, setTestingNotification] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        setPushStatus('connected');
+      } else {
+        setPushStatus('not_enabled');
+      }
+    } else {
+      setPushStatus('unsupported');
+    }
+
+    // 3-hour background sync interval (3 * 60 * 60 * 1000 = 10,800,000 ms)
+    const syncInterval = setInterval(() => {
+      handleSyncVacancies();
+    }, 10800000);
+
+    return () => clearInterval(syncInterval);
+  }, []);
+
+  const handleEnablePush = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      showFeedback('Browser push notifications are not supported on this browser.', true);
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setPushStatus('connected');
+        showFeedback('Browser push notifications enabled!');
+        if ('serviceWorker' in navigator) {
+          await navigator.serviceWorker.register('/sw.js');
+        }
+      } else {
+        setPushStatus('not_enabled');
+        showFeedback('Notification permission was denied.', true);
+      }
+    } catch {
+      showFeedback('Failed to request notification permission.', true);
+    }
+  };
+
+  const handleSaveNotifSettings = async () => {
+    setSavingNotifSettings(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          type: 'vacancy_notifications_settings',
+          data: { notification_email: notificationEmail, updated_at: new Date().toISOString() },
+        }),
+      });
+      if (!res.ok) throw new Error('Save failed');
+      showFeedback('Notification settings saved!');
+    } catch (err) {
+      showFeedback(getErrorMessage(err) || 'Save failed', true);
+    } finally {
+      setSavingNotifSettings(false);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    setTestingNotification(true);
+    try {
+      const res = await fetch('/api/admin/vacancies/test-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: notificationEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Test failed');
+
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          reg.showNotification('🔔 Hotcakes Nepal', {
+            body: 'New Vacancy Application\nTest Applicant applied for Barista',
+            icon: '/favicon.ico',
+            data: { url: '/hc-dashboard?tab=vacancies' },
+          });
+        } else {
+          new Notification('🔔 Hotcakes Nepal', { body: 'Test notification triggered successfully!' });
+        }
+      }
+
+      showFeedback(data.message || 'Test notification sent!');
+    } catch (err) {
+      showFeedback(getErrorMessage(err) || 'Test notification failed', true);
+    } finally {
+      setTestingNotification(false);
+    }
+  };
 
   const handleTestConnection = async () => {
     if (!editingVacancy?.google_form_link) {
@@ -1240,10 +1339,71 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
       {/* ── VACANCIES TAB ─────────────────────────────────────────────────── */}
       {activeTab === 'vacancies' && !loading && (
         <div className="space-y-6">
+          {/* Global Vacancy Notifications Settings Card — Positioned at the very top of tab */}
+          {!editingVacancy && (
+            <div className="bg-warm-white p-6 rounded-2xl border border-latte space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-latte/60 pb-3">
+                <div>
+                  <h3 className="font-heading font-bold text-base text-espresso flex items-center gap-2">
+                    <span>🔔</span> Global Vacancy Notifications
+                  </h3>
+                  <p className="font-body text-xs text-mocha mt-0.5">Configured once for all vacancies. Receives instant email alerts &amp; desktop push notifications on new applications.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${pushStatus === 'connected' ? 'bg-olive/15 text-olive border border-olive/30' : 'bg-mocha/15 text-mocha border border-mocha/30'}`}>
+                    Browser Push: {pushStatus === 'connected' ? 'Connected' : pushStatus === 'unsupported' ? 'Unsupported' : 'Not Enabled'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Notification Email</label>
+                  <input
+                    type="email"
+                    value={notificationEmail}
+                    onChange={e => setNotificationEmail(e.target.value)}
+                    placeholder="owner@email.com"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {pushStatus !== 'connected' && pushStatus !== 'unsupported' && (
+                    <button
+                      type="button"
+                      onClick={handleEnablePush}
+                      className="px-4 py-2.5 bg-roasted hover:bg-dark-roast text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+                    >
+                      Enable Notifications
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleTestNotification}
+                    disabled={testingNotification}
+                    className="px-4 py-2.5 border border-latte hover:bg-latte/20 text-espresso rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+                  >
+                    {testingNotification ? <Spinner /> : '🧪 Test Notification'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveNotifSettings}
+                    disabled={savingNotifSettings}
+                    className="px-5 py-2.5 bg-olive hover:bg-olive/90 disabled:bg-mocha/40 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
+                  >
+                    {savingNotifSettings ? <Spinner /> : 'Save Email'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Header Row */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h2 className="font-heading font-bold text-xl text-espresso">Vacancy Applications Management</h2>
-              <p className="font-body text-xs text-mocha mt-0.5">Manage job openings, monitor form responses &amp; sheet links</p>
+              <p className="font-body text-xs text-mocha mt-0.5">Auto-synced every 3 hours with linked Google Sheets</p>
             </div>
             {!editingVacancy && (
               <div className="flex items-center gap-2">
@@ -1269,7 +1429,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   }}
                   className="px-5 py-2 bg-roasted hover:bg-dark-roast text-white rounded-full text-xs font-semibold shadow-sm transition-all"
                 >
-                  + Add Vacancy
+                  + Create Vacancy
                 </button>
               </div>
             )}
@@ -1283,25 +1443,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 <button type="button" onClick={() => setEditingVacancy(null)} className="text-xs text-mocha hover:text-espresso font-semibold">✕ Close</button>
               </div>
 
-              {/* Helper Template Card */}
-              <div className="bg-[#FAF6F0] border border-[#E8DCCB] rounded-2xl p-4 flex items-start justify-between gap-4">
-                <div className="space-y-1 text-xs">
-                  <span className="font-bold text-[#8C5835] uppercase tracking-wider block">Need a Job Application Form?</span>
-                  <p className="text-mocha leading-relaxed">Duplicate our official template to quickly get a ready-to-use Google Form &amp; Sheet.</p>
-                </div>
-                <a
-                  href="https://docs.google.com/forms/u/0/create"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 bg-[#8C5835] hover:bg-[#724426] text-white text-[11px] font-bold rounded-lg shrink-0 shadow-sm transition-all"
-                >
-                  Open Vacancy Template ↗
-                </a>
-              </div>
-
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Title</label>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Vacancy Title *</label>
                   <input
                     type="text"
                     required
@@ -1312,29 +1456,28 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Form URL</label>
-                    <input
-                      type="text"
-                      required
-                      value={editingVacancy.google_form_link || ''}
-                      onChange={e => setEditingVacancy({ ...editingVacancy, google_form_link: e.target.value })}
-                      placeholder="https://forms.gle/..."
-                      className={inputCls}
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Form URL *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingVacancy.google_form_link || ''}
+                    onChange={e => setEditingVacancy({ ...editingVacancy, google_form_link: e.target.value })}
+                    placeholder="https://forms.gle/..."
+                    className={inputCls}
+                  />
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Sheet URL</label>
-                    <input
-                      type="text"
-                      value={editingVacancy.google_sheet_url || ''}
-                      onChange={e => setEditingVacancy({ ...editingVacancy, google_sheet_url: e.target.value })}
-                      placeholder="https://docs.google.com/spreadsheets/d/..."
-                      className={inputCls}
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Spreadsheet URL *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingVacancy.google_sheet_url || ''}
+                    onChange={e => setEditingVacancy({ ...editingVacancy, google_sheet_url: e.target.value })}
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    className={inputCls}
+                  />
                 </div>
 
                 {/* Test Connection Action */}
@@ -1363,18 +1506,17 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                 )}
 
                 <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Description</label>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Description (Optional)</label>
                   <textarea
-                    required
                     value={editingVacancy.description || ''}
                     onChange={e => setEditingVacancy({ ...editingVacancy, description: e.target.value })}
                     placeholder="Responsibilities, qualifications, shifts..."
-                    className="w-full h-28 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none"
+                    className="w-full h-24 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Banner Image</label>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Banner Image (Optional)</label>
                   <div className="flex gap-3 items-start">
                     {editingVacancy.image_url && (
                       <img src={editingVacancy.image_url} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-latte flex-shrink-0" />
@@ -1426,7 +1568,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             </form>
           ) : vacancies.length === 0 ? (
             <div className="text-center py-12 text-mocha glass-card rounded-2xl border border-latte p-8">
-              No vacancies active yet. Click <strong>+ Add Vacancy</strong> above to launch your first job opening!
+              No vacancies active yet. Click <strong>+ Create Vacancy</strong> above to launch your first job opening!
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1450,7 +1592,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     <div className="flex justify-between items-start gap-3">
                       <div>
                         <h3 className="font-heading font-bold text-lg text-espresso">{vac.title}</h3>
-                        <p className="font-body text-xs text-mocha line-clamp-2 mt-1 leading-relaxed">{vac.description}</p>
+                        {vac.description && (
+                          <p className="font-body text-xs text-mocha line-clamp-2 mt-1 leading-relaxed">{vac.description}</p>
+                        )}
                       </div>
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${vac.is_active ? 'bg-olive/15 text-olive border border-olive/30' : 'bg-mocha/15 text-mocha border border-mocha/30'}`}>
                         {vac.is_active ? 'Active' : 'Closed'}
@@ -1480,7 +1624,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                           rel="noopener noreferrer"
                           className="px-3 py-1.5 bg-[#8C5835] hover:bg-[#724426] text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
                         >
-                          Open Form ↗
+                          Apply Now ↗
                         </a>
                         {vac.google_sheet_url && (
                           <a
