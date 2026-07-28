@@ -350,16 +350,31 @@ export async function POST(request: NextRequest) {
     }
 
     if (type === 'vacancy') {
-      const { error } = await supabase
+      const payload: Record<string, any> = {
+        title: data.title,
+        description: data.description ?? null,
+        google_form_link: data.google_form_link,
+        google_sheet_url: data.google_sheet_url ?? null,
+        image_url: data.image_url ?? null,
+        is_active: !!data.is_active,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (data.id) {
+        payload.id = data.id;
+      }
+
+      if (typeof data.application_count === 'number') payload.application_count = data.application_count;
+      if (typeof data.unread_count === 'number') payload.unread_count = data.unread_count;
+      if (data.last_checked_at) payload.last_checked_at = data.last_checked_at;
+      if (data.last_application_at) payload.last_application_at = data.last_application_at;
+      if (data.latest_applicant_name) payload.latest_applicant_name = data.latest_applicant_name;
+
+      const { data: upsertedVacancy, error } = await supabase
         .from('vacancies')
-        .upsert({
-          id: data.id || undefined,
-          title: data.title,
-          description: data.description,
-          google_form_link: data.google_form_link,
-          image_url: data.image_url,
-          is_active: !!data.is_active
-        });
+        .upsert(payload)
+        .select()
+        .single();
 
       if (error) {
         console.error('ROUTE ERROR:', {
@@ -368,7 +383,7 @@ export async function POST(request: NextRequest) {
         });
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, vacancy: upsertedVacancy });
     }
 
     if (type === 'vacancy_notifications_settings') {
