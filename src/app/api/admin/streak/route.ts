@@ -23,6 +23,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const { data: streakCampaign } = await supabase
+      .from('campaigns')
+      .select('*')
+      .or('name.eq.Brew Streak Rewards,type.eq.streak')
+      .maybeSingle();
+
     const totalCustomers = records.length;
     const totalStamps = records.reduce((sum, r) => sum + (r.streak_count || 0), 0);
     const totalActiveRewards = records.filter(r => r.streak_count >= 10).length;
@@ -36,7 +42,8 @@ export async function GET(request: NextRequest) {
         total_active_rewards: totalActiveRewards,
         total_rewards_redeemed: totalRewardsRedeemed
       },
-      records
+      records,
+      streakCampaign: streakCampaign || null
     });
   } catch (err) {
     console.error('Streak API GET unexpected error:', err);
@@ -57,6 +64,56 @@ export async function POST(request: NextRequest) {
 
     if (!action) {
       return NextResponse.json({ error: 'Action is required' }, { status: 400 });
+    }
+
+    // Update Streak Campaign Settings
+    if (action === 'update_campaign') {
+      const { campaign } = body;
+      if (!campaign) {
+        return NextResponse.json({ error: 'Campaign payload is required' }, { status: 400 });
+      }
+
+      const { data: existing } = await supabase
+        .from('campaigns')
+        .select('id')
+        .or('name.eq.Brew Streak Rewards,type.eq.streak')
+        .maybeSingle();
+
+      const updateData = {
+        name: campaign.name || 'Brew Streak Rewards',
+        tagline: campaign.tagline || null,
+        is_active: campaign.is_active !== undefined ? campaign.is_active : true,
+        status: campaign.status || 'active',
+        type: 'streak',
+        priority: 100,
+        placement: 'hero_section',
+        start_date: campaign.start_date || null,
+        end_date: campaign.end_date || null,
+        metadata: campaign.metadata || {},
+        updated_at: new Date().toISOString()
+      };
+
+      let result;
+      if (existing?.id) {
+        const { data, error } = await supabase
+          .from('campaigns')
+          .update(updateData)
+          .eq('id', existing.id)
+          .select()
+          .single();
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        result = data;
+      } else {
+        const { data, error } = await supabase
+          .from('campaigns')
+          .insert(updateData)
+          .select()
+          .single();
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        result = data;
+      }
+
+      return NextResponse.json({ success: true, campaign: result });
     }
 
     // Lookup Profile using parameterized queries

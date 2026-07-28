@@ -4,14 +4,28 @@ import { useState, useEffect, useCallback } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'ended';
-export type CampaignType =
-  | 'promotion' | 'offer' | 'announcement' | 'seasonal'
-  | 'event' | 'banner' | 'limited_deal';
-export type CampaignPlacement =
-  | 'home_banner' | 'hero_section' | 'dashboard_card' | 'all_pages';
+export type CampaignType = 'promotion' | 'offer' | 'announcement' | 'seasonal' | 'event' | 'limited_deal';
+export type CampaignPlacement = 'current_offers' | 'home_banner' | 'hero_section' | 'all_pages';
+
+export interface HowItWorksMeta {
+  steps?: string[];
+  footnote?: string;
+}
+
+export interface CampaignMetadata {
+  description?: string;
+  tags?: string;
+  cta_text?: string;
+  cta_link?: string;
+  image_url?: string;
+  badge_text?: string; // Editable display text e.g. "20% CLAIMED"
+  promo_code?: string;
+  visibility?: 'public' | 'logged_in' | 'homepage_only';
+  how_it_works?: HowItWorksMeta;
+}
 
 export interface GeneralCampaign {
-  id: string;
+  id?: string;
   name: string;
   tagline: string | null;
   is_active: boolean;
@@ -22,69 +36,67 @@ export interface GeneralCampaign {
   start_date: string | null;
   end_date: string | null;
   metadata: CampaignMetadata;
-  created_at: string;
+  created_at?: string;
 }
 
-export interface CampaignMetadata {
-  description?: string;
-  full_description?: string;
-  tags?: string;
-  cta_text?: string;
-  cta_link?: string;
-  image_url?: string;
-  promo_code?: string;
-  visibility?: 'public' | 'logged_in' | 'homepage_only' | 'dashboard_only';
-}
-
-const BLANK_METADATA: CampaignMetadata = {
-  description: '', full_description: '', tags: '',
-  cta_text: '', cta_link: '', image_url: '',
-  promo_code: '', visibility: 'public',
+const BLANK_HOW_IT_WORKS: HowItWorksMeta = {
+  steps: ['Add eligible item to cart', 'Apply promotion at checkout', 'Enjoy your reward!'],
+  footnote: '* Valid during campaign period only',
 };
 
-const BLANK: Partial<GeneralCampaign> = {
-  name: '', tagline: '', status: 'draft', type: 'promotion',
-  priority: 0, placement: 'home_banner',
-  start_date: null, end_date: null, metadata: { ...BLANK_METADATA },
+const BLANK_METADATA: CampaignMetadata = {
+  description: '',
+  tags: '',
+  cta_text: '',
+  cta_link: '',
+  image_url: '',
+  badge_text: '20% CLAIMED',
+  promo_code: '',
+  visibility: 'public',
+  how_it_works: { ...BLANK_HOW_IT_WORKS },
+};
+
+const BLANK: GeneralCampaign = {
+  name: '',
+  tagline: '',
+  is_active: false,
+  status: 'draft',
+  type: 'promotion',
+  priority: 0,
+  placement: 'current_offers',
+  start_date: null,
+  end_date: null,
+  metadata: { ...BLANK_METADATA },
 };
 
 function getErrorMessage(e: unknown) {
   return e instanceof Error ? e.message : 'Something went wrong.';
 }
 
-// ── Helper badges ────────────────────────────────────────────────────────────
+// Helper badges
 const STATUS_STYLES: Record<CampaignStatus, string> = {
-  active:  'bg-olive/15 text-olive',
-  draft:   'bg-latte/30 text-mocha',
-  paused:  'bg-amber-100 text-amber-700',
-  ended:   'bg-muted-red/15 text-muted-red',
-};
-const TYPE_LABELS: Record<CampaignType, string> = {
-  promotion: 'Promotion', offer: 'Offer', announcement: 'Announcement',
-  seasonal: 'Seasonal', event: 'Event', banner: 'Banner', limited_deal: 'Limited Deal',
-};
-const PLACEMENT_LABELS: Record<CampaignPlacement, string> = {
-  home_banner: 'Home Banner', hero_section: 'Hero Section',
-  dashboard_card: 'Dashboard Card', all_pages: 'All Pages',
+  active: 'bg-olive/15 text-olive',
+  draft: 'bg-latte/30 text-mocha',
+  paused: 'bg-amber-100 text-amber-700',
+  ended: 'bg-muted-red/15 text-muted-red',
 };
 
 function StatusBadge({ status }: { status: CampaignStatus }) {
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[status] ?? 'bg-latte/20 text-mocha'}`}>
+    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[status] || 'bg-latte/20 text-mocha'}`}>
       {status}
     </span>
   );
 }
 
-// ── Props ────────────────────────────────────────────────────────────────────
 interface Props { token: string; }
 
-// ── Main component ───────────────────────────────────────────────────────────
 export default function CampaignsTab({ token }: Props) {
   const [campaigns, setCampaigns] = useState<GeneralCampaign[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState<Partial<GeneralCampaign> | null>(null);
+  const [editing, setEditing] = useState<GeneralCampaign | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [preview, setPreview] = useState<GeneralCampaign | null>(null);
@@ -94,7 +106,7 @@ export default function CampaignsTab({ token }: Props) {
 
   const showFeedback = (msg: string, isErr = false) => {
     if (isErr) { setErrorMsg(msg); setTimeout(() => setErrorMsg(''), 5000); }
-    else       { setMessage(msg);  setTimeout(() => setMessage(''),  5000); }
+    else { setMessage(msg); setTimeout(() => setMessage(''), 5000); }
   };
 
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -114,7 +126,35 @@ export default function CampaignsTab({ token }: Props) {
 
   useEffect(() => { loadCampaigns(); }, [loadCampaigns]);
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
+  // Handle image upload via existing /api/admin/upload endpoint
+  const handleUploadBanner = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editing) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'campaigns');
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: authHeaders,
+        body: formData,
+      });
+
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Image upload failed');
+
+      setMeta('image_url', d.url);
+      showFeedback('Banner image uploaded successfully!');
+    } catch (e) {
+      showFeedback(getErrorMessage(e), true);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing) return;
@@ -145,12 +185,13 @@ export default function CampaignsTab({ token }: Props) {
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
-      showFeedback(next === 'active' ? 'Campaign resumed.' : 'Campaign paused.');
+      showFeedback(next === 'active' ? 'Campaign activated.' : 'Campaign paused.');
       await loadCampaigns();
     } catch (e) { showFeedback(getErrorMessage(e), true); }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id?: string) => {
+    if (!id) return;
     if (!confirm('Delete this campaign? This cannot be undone.')) return;
     try {
       const res = await fetch(`/api/admin/campaigns?id=${id}`, { method: 'DELETE', headers: authHeaders });
@@ -161,21 +202,50 @@ export default function CampaignsTab({ token }: Props) {
     } catch (e) { showFeedback(getErrorMessage(e), true); }
   };
 
-  const setMeta = (key: keyof CampaignMetadata, val: string) =>
-    setEditing(prev => prev ? { ...prev, metadata: { ...(prev.metadata ?? {}), [key]: val } } : prev);
+  const setMeta = (key: keyof CampaignMetadata, val: unknown) =>
+    setEditing(prev => prev ? { ...prev, metadata: { ...(prev.metadata || {}), [key]: val } } : prev);
 
-  // ── RENDER ───────────────────────────────────────────────────────────────────
+  // Dynamic How it Works Steps editing
+  const handleStepChange = (index: number, val: string) => {
+    if (!editing) return;
+    const currentSteps = editing.metadata?.how_it_works?.steps || [];
+    const newSteps = [...currentSteps];
+    newSteps[index] = val;
+    setMeta('how_it_works', {
+      ...(editing.metadata?.how_it_works || {}),
+      steps: newSteps,
+    });
+  };
+
+  const handleAddStep = () => {
+    if (!editing) return;
+    const currentSteps = editing.metadata?.how_it_works?.steps || [];
+    setMeta('how_it_works', {
+      ...(editing.metadata?.how_it_works || {}),
+      steps: [...currentSteps, ''],
+    });
+  };
+
+  const handleRemoveStep = (index: number) => {
+    if (!editing) return;
+    const currentSteps = editing.metadata?.how_it_works?.steps || [];
+    setMeta('how_it_works', {
+      ...(editing.metadata?.how_it_works || {}),
+      steps: currentSteps.filter((_, i) => i !== index),
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Feedback */}
-      {message  && <div className="p-4 bg-olive/15 text-olive font-body text-sm rounded-xl text-center animate-fade-up">{message}</div>}
+      {message && <div className="p-4 bg-olive/15 text-olive font-body text-sm rounded-xl text-center animate-fade-up">{message}</div>}
       {errorMsg && <div className="p-4 bg-muted-red/15 text-muted-red font-body text-sm rounded-xl text-center animate-fade-up">{errorMsg}</div>}
 
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="font-heading font-bold text-xl text-espresso">Campaigns</h2>
-          <p className="text-xs text-mocha mt-0.5">Promotions, offers, announcements, and banners. Streak rewards are managed separately.</p>
+          <h2 className="font-heading font-bold text-xl text-espresso">Promotional Campaigns</h2>
+          <p className="text-xs text-mocha mt-0.5">Manage offers, discounts, BOGO events, and banners. Streak rewards are managed separately under Streak tab.</p>
         </div>
         {!editing && (
           <button
@@ -187,7 +257,7 @@ export default function CampaignsTab({ token }: Props) {
         )}
       </div>
 
-      {/* ── FORM ── */}
+      {/* ── FORM EDIT / CREATE ── */}
       {editing && (
         <form onSubmit={handleSave} className="glass-card p-6 md:p-8 rounded-[24px] space-y-6 animate-fade-up">
           <h3 className="font-heading font-bold text-lg text-espresso">
@@ -200,41 +270,45 @@ export default function CampaignsTab({ token }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Campaign Name *</label>
-                <input required type="text" value={editing.name || ''} onChange={e => setEditing({ ...editing, name: e.target.value })} placeholder="e.g. Summer Offer 2025" className={inputCls} />
+                <input required type="text" value={editing.name || ''} onChange={e => setEditing({ ...editing, name: e.target.value })} placeholder="e.g. Buy 1 Get 1 Free" className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Type</label>
                 <select value={editing.type || 'promotion'} onChange={e => setEditing({ ...editing, type: e.target.value as CampaignType })} className={inputCls}>
-                  {(Object.entries(TYPE_LABELS) as [CampaignType, string][]).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  <option value="promotion">Promotion</option>
+                  <option value="offer">Offer</option>
+                  <option value="seasonal">Seasonal</option>
+                  <option value="event">Event</option>
+                  <option value="limited_deal">Limited Deal</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline / Short Description</label>
-              <input type="text" value={editing.tagline || ''} onChange={e => setEditing({ ...editing, tagline: e.target.value })} placeholder="One-line hook shown in the banner" className={inputCls} />
+              <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Short Tagline / Hook</label>
+              <input type="text" value={editing.tagline || ''} onChange={e => setEditing({ ...editing, tagline: e.target.value })} placeholder="e.g. Buy any coffee and get another one absolutely free!" className={inputCls} />
             </div>
             <div>
               <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Full Description</label>
-              <textarea value={editing.metadata?.full_description || ''} onChange={e => setMeta('full_description', e.target.value)} placeholder="Detailed campaign description (internal or public)" rows={3} className="w-full px-3 py-2.5 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted resize-none" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tags / Labels</label>
-              <input type="text" value={editing.metadata?.tags || ''} onChange={e => setMeta('tags', e.target.value)} placeholder="e.g. coffee, seasonal, 20% off" className={inputCls} />
+              <textarea value={editing.metadata?.description || ''} onChange={e => setMeta('description', e.target.value)} placeholder="Detailed campaign terms or overview" rows={2} className="w-full px-3 py-2 bg-warm-white border border-latte rounded-xl font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted resize-none" />
             </div>
           </fieldset>
 
-          {/* Timing */}
+          {/* Timing & Status */}
           <fieldset className="space-y-4">
-            <legend className="text-[10px] font-bold text-mocha uppercase tracking-widest mb-3">Timing</legend>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <legend className="text-[10px] font-bold text-mocha uppercase tracking-widest mb-3">Timing & Priority</legend>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Status</label>
-                <select value={editing.status || 'draft'} onChange={e => setEditing({ ...editing, status: e.target.value as CampaignStatus })} className={inputCls}>
+                <select value={editing.status || 'draft'} onChange={e => setEditing({ ...editing, status: e.target.value as CampaignStatus, is_active: e.target.value === 'active' })} className={inputCls}>
                   <option value="draft">Draft</option>
                   <option value="active">Active</option>
                   <option value="paused">Paused</option>
                   <option value="ended">Ended</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Priority (Higher wins)</label>
+                <input type="number" min={0} max={100} value={editing.priority ?? 0} onChange={e => setEditing({ ...editing, priority: parseInt(e.target.value) || 0 })} className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
@@ -247,67 +321,117 @@ export default function CampaignsTab({ token }: Props) {
             </div>
           </fieldset>
 
-          {/* Display Rules */}
+          {/* Display Badges & Promotion Details */}
           <fieldset className="space-y-4">
-            <legend className="text-[10px] font-bold text-mocha uppercase tracking-widest mb-3">Display Rules</legend>
+            <legend className="text-[10px] font-bold text-mocha uppercase tracking-widest mb-3">Display Badge & Actions</legend>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Placement</label>
-                <select value={editing.placement || 'home_banner'} onChange={e => setEditing({ ...editing, placement: e.target.value as CampaignPlacement })} className={inputCls}>
-                  {(Object.entries(PLACEMENT_LABELS) as [CampaignPlacement, string][]).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Claimed Badge Text (Editable)</label>
+                <input type="text" value={editing.metadata?.badge_text || ''} onChange={e => setMeta('badge_text', e.target.value)} placeholder="e.g. 20% CLAIMED, BOGO, 50% OFF" className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Priority (higher = wins)</label>
-                <input type="number" min={0} max={100} value={editing.priority ?? 0} onChange={e => setEditing({ ...editing, priority: parseInt(e.target.value) || 0 })} className={inputCls} />
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Promo Code (Optional)</label>
+                <input type="text" value={editing.metadata?.promo_code || ''} onChange={e => setMeta('promo_code', e.target.value)} placeholder="e.g. WEEKEND15" className={`${inputCls} uppercase`} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Visibility</label>
-                <select value={editing.metadata?.visibility || 'public'} onChange={e => setMeta('visibility', e.target.value)} className={inputCls}>
-                  <option value="public">Public (everyone)</option>
-                  <option value="homepage_only">Homepage only</option>
-                  <option value="dashboard_only">Dashboard only</option>
-                  <option value="logged_in">Logged-in users only</option>
-                </select>
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tags</label>
+                <input type="text" value={editing.metadata?.tags || ''} onChange={e => setMeta('tags', e.target.value)} placeholder="e.g. Cold Brew, Coffee" className={inputCls} />
               </div>
             </div>
-          </fieldset>
 
-          {/* Actions (CTA) */}
-          <fieldset className="space-y-4">
-            <legend className="text-[10px] font-bold text-mocha uppercase tracking-widest mb-3">Actions</legend>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div>
                 <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">CTA Button Text</label>
-                <input type="text" value={editing.metadata?.cta_text || ''} onChange={e => setMeta('cta_text', e.target.value)} placeholder="e.g. Order Now, Learn More" className={inputCls} />
+                <input type="text" value={editing.metadata?.cta_text || ''} onChange={e => setMeta('cta_text', e.target.value)} placeholder="e.g. Order Now" className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">CTA Link</label>
-                <input type="text" value={editing.metadata?.cta_link || ''} onChange={e => setMeta('cta_link', e.target.value)} placeholder="/order or https://…" className={inputCls} />
+                <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">CTA Button Link</label>
+                <input type="text" value={editing.metadata?.cta_link || ''} onChange={e => setMeta('cta_link', e.target.value)} placeholder="e.g. /menu or /order" className={inputCls} />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Optional Promo Code</label>
-              <input type="text" value={editing.metadata?.promo_code || ''} onChange={e => setMeta('promo_code', e.target.value)} placeholder="e.g. SUMMER20" className={`${inputCls} uppercase`} />
+          </fieldset>
+
+          {/* Dynamic "How it Works" Editor */}
+          <fieldset className="space-y-4 bg-warm-white p-4 rounded-2xl border border-latte">
+            <legend className="text-[10px] font-bold text-roasted uppercase tracking-widest mb-1">
+              Structured &quot;How it Works&quot; Editor
+            </legend>
+            <p className="text-xs text-mocha mb-3">
+              Define the step-by-step instructions displayed inside this campaign card on desktop and mobile.
+            </p>
+
+            <div className="space-y-2">
+              {(editing.metadata?.how_it_works?.steps || []).map((step, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-roasted text-white text-xs font-bold flex items-center justify-center shrink-0">
+                    {idx + 1}
+                  </span>
+                  <input
+                    type="text"
+                    value={step}
+                    onChange={e => handleStepChange(idx, e.target.value)}
+                    placeholder={`Step ${idx + 1} instruction...`}
+                    className={inputCls}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveStep(idx)}
+                    className="p-2 text-muted-red hover:bg-muted-red/10 rounded-lg text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={handleAddStep}
+                className="px-4 py-2 border border-dashed border-roasted text-roasted hover:bg-roasted/5 rounded-xl text-xs font-semibold mt-2"
+              >
+                + Add Step
+              </button>
+            </div>
+
+            <div className="pt-2">
+              <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Footnote / Terms Note</label>
+              <input
+                type="text"
+                value={editing.metadata?.how_it_works?.footnote || ''}
+                onChange={e => setMeta('how_it_works', { ...(editing.metadata?.how_it_works || {}), footnote: e.target.value })}
+                placeholder="e.g. * Valid on all coffee drinks"
+                className={inputCls}
+              />
             </div>
           </fieldset>
 
-          {/* Media */}
+          {/* Media / Image Upload with Fallback */}
           <fieldset className="space-y-3">
-            <legend className="text-[10px] font-bold text-mocha uppercase tracking-widest mb-3">Media</legend>
-            <div>
-              <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Banner Image URL</label>
+            <legend className="text-[10px] font-bold text-mocha uppercase tracking-widest mb-3">Media / Banner Upload</legend>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-mocha uppercase">Banner Image</label>
               {editing.metadata?.image_url && (
-                <img src={editing.metadata.image_url} alt="Preview" className="w-full max-h-32 object-cover rounded-xl border border-latte mb-2" />
+                <img src={editing.metadata.image_url} alt="Preview" className="w-full max-h-36 object-cover rounded-xl border border-latte" />
               )}
-              <input type="text" value={editing.metadata?.image_url || ''} onChange={e => setMeta('image_url', e.target.value)} placeholder="https://… or /images/…" className={inputCls} />
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  value={editing.metadata?.image_url || ''}
+                  onChange={e => setMeta('image_url', e.target.value)}
+                  placeholder="https://... or upload below"
+                  className={inputCls}
+                />
+                <label className="px-4 py-2.5 bg-latte/30 hover:bg-latte/50 text-espresso rounded-xl text-xs font-semibold cursor-pointer shrink-0 border border-latte">
+                  {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                  <input type="file" accept="image/*" onChange={handleUploadBanner} disabled={uploadingImage} className="hidden" />
+                </label>
+              </div>
+              <p className="text-[10px] text-mocha">If no image is uploaded, a styled gradient theme will be rendered automatically.</p>
             </div>
           </fieldset>
 
-          {/* Form buttons */}
+          {/* Form Action Buttons */}
           <div className="flex gap-3 justify-end pt-2">
             <button type="button" onClick={() => setEditing(null)} disabled={saving} className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold">Cancel</button>
-            <button type="submit" disabled={saving} className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
+            <button type="submit" disabled={saving || uploadingImage} className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
               {saving ? <><Spinner /> Saving&hellip;</> : editing.id ? 'Update Campaign' : 'Create Campaign'}
             </button>
           </div>
@@ -317,51 +441,47 @@ export default function CampaignsTab({ token }: Props) {
       {/* ── CAMPAIGN LIST ── */}
       {!editing && (
         <>
-          {loading && <div className="text-center py-10 text-mocha font-body text-sm">Loading campaigns&hellip;</div>}
+          {loading && <div className="text-center py-10 text-mocha font-body text-sm">Loading promotional campaigns&hellip;</div>}
 
           {!loading && campaigns.length === 0 && (
             <div className="text-center py-14 bg-warm-white rounded-2xl border border-latte">
-              <p className="font-heading font-bold text-espresso mb-1">No campaigns yet</p>
-              <p className="text-xs text-mocha">Create your first promotion, offer, or announcement above.</p>
+              <p className="font-heading font-bold text-espresso mb-1">No promotional campaigns yet</p>
+              <p className="text-xs text-mocha">Create your first offer, BOGO deal, or announcement above.</p>
             </div>
           )}
 
           {!loading && campaigns.length > 0 && (
             <div className="space-y-3">
               {campaigns.map(c => {
+                const meta = c.metadata || {};
                 const now = new Date();
                 const expired = c.end_date ? new Date(c.end_date) < now : false;
-                const meta = c.metadata ?? {};
                 return (
                   <div key={c.id} className={`bg-warm-white rounded-2xl border p-5 space-y-3 transition-all ${expired ? 'border-latte/40 opacity-60' : 'border-latte'}`}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      {/* Left: info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
                           <StatusBadge status={c.status as CampaignStatus} />
-                          <span className="px-2 py-0.5 bg-latte/20 text-mocha rounded-full text-[10px] font-medium">{TYPE_LABELS[c.type as CampaignType] ?? c.type}</span>
-                          <span className="px-2 py-0.5 bg-latte/20 text-mocha rounded-full text-[10px] font-medium">{PLACEMENT_LABELS[c.placement as CampaignPlacement] ?? c.placement}</span>
-                          {c.priority > 0 && <span className="px-2 py-0.5 bg-roasted/10 text-roasted rounded-full text-[10px] font-semibold">P{c.priority}</span>}
+                          {meta.badge_text && <span className="px-2 py-0.5 bg-roasted/10 text-roasted rounded-full text-[10px] font-bold">{meta.badge_text}</span>}
+                          {c.priority > 0 && <span className="px-2 py-0.5 bg-latte/30 text-mocha rounded-full text-[10px] font-semibold">Priority P{c.priority}</span>}
                           {expired && <span className="px-2 py-0.5 bg-muted-red/10 text-muted-red rounded-full text-[10px] font-semibold">Expired</span>}
                         </div>
                         <h3 className="font-heading font-bold text-base text-espresso truncate">{c.name}</h3>
                         {c.tagline && <p className="text-xs text-mocha mt-0.5 line-clamp-1">{c.tagline}</p>}
                         <div className="flex flex-wrap gap-3 mt-1.5 text-[10px] text-mocha/70 font-body">
-                          {c.start_date && <span>From: {new Date(c.start_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
-                          {c.end_date   && <span>Until: {new Date(c.end_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
-                          {meta.cta_text && <span>CTA: {meta.cta_text}</span>}
-                          {meta.promo_code && <span className="font-mono font-semibold text-roasted">{meta.promo_code}</span>}
+                          {c.start_date && <span>Start: {new Date(c.start_date).toLocaleDateString()}</span>}
+                          {c.end_date && <span>End: {new Date(c.end_date).toLocaleDateString()}</span>}
+                          {meta.promo_code && <span className="font-mono font-bold text-roasted">Code: {meta.promo_code}</span>}
                         </div>
                       </div>
-                      {/* Right: actions */}
                       <div className="flex flex-wrap gap-2 shrink-0">
                         <button onClick={() => setPreview(c)} className="px-3 py-1.5 border border-latte text-mocha hover:bg-latte/10 rounded-lg text-xs font-medium">Preview</button>
-                        <button onClick={() => setEditing({ ...c, metadata: { ...BLANK_METADATA, ...(c.metadata ?? {}) } })} className="px-3 py-1.5 bg-roasted hover:bg-dark-roast text-white rounded-lg text-xs font-medium">Edit</button>
+                        <button onClick={() => setEditing(c)} className="px-3 py-1.5 bg-roasted hover:bg-dark-roast text-white rounded-lg text-xs font-medium">Edit</button>
                         <button
                           onClick={() => handleToggleStatus(c)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${c.status === 'active' ? 'border-amber-400 text-amber-700 hover:bg-amber-50' : 'border-olive text-olive hover:bg-olive/5'}`}
                         >
-                          {c.status === 'active' ? 'Pause' : 'Resume'}
+                          {c.status === 'active' ? 'Pause' : 'Activate'}
                         </button>
                         <button onClick={() => handleDelete(c.id)} className="px-3 py-1.5 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-lg text-xs font-medium">Delete</button>
                       </div>
@@ -374,7 +494,7 @@ export default function CampaignsTab({ token }: Props) {
         </>
       )}
 
-      {/* ── PREVIEW MODAL ── */}
+      {/* ── LIVE PREVIEW MODAL ── */}
       {preview && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setPreview(null)}>
           <div className="bg-cream rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4" onClick={e => e.stopPropagation()}>
@@ -386,24 +506,8 @@ export default function CampaignsTab({ token }: Props) {
               <img src={preview.metadata.image_url} alt={preview.name} className="w-full rounded-xl object-cover max-h-40 border border-latte" />
             )}
             {preview.tagline && <p className="font-body text-mocha text-sm">{preview.tagline}</p>}
-            {preview.metadata?.full_description && <p className="font-body text-mocha/80 text-xs leading-relaxed">{preview.metadata.full_description}</p>}
-            <div className="grid grid-cols-2 gap-2 text-xs font-body">
-              <div><span className="font-semibold text-mocha uppercase text-[10px]">Type</span><p className="text-espresso">{TYPE_LABELS[preview.type as CampaignType] ?? preview.type}</p></div>
-              <div><span className="font-semibold text-mocha uppercase text-[10px]">Placement</span><p className="text-espresso">{PLACEMENT_LABELS[preview.placement as CampaignPlacement] ?? preview.placement}</p></div>
-              <div><span className="font-semibold text-mocha uppercase text-[10px]">Priority</span><p className="text-espresso">{preview.priority}</p></div>
-              <div><span className="font-semibold text-mocha uppercase text-[10px]">Visibility</span><p className="text-espresso capitalize">{(preview.metadata?.visibility ?? 'public').replace('_', ' ')}</p></div>
-            </div>
-            {(preview.metadata?.cta_text || preview.metadata?.promo_code) && (
-              <div className="flex gap-3 flex-wrap pt-1">
-                {preview.metadata?.cta_text && preview.metadata?.cta_link && (
-                  <a href={preview.metadata.cta_link} target="_blank" rel="noopener noreferrer" className="px-5 py-2 bg-roasted text-white rounded-full text-xs font-semibold hover:bg-dark-roast transition-colors">
-                    {preview.metadata.cta_text}
-                  </a>
-                )}
-                {preview.metadata?.promo_code && (
-                  <span className="px-4 py-2 border border-roasted text-roasted rounded-full text-xs font-mono font-bold">{preview.metadata.promo_code}</span>
-                )}
-              </div>
+            {preview.metadata?.badge_text && (
+              <span className="inline-block px-3 py-1 bg-roasted text-white text-xs font-bold rounded-full">{preview.metadata.badge_text}</span>
             )}
           </div>
         </div>

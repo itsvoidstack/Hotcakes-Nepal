@@ -75,8 +75,8 @@ INSERT INTO order_links (platform, url, is_active) VALUES
 ('custom', '', false);
 
 -- 4. Seed Campaigns
-INSERT INTO campaigns (name, tagline, is_active, start_date, end_date) VALUES
-('Brew Streak Rewards', '10 visits. 1 free coffee. Start your streak.', true, now(), now() + interval '30 days');
+INSERT INTO campaigns (name, tagline, is_active, status, type, priority, placement, start_date, end_date, metadata) VALUES
+('Brew Streak Rewards', '10% upto 11am - Keep your streak alive and earn amazing rewards!', true, 'active', 'streak', 100, 'hero_section', now(), now() + interval '365 days', '{"badge_text": "STREAK REWARD", "sub_tagline": "10% upto 11am", "how_it_works": {"steps": ["Give your phone number to our staff on checkout", "Earn 1 stamp per day upon purchase", "Collect 10 stamps to earn 1 free coffee of choice", "Show your completed card to barista to redeem"], "footnote": "* Valid on all coffee beverages"}}'::jsonb);
 
 -- 5. Seed Site Settings
 INSERT INTO site_settings (key, value) VALUES

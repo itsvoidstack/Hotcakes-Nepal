@@ -41,10 +41,18 @@ CREATE TABLE IF NOT EXISTS campaigns (
     name TEXT NOT NULL,
     tagline TEXT,
     is_active BOOLEAN DEFAULT false NOT NULL,
+    status TEXT DEFAULT 'draft',
+    type TEXT DEFAULT 'promotion',
+    priority INTEGER DEFAULT 0,
+    placement TEXT DEFAULT 'current_offers',
+    metadata JSONB DEFAULT '{}'::jsonb,
     start_date TIMESTAMP WITH TIME ZONE,
     end_date TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_campaigns_priority ON campaigns (is_active, priority DESC);
 
 -- Enable RLS
 ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;

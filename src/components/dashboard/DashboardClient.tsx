@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import CampaignsTab from '@/components/dashboard/CampaignsTab';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -123,19 +123,14 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const loadStreakData = async () => {
     setStreakLoading(true);
     try {
-      const [streakRes, campaignRes] = await Promise.all([
-        fetch('/api/admin/streak', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/admin/settings?type=campaigns', { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
+      const streakRes = await fetch('/api/admin/streak', { headers: { Authorization: `Bearer ${token}` } });
       if (streakRes.ok) {
         const d = await streakRes.json();
         setStreakRecords(d.records || []);
         setStreakMetrics(d.metrics || null);
-      }
-      if (campaignRes.ok) {
-        const d = await campaignRes.json();
-        const sc = (d.data || []).find((c: { name: string }) => c.name === 'Brew Streak Rewards') || null;
-        setStreakCampaign(sc);
+        if (d.streakCampaign) {
+          setStreakCampaign(d.streakCampaign);
+        }
       }
     } catch (err) { console.error(err); } finally { setStreakLoading(false); }
   };
@@ -781,9 +776,13 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                   <button type="button" disabled={savingStreakCampaign} onClick={async () => {
                     setSavingStreakCampaign(true);
                     try {
-                      const res = await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'campaign', data: streakCampaign }) });
+                      const res = await fetch('/api/admin/streak', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ action: 'update_campaign', campaign: streakCampaign })
+                      });
                       const d = await res.json(); if (!res.ok) throw new Error(d.error || 'Save failed');
-                      showFeedback('Streak campaign saved!');
+                      showFeedback('Streak campaign saved successfully!');
                     } catch (e) { showFeedback(e instanceof Error ? e.message : 'Save failed', true); }
                     finally { setSavingStreakCampaign(false); }
                   }} className="px-5 py-2 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
