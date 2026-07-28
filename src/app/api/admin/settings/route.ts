@@ -350,7 +350,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (type === 'vacancy') {
-      const payload: Record<string, any> = {
+      const payload: Record<string, unknown> = {
         title: data.title,
         description: data.description ?? null,
         google_form_link: data.google_form_link,
