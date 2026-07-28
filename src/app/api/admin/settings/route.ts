@@ -170,11 +170,37 @@ export async function POST(request: NextRequest) {
     }
 
     if (type === 'order_links') {
-      // data is expected to be an array of { platform, url, is_active }
+      // data is expected to be an array of { platform, display_name, url, is_active, metadata }
       for (const item of data) {
         await supabase
           .from('order_links')
-          .upsert({ platform: item.platform, url: item.url, is_active: !!item.is_active, updated_at: new Date().toISOString() });
+          .upsert({
+            platform: item.platform,
+            display_name: item.display_name || null,
+            url: item.url || null,
+            is_active: !!item.is_active,
+            metadata: item.metadata || {},
+            updated_at: new Date().toISOString()
+          });
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === 'order_link_delete') {
+      if (!data.platform) {
+        return NextResponse.json({ error: 'Platform ID is required to delete' }, { status: 400 });
+      }
+      const { error } = await supabase
+        .from('order_links')
+        .delete()
+        .eq('platform', data.platform);
+
+      if (error) {
+        console.error('ROUTE ERROR:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        return NextResponse.json({ error: error.message }, { status: 500 });
       }
       return NextResponse.json({ success: true });
     }

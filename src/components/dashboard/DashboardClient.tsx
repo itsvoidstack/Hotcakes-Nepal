@@ -20,7 +20,16 @@ interface MenuItem {
   is_featured: boolean; is_available: boolean; display_order: number;
   dietary_tags?: string;
 }
-interface OrderLink { platform: string; url: string | null; is_active: boolean; }
+interface OrderLink {
+  platform: string;
+  display_name?: string | null;
+  url: string | null;
+  is_active: boolean;
+  metadata?: {
+    button_text?: string;
+    custom_icon?: string;
+  } | null;
+}
 interface ContactInfo { key: string; value: string; }
 interface Vacancy {
   id?: string; title: string; description: string | null;

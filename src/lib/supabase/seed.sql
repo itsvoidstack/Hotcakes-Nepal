@@ -69,10 +69,13 @@ INSERT INTO contact_info (key, value) VALUES
 ('address', 'Hattiban, Lalitpur, Nepal');
 
 -- 3. Seed Order Links
-INSERT INTO order_links (platform, url, is_active) VALUES
-('bhoj', '', false),
-('foodmandu', '', false),
-('custom', '', false);
+INSERT INTO order_links (platform, display_name, url, is_active, metadata) VALUES
+('bhoj', 'Bhoj', '', false, '{"button_text": "ORDER NOW >"}'::jsonb),
+('foodmandu', 'Foodmandu', '', false, '{"button_text": "ORDER NOW >"}'::jsonb),
+('pathao', 'Pathao Food', '', true, '{"button_text": "ORDER NOW >"}'::jsonb),
+('daraz', 'Daraz Food', '', true, '{"button_text": "ORDER NOW >"}'::jsonb),
+('khalti', 'Khalti Food', '', true, '{"button_text": "ORDER NOW >"}'::jsonb),
+('custom', 'Custom Order', '/contact', true, '{"button_text": "PLACE A CUSTOM ORDER >"}'::jsonb);
 
 -- 4. Seed Campaigns
 INSERT INTO campaigns (name, tagline, is_active, status, type, priority, placement, start_date, end_date, metadata) VALUES

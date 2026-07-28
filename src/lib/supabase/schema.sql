@@ -100,7 +100,9 @@ ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
 CREATE TABLE IF NOT EXISTS order_links (
     platform TEXT PRIMARY KEY,
     url TEXT,
+    display_name TEXT,
     is_active BOOLEAN DEFAULT false NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

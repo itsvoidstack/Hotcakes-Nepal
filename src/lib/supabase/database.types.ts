@@ -207,20 +207,26 @@ export interface Database {
       order_links: {
         Row: {
           platform: string
+          display_name: string | null
           url: string | null
           is_active: boolean
+          metadata: Json | null
           updated_at: string
         }
         Insert: {
           platform: string
+          display_name?: string | null
           url?: string | null
           is_active?: boolean
+          metadata?: Json | null
           updated_at?: string
         }
         Update: {
           platform?: string
+          display_name?: string | null
           url?: string | null
           is_active?: boolean
+          metadata?: Json | null
           updated_at?: string
         }
         Relationships: []
