@@ -80,8 +80,25 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     total_active_rewards: number; total_rewards_redeemed?: number;
   } | null>(null);
   const [streakLoading, setStreakLoading] = useState(false);
-  const [streakCampaign, setStreakCampaign] = useState<{ id: string; name: string; tagline: string | null; is_active: boolean; start_date: string | null; end_date: string | null } | null>(null);
+  const [streakCampaign, setStreakCampaign] = useState<{
+    id?: string;
+    name?: string;
+    tagline?: string | null;
+    is_active?: boolean;
+    start_date?: string | null;
+    end_date?: string | null;
+    metadata?: {
+      badge_text?: string;
+      sub_tagline?: string;
+      image_url?: string;
+      how_it_works?: {
+        steps?: string[];
+        footnote?: string;
+      };
+    } | null;
+  } | null>(null);
   const [savingStreakCampaign, setSavingStreakCampaign] = useState(false);
+  const [uploadingStreakImage, setUploadingStreakImage] = useState(false);
 
   // 3. Order links
   const [orderLinks, setOrderLinks] = useState<OrderLink[]>([]);
@@ -755,9 +772,73 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             {streakCampaign ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline</label>
-                  <input type="text" value={streakCampaign.tagline || ''} onChange={e => setStreakCampaign({ ...streakCampaign, tagline: e.target.value })} placeholder="10 visits. 1 free coffee." className={inputCls} />
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Tagline / Main Description</label>
+                  <input type="text" value={streakCampaign.tagline || ''} onChange={e => setStreakCampaign({ ...streakCampaign, tagline: e.target.value })} placeholder="10% upto 11am - Keep your streak alive and earn amazing rewards!" className={inputCls} />
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Sub-Tagline / Offer Hook</label>
+                    <input type="text" value={streakCampaign.metadata?.sub_tagline || ''} onChange={e => setStreakCampaign({ ...streakCampaign, metadata: { ...(streakCampaign.metadata || {}), sub_tagline: e.target.value } })} placeholder="e.g. 10% upto 11am" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Pill Badge Text</label>
+                    <input type="text" value={streakCampaign.metadata?.badge_text || ''} onChange={e => setStreakCampaign({ ...streakCampaign, metadata: { ...(streakCampaign.metadata || {}), badge_text: e.target.value } })} placeholder="e.g. STREAK REWARD" className={inputCls} />
+                  </div>
+                </div>
+
+                {/* Banner / Hero Image Upload */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-mocha uppercase">Streak Banner Image</label>
+                  {streakCampaign.metadata?.image_url && (
+                    <img src={streakCampaign.metadata.image_url} alt="Streak Banner Preview" className="w-full max-h-36 object-cover rounded-xl border border-latte mb-2" />
+                  )}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={streakCampaign.metadata?.image_url || ''}
+                      onChange={e => setStreakCampaign({ ...streakCampaign, metadata: { ...(streakCampaign.metadata || {}), image_url: e.target.value } })}
+                      placeholder="https://... or upload image below"
+                      className={inputCls}
+                    />
+                    <label className="px-4 py-2.5 bg-latte/30 hover:bg-latte/50 text-espresso rounded-xl text-xs font-semibold cursor-pointer shrink-0 border border-latte">
+                      {uploadingStreakImage ? 'Uploading...' : 'Upload Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingStreakImage}
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingStreakImage(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            formData.append('bucket', 'campaigns');
+                            const res = await fetch('/api/admin/upload', {
+                              method: 'POST',
+                              headers: { Authorization: `Bearer ${token}` },
+                              body: formData,
+                            });
+                            const d = await res.json();
+                            if (!res.ok) throw new Error(d.error || 'Upload failed');
+                            setStreakCampaign(prev => prev ? {
+                              ...prev,
+                              metadata: { ...(prev.metadata || {}), image_url: d.url }
+                            } : null);
+                            showFeedback('Streak banner image uploaded successfully!');
+                          } catch (err) {
+                            showFeedback(err instanceof Error ? err.message : 'Upload failed', true);
+                          } finally {
+                            setUploadingStreakImage(false);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[10px] text-mocha">Optional. If unassigned, the default 3D coffee cup artwork will be rendered.</p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-mocha uppercase mb-1.5">Start Date</label>
@@ -773,7 +854,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     <input type="checkbox" checked={!!streakCampaign.is_active} onChange={e => setStreakCampaign({ ...streakCampaign, is_active: e.target.checked })} className="w-4 h-4 rounded accent-roasted" />
                     Enable Streak Campaign
                   </label>
-                  <button type="button" disabled={savingStreakCampaign} onClick={async () => {
+                  <button type="button" disabled={savingStreakCampaign || uploadingStreakImage} onClick={async () => {
                     setSavingStreakCampaign(true);
                     try {
                       const res = await fetch('/api/admin/streak', {

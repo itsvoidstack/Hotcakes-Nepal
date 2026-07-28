@@ -135,31 +135,41 @@ export default function StreakHeroCard({ streakCampaign, onOpenStampSearch }: St
           )}
         </div>
 
-        {/* Right Side Artwork (Coffee Cup + Stamp Overlay) */}
+        {/* Right Side Artwork (Coffee Cup + Stamp Overlay OR Uploaded Banner Image) */}
         <div className="relative shrink-0 flex items-center justify-center mt-2 lg:mt-0">
-          <div className="relative w-44 h-44 md:w-52 md:h-52 flex items-center justify-center">
-            {/* Coffee Cup Graphic Container */}
-            <div className="w-36 h-40 md:w-40 md:h-44 bg-white rounded-t-3xl rounded-b-2xl shadow-xl border-2 border-amber-900/10 relative flex flex-col items-center justify-center p-3">
-              {/* Cup Lid */}
-              <div className="absolute -top-3 w-32 md:w-36 h-5 bg-[#3D261C] rounded-full shadow-md" />
-              {/* Cup Sleeve with Logo */}
-              <div className="w-full h-20 bg-[#C27D38] rounded-xl flex items-center justify-center text-white shadow-inner">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
-                  🔥
+          {streakCampaign?.metadata?.image_url ? (
+            <div className="relative w-44 h-44 md:w-52 md:h-52 rounded-2xl overflow-hidden shadow-xl border-2 border-amber-900/10 bg-white">
+              <img
+                src={streakCampaign.metadata.image_url}
+                alt={title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="relative w-44 h-44 md:w-52 md:h-52 flex items-center justify-center">
+              {/* Coffee Cup Graphic Container */}
+              <div className="w-36 h-40 md:w-40 md:h-44 bg-white rounded-t-3xl rounded-b-2xl shadow-xl border-2 border-amber-900/10 relative flex flex-col items-center justify-center p-3">
+                {/* Cup Lid */}
+                <div className="absolute -top-3 w-32 md:w-36 h-5 bg-[#3D261C] rounded-full shadow-md" />
+                {/* Cup Sleeve with Logo */}
+                <div className="w-full h-20 bg-[#C27D38] rounded-xl flex items-center justify-center text-white shadow-inner">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
+                    🔥
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Stamp Circle Overlay Badge (10% OFF UPTO 11AM) */}
-            <div className="absolute bottom-2 right-0 md:bottom-3 md:-right-2 w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#3D261C] text-white border-2 border-amber-200 shadow-xl flex flex-col items-center justify-center p-2 text-center transform rotate-12 hover:rotate-0 transition-transform">
-              <span className="font-heading font-black text-xs md:text-sm text-amber-300 leading-tight">
-                10% OFF
-              </span>
-              <span className="font-body text-[9px] md:text-[10px] uppercase font-bold text-white/90 leading-tight">
-                UPTO 11AM
-              </span>
+              {/* Stamp Circle Overlay Badge (10% OFF UPTO 11AM) */}
+              <div className="absolute bottom-2 right-0 md:bottom-3 md:-right-2 w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#3D261C] text-white border-2 border-amber-200 shadow-xl flex flex-col items-center justify-center p-2 text-center transform rotate-12 hover:rotate-0 transition-transform">
+                <span className="font-heading font-black text-xs md:text-sm text-amber-300 leading-tight">
+                  10% OFF
+                </span>
+                <span className="font-body text-[9px] md:text-[10px] uppercase font-bold text-white/90 leading-tight">
+                  UPTO 11AM
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
