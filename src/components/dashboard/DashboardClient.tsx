@@ -480,21 +480,27 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   };
 
   const handleTestNotification = async () => {
+    if (!notificationEmail || !notificationEmail.trim()) {
+      showFeedback('Please enter a notification email address first.', true);
+      return;
+    }
     setTestingNotification(true);
     try {
       const res = await fetch('/api/admin/vacancies/test-notification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ email: notificationEmail }),
+        body: JSON.stringify({ email: notificationEmail.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Test failed');
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || data.message || 'Test notification failed');
+      }
 
       if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
         if ('serviceWorker' in navigator) {
           const reg = await navigator.serviceWorker.ready;
           reg.showNotification('🔔 Hotcakes Nepal', {
-            body: 'New Vacancy Application\nTest Applicant applied for Barista',
+            body: 'New Vacancy Application\nTest Applicant applied for Senior Barista',
             icon: '/favicon.ico',
             data: { url: '/hc-dashboard?tab=vacancies' },
           });
@@ -503,9 +509,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         }
       }
 
-      showFeedback(data.message || 'Test notification sent!');
+      showFeedback(data.message || `Test email sent successfully to ${notificationEmail}!`);
     } catch (err) {
-      showFeedback(getErrorMessage(err) || 'Test notification failed', true);
+      showFeedback(getErrorMessage(err) || 'Test email failed', true);
     } finally {
       setTestingNotification(false);
     }
@@ -1385,8 +1391,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     onClick={handleTestNotification}
                     disabled={testingNotification}
                     className="px-4 py-2.5 border border-latte hover:bg-latte/20 text-espresso rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+                    title="Send a manual test email via Resend to verify configuration"
                   >
-                    {testingNotification ? <Spinner /> : '🧪 Test Notification'}
+                    {testingNotification ? <Spinner /> : '📧 Send Test Email'}
                   </button>
                   <button
                     type="button"
