@@ -132,6 +132,7 @@ export interface Database {
           customer_code: string
           phone_number: string
           streak_count: number
+          rewards_redeemed: number
           last_stamp_at: string | null
           created_at: string
           updated_at: string
@@ -141,6 +142,7 @@ export interface Database {
           customer_code: string
           phone_number: string
           streak_count?: number
+          rewards_redeemed?: number
           last_stamp_at?: string | null
           created_at?: string
           updated_at?: string
@@ -150,6 +152,7 @@ export interface Database {
           customer_code?: string
           phone_number?: string
           streak_count?: number
+          rewards_redeemed?: number
           last_stamp_at?: string | null
           created_at?: string
           updated_at?: string

@@ -69,6 +69,9 @@ CREATE TABLE IF NOT EXISTS streak_records (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Ensure rewards_redeemed column exists if table was created previously without it
+ALTER TABLE streak_records ADD COLUMN IF NOT EXISTS rewards_redeemed INTEGER DEFAULT 0 NOT NULL;
+
 -- Enable RLS
 ALTER TABLE streak_records ENABLE ROW LEVEL SECURITY;
 

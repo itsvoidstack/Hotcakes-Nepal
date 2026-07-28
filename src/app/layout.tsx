@@ -290,6 +290,54 @@ const jsonLd = [
         }
       }
     ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${BASE_URL}/#website`,
+    "url": BASE_URL,
+    "name": "Hotcakes Nepal",
+    "description": "Hotcakes Nepal — cozy café in Hattiban, Lalitpur. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, cookies & desserts.",
+    "publisher": {
+      "@id": `${BASE_URL}/#cafe`
+    },
+    "inLanguage": "en-US"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": BASE_URL
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Menu",
+        "item": `${BASE_URL}/menu`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Location & Hours",
+        "item": `${BASE_URL}/location`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Order Online",
+        "item": `${BASE_URL}/order`
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "Stamp Card",
+        "item": `${BASE_URL}/streak`
+      }
+    ]
   }
 ];
 
