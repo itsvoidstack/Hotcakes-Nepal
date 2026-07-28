@@ -155,7 +155,7 @@ export default async function StreakPage() {
                   </div>
                 </div>
                 <Link
-                  href="/menu"
+                  href="/campaigns"
                   className="text-xs font-bold text-roasted hover:text-dark-roast flex items-center gap-1 transition-colors"
                 >
                   View All &gt;

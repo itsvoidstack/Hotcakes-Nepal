@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
+import { sendVacancyNotificationEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
       console.error('Error updating vacancy stats:', updateError);
     }
 
-    // 3. Fetch Notification Settings
+    // 3. Fetch Notification Settings and Send Email
     let notifEmail = '';
     const { data: settingsData } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'vacancy_notifications_settings').single();
     if (settingsData && settingsData.value) {
@@ -71,22 +72,34 @@ export async function POST(req: NextRequest) {
       notifEmail = parsed.notification_email || '';
     }
 
-    const payloadSummary = {
+    let emailResult = null;
+    if (notifEmail) {
+      emailResult = await sendVacancyNotificationEmail({
+        to: notifEmail,
+        vacancyTitle: vacancy.title,
+        applicantName: applicant_name,
+        applicantEmail: applicant_email,
+        submittedAt: new Date(submitted_at).toLocaleString(),
+        totalApplications: newCount,
+        isTest: false,
+      });
+    }
+
+    console.log('✅ Webhook processed vacancy application:', {
       vacancy_title: vacancy.title,
       applicant_name,
       applicant_email,
-      submitted_at,
       total_applications: newCount,
       notification_email: notifEmail,
-    };
-
-    console.log('✅ Webhook processed vacancy application:', payloadSummary);
+      emailResult,
+    });
 
     return NextResponse.json({
       success: true,
       message: `Application recorded for ${vacancy.title}`,
       vacancy_title: vacancy.title,
       application_count: newCount,
+      email_sent: emailResult?.success ?? false,
     });
   } catch (err: unknown) {
     console.error('Google form webhook error:', err);

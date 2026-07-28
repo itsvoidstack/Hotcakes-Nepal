@@ -2,6 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim().replace(/^"|"$/g, ''));
+  return result;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { google_form_link, google_sheet_url } = await req.json();
@@ -17,33 +36,62 @@ export async function POST(req: NextRequest) {
 
     if (google_sheet_url && typeof google_sheet_url === 'string' && google_sheet_url.trim().startsWith('http')) {
       sheet_valid = true;
-      message = 'Form link and Google Sheet URL are valid.';
 
-      // Attempt to fetch published CSV or inspect URL structure
       try {
         let csvUrl = google_sheet_url.trim();
         if (csvUrl.includes('docs.google.com/spreadsheets/d/')) {
           const match = csvUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
           if (match && match[1]) {
             const sheetId = match[1];
-            csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+            const gidMatch = csvUrl.match(/[?&#]gid=([0-9]+)/);
+            const gid = gidMatch ? gidMatch[1] : null;
+            csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv${gid ? `&gid=${gid}` : ''}`;
           }
         }
 
-        const res = await fetch(csvUrl, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store' });
+        const res = await fetch(csvUrl, {
+          method: 'GET',
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          cache: 'no-store',
+          redirect: 'follow',
+        });
+
         if (res.ok) {
           const text = await res.text();
-          const lines = text.split('\n').filter(l => l.trim().length > 0);
+          if (text.toLowerCase().includes('<html') || text.toLowerCase().includes('<!doctype')) {
+            return NextResponse.json({
+              success: false,
+              form_valid: true,
+              sheet_valid: false,
+              error: 'Google Sheet returned HTML. Please open Google Sheets -> Share -> set Link Access to "Anyone with the link can view".',
+            }, { status: 400 });
+          }
+
+          const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
           if (lines.length > 1) {
             application_count = lines.length - 1; // Subtract header row
-            const lastLine = lines[lines.length - 1].split(',');
-            if (lastLine.length >= 2) {
-              latest_applicant = lastLine[1]?.replace(/^"|"$/g, '').trim() || null;
+            const lastRowCols = parseCsvLine(lines[lines.length - 1]);
+            if (lastRowCols.length >= 2) {
+              latest_applicant = lastRowCols[1] || null;
             }
           }
+          message = `Connection verified! Found ${application_count} application response(s).`;
+        } else {
+          return NextResponse.json({
+            success: false,
+            form_valid: true,
+            sheet_valid: false,
+            error: `Could not fetch Google Sheet CSV (HTTP ${res.status}). Ensure link sharing is public.`,
+          }, { status: 400 });
         }
       } catch (e) {
         console.warn('Sheet CSV fetch test warning:', e);
+        return NextResponse.json({
+          success: false,
+          form_valid: true,
+          sheet_valid: false,
+          error: `Error connecting to Google Sheet: ${e instanceof Error ? e.message : String(e)}`,
+        }, { status: 400 });
       }
     }
 

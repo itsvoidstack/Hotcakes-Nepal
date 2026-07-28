@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
+import { sendVacancyNotificationEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,12 +28,28 @@ export async function POST(req: NextRequest) {
       console.warn('Warning getting stored email:', e);
     }
 
+    if (!storedEmail) {
+      return NextResponse.json({
+        success: false,
+        error: 'Please enter and save a valid notification email address first.',
+      }, { status: 400 });
+    }
+
+    const emailResult = await sendVacancyNotificationEmail({
+      to: storedEmail,
+      vacancyTitle: 'Senior Barista (Test)',
+      applicantName: 'Test Applicant',
+      applicantEmail: 'applicant.test@example.com',
+      submittedAt: new Date().toLocaleString(),
+      totalApplications: 1,
+      isTest: true,
+    });
+
     return NextResponse.json({
-      success: true,
-      message: `Test notification sent successfully! Email destination: ${storedEmail || 'Default Admin Email'}`,
-      push_triggered: true,
-      email_triggered: true,
+      success: emailResult.success,
+      message: emailResult.message,
       email_destination: storedEmail,
+      email_result: emailResult,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Test notification error';

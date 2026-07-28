@@ -1,7 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
+import { sendVacancyNotificationEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
+
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim().replace(/^"|"$/g, ''));
+  return result;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,9 +51,11 @@ export async function POST(req: NextRequest) {
 
     let updatedCount = 0;
     let totalNewApplications = 0;
+    const diagnostics: string[] = [];
 
     for (const vac of vacancies) {
       if (!vac.google_sheet_url || !vac.google_sheet_url.trim().startsWith('http')) {
+        diagnostics.push(`Vacancy "${vac.title}": No Google Sheet URL configured.`);
         continue;
       }
 
@@ -43,25 +65,47 @@ export async function POST(req: NextRequest) {
           const match = csvUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
           if (match && match[1]) {
             const sheetId = match[1];
-            csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+            const gidMatch = csvUrl.match(/[?&#]gid=([0-9]+)/);
+            const gid = gidMatch ? gidMatch[1] : null;
+            csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv${gid ? `&gid=${gid}` : ''}`;
           }
         }
 
-        const res = await fetch(csvUrl, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store' });
+        const res = await fetch(csvUrl, {
+          method: 'GET',
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          cache: 'no-store',
+          redirect: 'follow',
+        });
+
         if (res.ok) {
           const text = await res.text();
-          const lines = text.split('\n').filter(l => l.trim().length > 0);
+
+          // Check if Google Sheet is private or requires authentication
+          if (text.toLowerCase().includes('<html') || text.toLowerCase().includes('<!doctype')) {
+            diagnostics.push(`Vacancy "${vac.title}": Google Sheet link returned HTML preview. Make sure Google Sheet sharing is set to "Anyone with the link can view".`);
+            continue;
+          }
+
+          const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
           const rowCount = Math.max(0, lines.length - 1); // Exclude header row
 
           let latestApplicantName = vac.latest_applicant_name;
           let lastAppAt = vac.last_application_at;
+          let applicantEmail = '';
 
           if (lines.length > 1) {
-            const lastLine = lines[lines.length - 1].split(',');
-            if (lastLine.length >= 2) {
-              const nameCandidate = lastLine[1]?.replace(/^"|"$/g, '').trim();
+            const lastRowCols = parseCsvLine(lines[lines.length - 1]);
+            if (lastRowCols.length >= 2) {
+              const nameCandidate = lastRowCols[1];
               if (nameCandidate && nameCandidate.length < 100) {
                 latestApplicantName = nameCandidate;
+              }
+            }
+            if (lastRowCols.length >= 3) {
+              const emailCandidate = lastRowCols[2];
+              if (emailCandidate && emailCandidate.includes('@')) {
+                applicantEmail = emailCandidate;
               }
             }
           }
@@ -73,7 +117,18 @@ export async function POST(req: NextRequest) {
           if (diff > 0) {
             lastAppAt = new Date().toISOString();
             totalNewApplications += diff;
-            console.log(`🔔 DETECTED ${diff} NEW APPLICATION(S) FOR "${vac.title}". Notification Email: ${notifEmail || 'None'}`);
+
+            if (notifEmail) {
+              await sendVacancyNotificationEmail({
+                to: notifEmail,
+                vacancyTitle: vac.title,
+                applicantName: latestApplicantName || 'New Applicant',
+                applicantEmail,
+                submittedAt: new Date().toLocaleString(),
+                totalApplications: rowCount,
+                isTest: false,
+              });
+            }
           }
 
           await supabase
@@ -89,9 +144,13 @@ export async function POST(req: NextRequest) {
             .eq('id', vac.id);
 
           updatedCount++;
+          diagnostics.push(`Vacancy "${vac.title}": Synced ${rowCount} entries (${diff > 0 ? `${diff} new` : 'no new'}).`);
+        } else {
+          diagnostics.push(`Vacancy "${vac.title}": HTTP status ${res.status} when fetching spreadsheet CSV.`);
         }
       } catch (e) {
         console.warn(`Sync error for vacancy ${vac.id}:`, e);
+        diagnostics.push(`Vacancy "${vac.title}": Error - ${e instanceof Error ? e.message : String(e)}`);
       }
     }
 
@@ -100,7 +159,8 @@ export async function POST(req: NextRequest) {
       updated: updatedCount,
       new_applications_detected: totalNewApplications,
       notification_email: notifEmail,
-      message: `Synced ${updatedCount} vacancy application logs. Detected ${totalNewApplications} new applications.`,
+      diagnostics,
+      message: `Synced ${updatedCount} vacancy logs. Detected ${totalNewApplications} new applications.`,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Sync failed';
