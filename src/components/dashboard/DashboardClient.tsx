@@ -27,6 +27,7 @@ interface OrderLink {
   is_active: boolean;
   metadata?: {
     button_text?: string;
+    logo_url?: string;
     custom_icon?: string;
   } | null;
 }
@@ -310,15 +311,44 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     } catch (err: unknown) { showFeedback(getErrorMessage(err), true); }
   };
 
-  // â”€â”€ Order links handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Order links handler ──────────────────────────────────────────────────
   const handleSaveOrderLinks = async (e: React.FormEvent) => {
     e.preventDefault(); setSavingOrderLinks(true);
     try {
       const res = await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'order_links', data: orderLinks }) });
       const d = await res.json(); if (!res.ok) throw new Error(d.error || 'Save failed');
-      showFeedback('Delivery links saved!');
+      showFeedback('Delivery & Custom links saved!');
     } catch (err: unknown) { showFeedback(getErrorMessage(err), true); }
     finally { setSavingOrderLinks(false); }
+  };
+
+  const handleUploadLinkLogo = async (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'campaigns');
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Logo upload failed');
+
+      setOrderLinks(prev => {
+        const updated = [...prev];
+        updated[idx] = {
+          ...updated[idx],
+          metadata: { ...(updated[idx].metadata || {}), logo_url: d.url }
+        };
+        return updated;
+      });
+      showFeedback('Logo image uploaded successfully!');
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err) || 'Logo upload failed', true);
+    }
   };
 
   // â”€â”€ Vacancy handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -889,28 +919,182 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       {/* â”€â”€ DELIVERY TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === 'order' && !loading && (
-        <form onSubmit={handleSaveOrderLinks} className="max-w-xl mx-auto glass-card p-6 md:p-8 rounded-[24px] border border-latte space-y-6">
-          <h2 className="font-heading font-bold text-xl text-espresso">Delivery Platform Links</h2>
-          {orderLinks.map((link, idx) => (
-            <div key={link.platform} className="p-4 bg-warm-white rounded-xl border border-latte space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="font-heading font-bold capitalize text-espresso">{link.platform}</span>
-                <label className="flex items-center gap-1.5 text-xs text-mocha font-semibold cursor-pointer">
-                  <input type="checkbox" checked={link.is_active}
-                    onChange={e => { const u = [...orderLinks]; u[idx].is_active = e.target.checked; setOrderLinks(u); }}
-                    className="w-4 h-4 text-roasted focus:ring-roasted rounded" />
-                  Active
-                </label>
-              </div>
-              <input type="text" value={link.url || ''}
-                onChange={e => { const u = [...orderLinks]; u[idx].url = e.target.value; setOrderLinks(u); }}
-                placeholder={`Paste ${link.platform} store URL here\u2026`}
-                className="w-full h-11 px-3 bg-white border border-latte rounded-lg font-body text-espresso text-sm focus:outline-none focus:ring-2 focus:ring-roasted" />
+        <form onSubmit={handleSaveOrderLinks} className="max-w-2xl mx-auto glass-card p-6 md:p-8 rounded-[24px] border border-latte space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-heading font-bold text-xl text-espresso">Delivery Platform &amp; Custom Order Links</h2>
+              <p className="text-xs text-mocha mt-0.5">Edit platform titles, store URLs, logo images, button text, and active status for the /order page.</p>
             </div>
-          ))}
-          <button type="submit" disabled={savingOrderLinks}
-            className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2">
-          {savingOrderLinks ? <><Spinner /> Saving&hellip;</> : 'Save Delivery Links'}
+            <button
+              type="button"
+              onClick={() => {
+                const customKey = `custom_${Date.now().toString(36)}`;
+                setOrderLinks(prev => [
+                  ...prev,
+                  {
+                    platform: customKey,
+                    display_name: 'New Platform',
+                    url: '',
+                    is_active: true,
+                    metadata: { button_text: 'ORDER NOW >', logo_url: '' }
+                  }
+                ]);
+              }}
+              className="px-4 py-2 bg-roasted hover:bg-dark-roast text-white rounded-full text-xs font-semibold shadow-sm"
+            >
+              + Add New Delivery Link
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {orderLinks.map((link, idx) => {
+              const isDefaultPlatform = ['bhoj', 'foodmandu', 'custom'].includes(link.platform);
+              const logoUrl = link.metadata?.logo_url;
+              return (
+                <div key={link.platform} className="p-5 bg-warm-white rounded-2xl border border-latte space-y-4">
+                  <div className="flex flex-wrap justify-between items-center gap-2 border-b border-latte/50 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-full object-cover border border-latte shadow-sm" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-roasted/10 text-roasted font-bold text-xs flex items-center justify-center border border-roasted/20">
+                          {(link.display_name || link.platform).charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-heading font-bold text-sm text-espresso uppercase block">
+                          {link.display_name || link.platform}
+                        </span>
+                        {!isDefaultPlatform && (
+                          <span className="text-[10px] text-roasted font-semibold">Custom Platform</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-1.5 text-xs text-espresso font-semibold cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={link.is_active}
+                          onChange={e => {
+                            const u = [...orderLinks];
+                            u[idx].is_active = e.target.checked;
+                            setOrderLinks(u);
+                          }}
+                          className="w-4 h-4 text-roasted focus:ring-roasted rounded"
+                        />
+                        Active
+                      </label>
+                      {!isDefaultPlatform && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm(`Delete order link "${link.display_name || link.platform}"?`)) return;
+                            try {
+                              const res = await fetch('/api/admin/settings', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                                body: JSON.stringify({ type: 'order_link_delete', data: { platform: link.platform } })
+                              });
+                              if (res.ok) {
+                                setOrderLinks(prev => prev.filter(l => l.platform !== link.platform));
+                                showFeedback('Order link deleted!');
+                              }
+                            } catch (err: unknown) {
+                              showFeedback(getErrorMessage(err), true);
+                            }
+                          }}
+                          className="text-xs text-muted-red hover:bg-muted-red/10 px-2 py-1 rounded font-bold"
+                        >
+                          ✕ Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-mocha uppercase mb-1">Platform Name / Title</label>
+                      <input
+                        type="text"
+                        value={link.display_name || link.platform}
+                        onChange={e => {
+                          const u = [...orderLinks];
+                          u[idx].display_name = e.target.value;
+                          setOrderLinks(u);
+                        }}
+                        placeholder="e.g. Bhoj, Foodmandu, Pathao Food"
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-mocha uppercase mb-1">Button Text</label>
+                      <input
+                        type="text"
+                        value={link.metadata?.button_text || 'ORDER NOW >'}
+                        onChange={e => {
+                          const u = [...orderLinks];
+                          u[idx].metadata = { ...(u[idx].metadata || {}), button_text: e.target.value };
+                          setOrderLinks(u);
+                        }}
+                        placeholder="e.g. ORDER NOW > or PLACE A CUSTOM ORDER >"
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-mocha uppercase mb-1">Store / Target Link URL</label>
+                    <input
+                      type="text"
+                      value={link.url || ''}
+                      onChange={e => {
+                        const u = [...orderLinks];
+                        u[idx].url = e.target.value;
+                        setOrderLinks(u);
+                      }}
+                      placeholder={`https://... store URL for ${link.display_name || link.platform}`}
+                      className={inputCls}
+                    />
+                  </div>
+
+                  {/* Logo Image URL & Upload */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-mocha uppercase mb-1">Platform Logo Image</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={link.metadata?.logo_url || ''}
+                        onChange={e => {
+                          const u = [...orderLinks];
+                          u[idx].metadata = { ...(u[idx].metadata || {}), logo_url: e.target.value };
+                          setOrderLinks(u);
+                        }}
+                        placeholder="https://... logo image URL or upload below"
+                        className={inputCls}
+                      />
+                      <label className="px-3.5 py-2.5 bg-latte/30 hover:bg-latte/50 text-espresso rounded-xl text-xs font-semibold cursor-pointer shrink-0 border border-latte">
+                        Upload Logo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={e => handleUploadLinkLogo(idx, e)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            type="submit"
+            disabled={savingOrderLinks}
+            className="w-full py-3 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white font-semibold rounded-full shadow-sm text-sm flex items-center justify-center gap-2"
+          >
+            {savingOrderLinks ? <><Spinner /> Saving&hellip;</> : 'Save Delivery &amp; Custom Links'}
           </button>
         </form>
       )}

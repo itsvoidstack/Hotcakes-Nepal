@@ -7,7 +7,7 @@ export const revalidate = 0;
 
 export const metadata = {
   title: "Order Online — Hotcakes Nepal | Delivery to Lalitpur & Kathmandu",
-  description: "Order Hotcakes Nepal online via Bhoj, Foodmandu, Pathao, Daraz, Khalti or custom order — pancakes, coffee & handcrafted desserts delivered to Lalitpur and Kathmandu.",
+  description: "Order Hotcakes Nepal online via Bhoj, Foodmandu, or custom order — pancakes, coffee & handcrafted desserts delivered to Lalitpur and Kathmandu.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app/order"
   },
@@ -20,6 +20,7 @@ interface OrderLinkItem {
   is_active: boolean;
   metadata?: {
     button_text?: string;
+    logo_url?: string;
     custom_icon?: string;
     bg_color?: string;
   } | null;
@@ -42,24 +43,27 @@ export default async function OrderPage() {
   const customLink = getLink('custom');
 
   // Secondary platforms for "MORE WAYS TO ORDER"
-  // Default secondary platforms: pathao, daraz, khalti plus any custom added platforms
+  // Only include active links that have a non-empty target URL
   const secondaryPlatforms = linksList.filter(
     l => l.platform !== 'bhoj' && l.platform !== 'foodmandu' && l.platform !== 'custom'
   );
 
-  // Fallback defaults if database has no secondary links yet
-  const defaultSecondary: OrderLinkItem[] = [
-    { platform: 'pathao', display_name: 'PATHAO FOOD', url: 'https://pathao.com/food/', is_active: true, metadata: { button_text: 'ORDER NOW >' } },
-    { platform: 'daraz', display_name: 'DARAZ FOOD', url: 'https://www.daraz.com.np/', is_active: true, metadata: { button_text: 'ORDER NOW >' } },
-    { platform: 'khalti', display_name: 'KHALTI FOOD', url: 'https://khalti.com/', is_active: true, metadata: { button_text: 'ORDER NOW >' } },
-  ];
+  const activeMoreWays = secondaryPlatforms.filter(
+    l => l.is_active && l.url && l.url.trim() !== '' && l.url.trim() !== '#'
+  );
 
-  const moreWaysToOrder = secondaryPlatforms.length > 0 ? secondaryPlatforms : defaultSecondary;
-  const activeMoreWays = moreWaysToOrder.filter(l => l.is_active !== false);
-
-  // Helper to render platform logos
-  const renderPlatformLogo = (platform: string, name?: string | null) => {
-    const key = platform.toLowerCase();
+  // Helper to render secondary platform logos
+  const renderPlatformLogo = (item: OrderLinkItem) => {
+    if (item.metadata?.logo_url) {
+      return (
+        <img
+          src={item.metadata.logo_url}
+          alt={item.display_name || item.platform}
+          className="w-12 h-12 rounded-full object-cover shadow-sm border border-latte shrink-0"
+        />
+      );
+    }
+    const key = item.platform.toLowerCase();
     if (key.includes('pathao')) {
       return (
         <div className="w-12 h-12 rounded-full bg-[#00B14F] text-white font-black text-xl flex items-center justify-center shadow-sm shrink-0">
@@ -84,7 +88,7 @@ export default async function OrderPage() {
     }
     return (
       <div className="w-12 h-12 rounded-full bg-roasted text-white font-bold text-base flex items-center justify-center shadow-sm shrink-0 uppercase">
-        {(name || platform).charAt(0)}
+        {(item.display_name || item.platform).charAt(0)}
       </div>
     );
   };
@@ -113,16 +117,24 @@ export default async function OrderPage() {
             <div>
               <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
                 <div className="absolute inset-0 bg-[#FAF7F3] rounded-full scale-[1.1] opacity-50 border border-dashed border-latte" />
-                <div className="w-24 h-24 rounded-full bg-white shadow-sm border border-latte/50 flex flex-col items-center justify-center relative z-10">
-                  <span className="text-[#F25C22] font-sans font-bold text-[28px] tracking-tight leading-none">bhoj</span>
-                  <svg className="w-12 h-3 text-[#F25C22] mt-1" viewBox="0 0 40 10" fill="none">
-                    <path d="M3 2C10 7.5 30 7.5 37 2" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"/>
-                  </svg>
-                </div>
+                {bhojLink?.metadata?.logo_url ? (
+                  <img
+                    src={bhojLink.metadata.logo_url}
+                    alt={bhojLink.display_name || 'Bhoj'}
+                    className="w-24 h-24 rounded-full object-cover shadow-sm border border-latte/50 relative z-10"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-white shadow-sm border border-latte/50 flex flex-col items-center justify-center relative z-10">
+                    <span className="text-[#F25C22] font-sans font-bold text-[28px] tracking-tight leading-none">bhoj</span>
+                    <svg className="w-12 h-3 text-[#F25C22] mt-1" viewBox="0 0 40 10" fill="none">
+                      <path d="M3 2C10 7.5 30 7.5 37 2" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                )}
               </div>
               
               <h3 className="font-heading font-bold text-base text-[#2D2118] uppercase tracking-wider mb-2">
-                ORDER ON BHOJ
+                {bhojLink?.display_name || 'ORDER ON BHOJ'}
               </h3>
               <p className="font-body text-mocha/90 text-xs md:text-sm leading-relaxed mb-6">
                 Order your favorite Hotcakes items instantly on the Bhoj app.
@@ -130,14 +142,14 @@ export default async function OrderPage() {
             </div>
             
             <div>
-              {bhojLink && bhojLink.is_active && bhojLink.url ? (
+              {bhojLink && bhojLink.is_active && bhojLink.url && bhojLink.url !== '#' ? (
                 <a
                   href={bhojLink.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-1.5 px-6 py-3.5 bg-[#8C5835] hover:bg-[#724426] text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-sm transition-all"
                 >
-                  ORDER NOW &gt;
+                  {bhojLink.metadata?.button_text || 'ORDER NOW >'}
                 </a>
               ) : (
                 <span className="w-full inline-flex items-center justify-center px-6 py-3.5 bg-[#EFECE6] text-[#A0958D] text-xs font-bold uppercase tracking-widest rounded-full cursor-default">
@@ -152,24 +164,32 @@ export default async function OrderPage() {
             <div>
               <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
                 <div className="absolute inset-0 bg-[#FAF7F3] rounded-full scale-[1.1] opacity-50 border border-dashed border-latte" />
-                <div className="w-24 h-24 rounded-full bg-[#FFEB00] shadow-sm flex flex-col items-center justify-center relative z-10 p-2">
-                  <svg className="w-10 h-10 text-black mb-1" viewBox="0 0 100 100" fill="currentColor">
-                    <circle cx="28" cy="28" r="14" />
-                    <circle cx="72" cy="28" r="14" />
-                    <circle cx="50" cy="56" r="38" fill="white" />
-                    <circle cx="50" cy="56" r="38" fill="none" stroke="black" strokeWidth="6" />
-                    <ellipse cx="38" cy="52" rx="10" ry="12" transform="rotate(-15 38 52)" fill="black" />
-                    <ellipse cx="62" cy="52" rx="10" ry="12" transform="rotate(15 62 52)" fill="black" />
-                    <circle cx="39" cy="50" r="3.5" fill="white" />
-                    <circle cx="61" cy="50" r="3.5" fill="white" />
-                    <path d="M46 64 C46 62 54 62 54 64 C54 67 46 67 46 64 Z" fill="black" />
-                  </svg>
-                  <span className="text-black font-sans font-extrabold text-[9px] uppercase tracking-wider leading-none">foodmandu</span>
-                </div>
+                {foodmanduLink?.metadata?.logo_url ? (
+                  <img
+                    src={foodmanduLink.metadata.logo_url}
+                    alt={foodmanduLink.display_name || 'Foodmandu'}
+                    className="w-24 h-24 rounded-full object-cover shadow-sm border border-latte/50 relative z-10"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-[#FFEB00] shadow-sm flex flex-col items-center justify-center relative z-10 p-2">
+                    <svg className="w-10 h-10 text-black mb-1" viewBox="0 0 100 100" fill="currentColor">
+                      <circle cx="28" cy="28" r="14" />
+                      <circle cx="72" cy="28" r="14" />
+                      <circle cx="50" cy="56" r="38" fill="white" />
+                      <circle cx="50" cy="56" r="38" fill="none" stroke="black" strokeWidth="6" />
+                      <ellipse cx="38" cy="52" rx="10" ry="12" transform="rotate(-15 38 52)" fill="black" />
+                      <ellipse cx="62" cy="52" rx="10" ry="12" transform="rotate(15 62 52)" fill="black" />
+                      <circle cx="39" cy="50" r="3.5" fill="white" />
+                      <circle cx="61" cy="50" r="3.5" fill="white" />
+                      <path d="M46 64 C46 62 54 62 54 64 C54 67 46 67 46 64 Z" fill="black" />
+                    </svg>
+                    <span className="text-black font-sans font-extrabold text-[9px] uppercase tracking-wider leading-none">foodmandu</span>
+                  </div>
+                )}
               </div>
               
               <h3 className="font-heading font-bold text-base text-[#2D2118] uppercase tracking-wider mb-2">
-                ORDER ON FOODMANDU
+                {foodmanduLink?.display_name || 'ORDER ON FOODMANDU'}
               </h3>
               <p className="font-body text-mocha/90 text-xs md:text-sm leading-relaxed mb-6">
                 Get Hotcakes delivered to your doorstep through Foodmandu.
@@ -177,14 +197,14 @@ export default async function OrderPage() {
             </div>
             
             <div>
-              {foodmanduLink && foodmanduLink.is_active && foodmanduLink.url ? (
+              {foodmanduLink && foodmanduLink.is_active && foodmanduLink.url && foodmanduLink.url !== '#' ? (
                 <a
                   href={foodmanduLink.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-1.5 px-6 py-3.5 bg-[#8C5835] hover:bg-[#724426] text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-sm transition-all"
                 >
-                  ORDER NOW &gt;
+                  {foodmanduLink.metadata?.button_text || 'ORDER NOW >'}
                 </a>
               ) : (
                 <span className="w-full inline-flex items-center justify-center px-6 py-3.5 bg-[#EFECE6] text-[#A0958D] text-xs font-bold uppercase tracking-widest rounded-full cursor-default">
@@ -199,16 +219,24 @@ export default async function OrderPage() {
             <div>
               <div className="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
                 <div className="absolute inset-0 bg-[#FAF7F3] rounded-full scale-[1.1] opacity-50 border border-dashed border-latte" />
-                <div className="w-24 h-24 rounded-full bg-white shadow-sm border border-latte/50 flex items-center justify-center relative z-10">
-                  <svg className="w-10 h-10 text-[#8C5835]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15h6" />
-                  </svg>
-                </div>
+                {customLink?.metadata?.logo_url ? (
+                  <img
+                    src={customLink.metadata.logo_url}
+                    alt={customLink.display_name || 'Custom Order'}
+                    className="w-24 h-24 rounded-full object-cover shadow-sm border border-latte/50 relative z-10"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-white shadow-sm border border-latte/50 flex items-center justify-center relative z-10">
+                    <svg className="w-10 h-10 text-[#8C5835]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 15h6" />
+                    </svg>
+                  </div>
+                )}
               </div>
               
               <h3 className="font-heading font-bold text-base text-[#2D2118] uppercase tracking-wider mb-2">
-                CUSTOM ORDER
+                {customLink?.display_name || 'CUSTOM ORDER'}
               </h3>
               <p className="font-body text-mocha/90 text-xs md:text-sm leading-relaxed mb-6">
                 Have a special request? We&apos;re here to make it happen.
@@ -220,7 +248,7 @@ export default async function OrderPage() {
                 href={customLink?.url || '/contact'}
                 className="w-full inline-flex items-center justify-center gap-1.5 px-6 py-3.5 bg-[#8C5835] hover:bg-[#724426] text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-sm transition-all"
               >
-                PLACE A CUSTOM ORDER &gt;
+                {customLink?.metadata?.button_text || 'PLACE A CUSTOM ORDER >'}
               </Link>
             </div>
           </div>
@@ -228,8 +256,9 @@ export default async function OrderPage() {
         </div>
 
         {/* ── 3. MORE WAYS TO ORDER SECTION (Dashed Container) ── */}
+        {/* Hidden completely if no active secondary links exist! */}
         {activeMoreWays.length > 0 && (
-          <div className="p-6 md:p-8 rounded-[28px] border-2 border-dashed border-[#E5D7C8] bg-[#FDFBFA] space-y-6 text-center">
+          <div className="p-6 md:p-8 rounded-[28px] border-2 border-dashed border-[#E5D7C8] bg-[#FDFBFA] space-y-6 text-center animate-fade-up">
             <div>
               <h3 className="font-heading font-bold text-sm md:text-base uppercase tracking-[0.2em] text-[#2D2118]">
                 MORE WAYS TO ORDER
@@ -248,26 +277,20 @@ export default async function OrderPage() {
                 return (
                   <div key={idx} className="bg-white border border-latte/70 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-3">
-                      {renderPlatformLogo(item.platform, displayName)}
+                      {renderPlatformLogo(item)}
                       <span className="font-heading font-bold text-xs uppercase tracking-wider text-[#2D2118]">
                         {displayName}
                       </span>
                     </div>
 
-                    {url && url !== '#' ? (
-                      <a
-                        href={url}
-                        target={url.startsWith('http') ? '_blank' : '_self'}
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-[#8C5835] hover:bg-[#724426] text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm transition-transform active:scale-95 shrink-0"
-                      >
-                        {btnText}
-                      </a>
-                    ) : (
-                      <span className="px-3 py-1.5 bg-latte/30 text-mocha text-[10px] font-bold uppercase tracking-wider rounded-full shrink-0">
-                        SOON
-                      </span>
-                    )}
+                    <a
+                      href={url}
+                      target={url.startsWith('http') ? '_blank' : '_self'}
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-[#8C5835] hover:bg-[#724426] text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm transition-transform active:scale-95 shrink-0"
+                    >
+                      {btnText}
+                    </a>
                   </div>
                 );
               })}
@@ -312,7 +335,7 @@ export default async function OrderPage() {
                   href={customLink?.url || '/contact'}
                   className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#8C5835] hover:bg-[#724426] text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-sm transition-all"
                 >
-                  PLACE A CUSTOM ORDER &gt;
+                  {customLink?.metadata?.button_text || 'PLACE A CUSTOM ORDER >'}
                 </Link>
               </div>
             </div>
