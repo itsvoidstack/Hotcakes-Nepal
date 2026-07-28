@@ -33,8 +33,19 @@ interface OrderLink {
 }
 interface ContactInfo { key: string; value: string; }
 interface Vacancy {
-  id?: string; title: string; description: string | null;
-  google_form_link: string; image_url: string | null; is_active: boolean;
+  id?: string;
+  title: string;
+  description: string | null;
+  google_form_link: string;
+  google_sheet_url?: string | null;
+  image_url: string | null;
+  application_count?: number;
+  unread_count?: number;
+  last_checked_at?: string | null;
+  last_application_at?: string | null;
+  latest_applicant_name?: string | null;
+  status?: string;
+  is_active: boolean;
 }
 interface SiteSetting { key: string; value: unknown; }
 interface DashboardClientProps { token: string; onLogout: () => void; }
@@ -395,6 +406,91 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     finally { setUploadingVacancy(false); }
   };
 
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testConnectionResult, setTestConnectionResult] = useState<{ success?: boolean; message?: string; error?: string; application_count?: number } | null>(null);
+  const [syncingVacancies, setSyncingVacancies] = useState(false);
+
+  const handleTestConnection = async () => {
+    if (!editingVacancy?.google_form_link) {
+      setTestConnectionResult({ error: 'Please enter a Google Form URL first.' });
+      return;
+    }
+    setTestingConnection(true);
+    setTestConnectionResult(null);
+    try {
+      const res = await fetch('/api/admin/vacancies/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          google_form_link: editingVacancy.google_form_link,
+          google_sheet_url: editingVacancy.google_sheet_url,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setTestConnectionResult({ error: data.error || 'Connection test failed.' });
+      } else {
+        setTestConnectionResult({
+          success: true,
+          message: data.message || 'Connection verified successfully!',
+          application_count: data.application_count,
+        });
+      }
+    } catch {
+      setTestConnectionResult({ error: 'Failed to test connection.' });
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  const handleSyncVacancies = async (vacancyId?: string) => {
+    setSyncingVacancies(true);
+    try {
+      const res = await fetch('/api/admin/vacancies/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ vacancyId }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Sync failed');
+      showFeedback(d.message || 'Vacancies synced!');
+      loadData();
+    } catch (err) {
+      showFeedback(getErrorMessage(err) || 'Sync failed', true);
+    } finally {
+      setSyncingVacancies(false);
+    }
+  };
+
+  const handleMarkVacancyRead = async (vac: Vacancy) => {
+    if (!vac.id || !vac.unread_count) return;
+    try {
+      const updated = { ...vac, unread_count: 0 };
+      setVacancies(prev => prev.map(v => v.id === vac.id ? updated : v));
+      await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type: 'vacancy', data: updated }),
+      });
+    } catch (e) {
+      console.warn('Mark read warning:', e);
+    }
+  };
+
+  const formatTimeAgo = (dateStr?: string | null) => {
+    if (!dateStr) return 'No submissions yet';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'Recently';
+    const diffMin = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin} min ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  };
+
   const handleSaveVacancy = async (e: React.FormEvent) => {
     e.preventDefault(); if (!editingVacancy) return;
     setSavingVacancy(true);
@@ -408,7 +504,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         const r2 = await fetch('/api/admin/settings?type=vacancies', { headers: { Authorization: `Bearer ${token}` } });
         if (r2.ok) { const d2 = await r2.json(); setVacancies(d2.data || []); }
       }
-      showFeedback('Vacancy saved!'); setEditingVacancy(null);
+      showFeedback('Vacancy saved!'); setEditingVacancy(null); setTestConnectionResult(null);
     } catch (err: unknown) { showFeedback(getErrorMessage(err), true); }
     finally { setSavingVacancy(false); }
   };
@@ -540,14 +636,26 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-1.5 border-b border-latte pb-2 mb-6 -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {(['menu', 'streak', 'order', 'vacancies', 'campaigns', 'location', 'settings'] as const).map(tab => (
-          <button key={tab}
-            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold capitalize transition-all whitespace-nowrap ${activeTab === tab ? 'bg-roasted text-white shadow-sm' : 'text-mocha hover:bg-latte/10'}`}
-            style={{ minHeight: 40 }}
-            onClick={() => { setActiveTab(tab); setEditingItem(null); setEditingVacancy(null); setSettingsSubTab('overview'); }}>
-            {tab === 'order' ? 'Delivery' : tab === 'settings' ? 'Settings' : tab === 'campaigns' ? 'Campaigns' : tab === 'location' ? 'Location Settings' : tab}
-          </button>
-        ))}
+        {(['menu', 'streak', 'order', 'vacancies', 'campaigns', 'location', 'settings'] as const).map(tab => {
+          const totalUnread = vacancies.reduce((acc, v) => acc + (v.unread_count || 0), 0);
+          return (
+            <button key={tab}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold capitalize transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === tab ? 'bg-roasted text-white shadow-sm' : 'text-mocha hover:bg-latte/10'}`}
+              style={{ minHeight: 40 }}
+              onClick={() => { setActiveTab(tab); setEditingItem(null); setEditingVacancy(null); setSettingsSubTab('overview'); }}>
+              {tab === 'order' ? 'Delivery' : tab === 'settings' ? 'Settings' : tab === 'campaigns' ? 'Campaigns' : tab === 'location' ? 'Location Settings' : tab === 'vacancies' ? (
+                <>
+                  <span>Vacancies</span>
+                  {totalUnread > 0 && (
+                    <span className="px-1.5 py-0.5 text-[10px] bg-red-500 text-white font-bold rounded-full animate-pulse">
+                      {totalUnread}
+                    </span>
+                  )}
+                </>
+              ) : tab}
+            </button>
+          );
+        })}
       </div>
 
       {loading && <div className="text-center py-12 text-mocha font-body">Loading dashboard&hellip;</div>}
@@ -1129,74 +1237,289 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         </form>
       )}
 
-      {/* â”€â”€ VACANCIES TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── VACANCIES TAB ─────────────────────────────────────────────────── */}
       {activeTab === 'vacancies' && !loading && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="font-heading font-bold text-xl text-espresso">Vacancy Campaigns</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h2 className="font-heading font-bold text-xl text-espresso">Vacancy Applications Management</h2>
+              <p className="font-body text-xs text-mocha mt-0.5">Manage job openings, monitor form responses &amp; sheet links</p>
+            </div>
             {!editingVacancy && (
-              <button onClick={() => setEditingVacancy({ title: '', description: '', google_form_link: '', image_url: '/images/vacancies/vacancy-default.jpg', is_active: true })}
-                className="px-5 py-2.5 bg-roasted hover:bg-dark-roast text-white rounded-full text-xs font-semibold shadow-sm">
-                Create Job Campaign
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSyncVacancies()}
+                  disabled={syncingVacancies}
+                  className="px-4 py-2 border border-latte hover:bg-latte/20 text-espresso rounded-full text-xs font-semibold shadow-sm flex items-center gap-1.5 transition-all"
+                >
+                  {syncingVacancies ? <Spinner /> : '🔄'} Sync Responses
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingVacancy({
+                      title: '',
+                      description: '',
+                      google_form_link: '',
+                      google_sheet_url: '',
+                      image_url: '/images/vacancies/vacancy-default.jpg',
+                      is_active: true,
+                    });
+                    setTestConnectionResult(null);
+                  }}
+                  className="px-5 py-2 bg-roasted hover:bg-dark-roast text-white rounded-full text-xs font-semibold shadow-sm transition-all"
+                >
+                  + Add Vacancy
+                </button>
+              </div>
             )}
           </div>
+
+          {/* Form Modal / Editor */}
           {editingVacancy ? (
-            <form onSubmit={handleSaveVacancy} className="glass-card p-6 md:p-8 rounded-[24px] max-w-xl mx-auto space-y-4 animate-fade-up">
-              <h3 className="font-heading font-bold text-lg text-espresso">{editingVacancy.id ? 'Edit Vacancy' : 'New Vacancy'}</h3>
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Title</label>
-                <input type="text" required value={editingVacancy.title || ''} onChange={e => setEditingVacancy({ ...editingVacancy, title: e.target.value })} placeholder="e.g. Senior Barista" className={inputCls} />
+            <form onSubmit={handleSaveVacancy} className="glass-card p-6 md:p-8 rounded-[28px] max-w-2xl mx-auto space-y-5 animate-fade-up border border-latte">
+              <div className="flex justify-between items-center border-b border-latte/50 pb-3">
+                <h3 className="font-heading font-bold text-lg text-espresso">{editingVacancy.id ? 'Edit Vacancy' : 'New Vacancy Campaign'}</h3>
+                <button type="button" onClick={() => setEditingVacancy(null)} className="text-xs text-mocha hover:text-espresso font-semibold">✕ Close</button>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Form Link</label>
-                <input type="text" required value={editingVacancy.google_form_link || ''} onChange={e => setEditingVacancy({ ...editingVacancy, google_form_link: e.target.value })} placeholder="https://forms.gle/â€¦" className={inputCls} />
+
+              {/* Helper Template Card */}
+              <div className="bg-[#FAF6F0] border border-[#E8DCCB] rounded-2xl p-4 flex items-start justify-between gap-4">
+                <div className="space-y-1 text-xs">
+                  <span className="font-bold text-[#8C5835] uppercase tracking-wider block">Need a Job Application Form?</span>
+                  <p className="text-mocha leading-relaxed">Duplicate our official template to quickly get a ready-to-use Google Form &amp; Sheet.</p>
+                </div>
+                <a
+                  href="https://docs.google.com/forms/u/0/create"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-[#8C5835] hover:bg-[#724426] text-white text-[11px] font-bold rounded-lg shrink-0 shadow-sm transition-all"
+                >
+                  Open Vacancy Template ↗
+                </a>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Description</label>
-                <textarea required value={editingVacancy.description || ''} onChange={e => setEditingVacancy({ ...editingVacancy, description: e.target.value })} placeholder="Responsibilities, requirementsâ€¦" className="w-full h-28 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-mocha uppercase mb-1">Banner Image</label>
-                <div className="flex gap-3 items-start">
-                  {editingVacancy.image_url && <img src={editingVacancy.image_url} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-latte flex-shrink-0" />}
-                  <div className="flex-grow space-y-1.5">
-                    <input type="text" value={editingVacancy.image_url || ''} onChange={e => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })} placeholder="/images/vacancies/…" className={inputCls} />
-                    <div className="flex items-center gap-2">
-                      <input type="file" accept="image/*" onChange={handleUploadVacancyImage} disabled={uploadingVacancy} className="text-xs text-mocha font-body" />
-                      {uploadingVacancy && <span className="text-xs text-mocha animate-pulse">Uploading&hellip;</span>}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingVacancy.title || ''}
+                    onChange={e => setEditingVacancy({ ...editingVacancy, title: e.target.value })}
+                    placeholder="e.g. Senior Barista"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Form URL</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingVacancy.google_form_link || ''}
+                      onChange={e => setEditingVacancy({ ...editingVacancy, google_form_link: e.target.value })}
+                      placeholder="https://forms.gle/..."
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-mocha uppercase mb-1">Google Sheet URL</label>
+                    <input
+                      type="text"
+                      value={editingVacancy.google_sheet_url || ''}
+                      onChange={e => setEditingVacancy({ ...editingVacancy, google_sheet_url: e.target.value })}
+                      placeholder="https://docs.google.com/spreadsheets/d/..."
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+
+                {/* Test Connection Action */}
+                <div className="flex items-center justify-between bg-warm-white p-3 rounded-xl border border-latte/60">
+                  <div className="text-xs">
+                    <span className="font-semibold text-espresso block">Test Connection</span>
+                    <span className="text-[10px] text-mocha block">Verify Google Form &amp; Sheet URL reachability before saving</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTestConnection}
+                    disabled={testingConnection}
+                    className="px-4 py-1.5 bg-latte/40 hover:bg-latte/60 text-espresso text-xs font-bold rounded-lg border border-latte shrink-0 transition-all flex items-center gap-1.5"
+                  >
+                    {testingConnection ? <Spinner /> : '🔍 Verify Links'}
+                  </button>
+                </div>
+
+                {testConnectionResult && (
+                  <div className={`p-3 rounded-xl text-xs font-medium border ${testConnectionResult.success ? 'bg-olive/10 border-olive/30 text-olive' : 'bg-muted-red/10 border-muted-red/30 text-muted-red'}`}>
+                    {testConnectionResult.message || testConnectionResult.error}
+                    {testConnectionResult.application_count !== undefined && (
+                      <span className="block font-bold mt-0.5">Found {testConnectionResult.application_count} existing applicant submissions!</span>
+                    )}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Job Description</label>
+                  <textarea
+                    required
+                    value={editingVacancy.description || ''}
+                    onChange={e => setEditingVacancy({ ...editingVacancy, description: e.target.value })}
+                    placeholder="Responsibilities, qualifications, shifts..."
+                    className="w-full h-28 p-3 bg-warm-white border border-latte rounded-xl font-body text-espresso focus:outline-none focus:ring-2 focus:ring-roasted text-sm resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-mocha uppercase mb-1">Banner Image</label>
+                  <div className="flex gap-3 items-start">
+                    {editingVacancy.image_url && (
+                      <img src={editingVacancy.image_url} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-latte flex-shrink-0" />
+                    )}
+                    <div className="flex-grow space-y-1.5">
+                      <input
+                        type="text"
+                        value={editingVacancy.image_url || ''}
+                        onChange={e => setEditingVacancy({ ...editingVacancy, image_url: e.target.value })}
+                        placeholder="/images/vacancies/..."
+                        className={inputCls}
+                      />
+                      <div className="flex items-center gap-2">
+                        <input type="file" accept="image/*" onChange={handleUploadVacancyImage} disabled={uploadingVacancy} className="text-xs text-mocha font-body" />
+                        {uploadingVacancy && <span className="text-xs text-mocha animate-pulse">Uploading…</span>}
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer py-1">
+                  <input
+                    type="checkbox"
+                    checked={!!editingVacancy.is_active}
+                    onChange={e => setEditingVacancy({ ...editingVacancy, is_active: e.target.checked })}
+                    className="w-4 h-4 rounded text-roasted focus:ring-roasted"
+                  />
+                  Active Campaign (visible on site)
+                </label>
               </div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-espresso cursor-pointer py-1">
-                <input type="checkbox" checked={!!editingVacancy.is_active} onChange={e => setEditingVacancy({ ...editingVacancy, is_active: e.target.checked })} className="w-4 h-4 rounded text-roasted focus:ring-roasted" />
-                Active Campaign (visible on site)
-              </label>
-              <div className="flex gap-3 pt-2 justify-end">
-                <button type="button" onClick={() => setEditingVacancy(null)} disabled={savingVacancy || uploadingVacancy} className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold">Cancel</button>
-                <button type="submit" disabled={savingVacancy || uploadingVacancy} className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2">
-                  {uploadingVacancy ? <><Spinner /> Uploading&hellip;</> : savingVacancy ? <><Spinner /> Saving&hellip;</> : 'Save Campaign'}
+
+              <div className="flex gap-3 pt-2 justify-end border-t border-latte/50">
+                <button
+                  type="button"
+                  onClick={() => setEditingVacancy(null)}
+                  disabled={savingVacancy || uploadingVacancy}
+                  className="px-6 py-2.5 border border-latte text-mocha hover:bg-latte/15 rounded-full text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingVacancy || uploadingVacancy}
+                  className="px-6 py-2.5 bg-roasted hover:bg-dark-roast disabled:bg-mocha/40 text-white rounded-full text-xs font-semibold flex items-center gap-2"
+                >
+                  {savingVacancy ? <><Spinner /> Saving…</> : 'Save Vacancy'}
                 </button>
               </div>
             </form>
           ) : vacancies.length === 0 ? (
-            <div className="text-center py-12 text-mocha">No vacancies yet.</div>
+            <div className="text-center py-12 text-mocha glass-card rounded-2xl border border-latte p-8">
+              No vacancies active yet. Click <strong>+ Add Vacancy</strong> above to launch your first job opening!
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {vacancies.map(vac => (
-                <div key={vac.id} className="p-5 bg-warm-white rounded-2xl border border-latte space-y-3">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-heading font-bold text-base text-espresso">{vac.title}</h3>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${vac.is_active ? 'bg-olive/15 text-olive' : 'bg-mocha/15 text-mocha'}`}>{vac.is_active ? 'Active' : 'Closed'}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {vacancies.map(vac => {
+                const hasUnread = (vac.unread_count || 0) > 0;
+
+                return (
+                  <div
+                    key={vac.id}
+                    className={`bg-white rounded-2xl border ${hasUnread ? 'border-roasted shadow-md' : 'border-latte'} p-6 space-y-4 transition-all relative overflow-hidden`}
+                    onClick={() => handleMarkVacancyRead(vac)}
+                  >
+                    {/* Unread Indicator Banner */}
+                    {hasUnread && (
+                      <div className="bg-red-500 text-white text-[10px] font-extrabold uppercase px-3 py-1 -mx-6 -mt-6 mb-3 flex items-center justify-between">
+                        <span>🔴 {vac.unread_count} New Application{vac.unread_count! > 1 ? 's' : ''} Received!</span>
+                        <span className="opacity-80">Click to dismiss</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-start gap-3">
+                      <div>
+                        <h3 className="font-heading font-bold text-lg text-espresso">{vac.title}</h3>
+                        <p className="font-body text-xs text-mocha line-clamp-2 mt-1 leading-relaxed">{vac.description}</p>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${vac.is_active ? 'bg-olive/15 text-olive border border-olive/30' : 'bg-mocha/15 text-mocha border border-mocha/30'}`}>
+                        {vac.is_active ? 'Active' : 'Closed'}
+                      </span>
+                    </div>
+
+                    {/* Applications Metrics Section */}
+                    <div className="grid grid-cols-2 gap-3 bg-[#FAF8F5] p-3.5 rounded-xl border border-latte/60">
+                      <div>
+                        <span className="text-[10px] font-bold text-mocha uppercase tracking-wider block">Applications</span>
+                        <span className="font-heading font-bold text-xl text-espresso block mt-0.5">{vac.application_count || 0}</span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold text-mocha uppercase tracking-wider block">Latest Applicant</span>
+                        <span className="font-body font-semibold text-xs text-espresso block truncate mt-0.5">{vac.latest_applicant_name || 'No submission yet'}</span>
+                        <span className="text-[10px] text-mocha block mt-0.5">{formatTimeAgo(vac.last_application_at)}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Toolbar */}
+                    <div className="flex flex-wrap gap-2 pt-1 border-t border-latte/40 items-center justify-between">
+                      <div className="flex gap-2">
+                        <a
+                          href={vac.google_form_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-[#8C5835] hover:bg-[#724426] text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
+                        >
+                          Open Form ↗
+                        </a>
+                        {vac.google_sheet_url && (
+                          <a
+                            href={vac.google_sheet_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
+                          >
+                            View Responses 📊
+                          </a>
+                        )}
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); if (vac.id) handleSyncVacancies(vac.id); }}
+                          disabled={syncingVacancies}
+                          className="px-2.5 py-1.5 border border-latte hover:bg-latte/20 text-espresso rounded-lg text-xs font-medium"
+                          title="Sync Responses Count"
+                        >
+                          🔄
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setEditingVacancy(vac); setTestConnectionResult(null); }}
+                          className="px-3 py-1.5 border border-latte hover:bg-latte/30 text-espresso rounded-lg text-xs font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); if (vac.id) handleDeleteVacancy(vac.id); }}
+                          className="px-3 py-1.5 border border-muted-red/40 text-muted-red hover:bg-muted-red/10 rounded-lg text-xs font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <p className="font-body text-mocha text-xs line-clamp-2 leading-relaxed">{vac.description}</p>
-                  <div className="flex gap-2 justify-end">
-                    <button onClick={() => setEditingVacancy(vac)} className="px-3 py-1.5 bg-roasted hover:bg-dark-roast text-white rounded-md text-xs font-medium">Edit</button>
-                    <button onClick={() => vac.id && handleDeleteVacancy(vac.id)} className="px-3 py-1.5 border border-muted-red text-muted-red hover:bg-muted-red/5 rounded-md text-xs font-medium">Delete</button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

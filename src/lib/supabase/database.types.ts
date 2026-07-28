@@ -162,27 +162,51 @@ export interface Database {
           title: string
           description: string | null
           google_form_link: string
+          google_sheet_url: string | null
           image_url: string | null
+          application_count: number
+          unread_count: number
+          last_checked_at: string | null
+          last_application_at: string | null
+          latest_applicant_name: string | null
+          status: string
           is_active: boolean
           created_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: string
           title: string
           description?: string | null
           google_form_link: string
+          google_sheet_url?: string | null
           image_url?: string | null
+          application_count?: number
+          unread_count?: number
+          last_checked_at?: string | null
+          last_application_at?: string | null
+          latest_applicant_name?: string | null
+          status?: string
           is_active?: boolean
           created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
           title?: string
           description?: string | null
           google_form_link?: string
+          google_sheet_url?: string | null
           image_url?: string | null
+          application_count?: number
+          unread_count?: number
+          last_checked_at?: string | null
+          last_application_at?: string | null
+          latest_applicant_name?: string | null
+          status?: string
           is_active?: boolean
           created_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

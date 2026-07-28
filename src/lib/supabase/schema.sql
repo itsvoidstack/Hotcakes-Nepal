@@ -78,9 +78,17 @@ CREATE TABLE IF NOT EXISTS vacancies (
     title TEXT NOT NULL,
     description TEXT,
     google_form_link TEXT NOT NULL,
+    google_sheet_url TEXT,
     image_url TEXT,
+    application_count INTEGER DEFAULT 0 NOT NULL,
+    unread_count INTEGER DEFAULT 0 NOT NULL,
+    last_checked_at TIMESTAMP WITH TIME ZONE,
+    last_application_at TIMESTAMP WITH TIME ZONE,
+    latest_applicant_name TEXT,
+    status TEXT DEFAULT 'active' NOT NULL,
     is_active BOOLEAN DEFAULT false NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
 -- Enable RLS
