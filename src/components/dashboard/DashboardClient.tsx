@@ -415,6 +415,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [pushStatus, setPushStatus] = useState<'connected' | 'not_enabled' | 'unsupported'>('not_enabled');
   const [testingNotification, setTestingNotification] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'granted') {
@@ -432,6 +433,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     }, 10800000);
 
     return () => clearInterval(syncInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleEnablePush = async () => {

@@ -188,7 +188,7 @@ export default async function Home() {
       </section>
 
       {/* 2. Campaign Strip */}
-      {campaign ? (
+      {campaign && (
         <section className="px-4 z-10 w-full max-w-full overflow-x-hidden mt-2">
           <div className="max-w-[1240px] mx-auto px-5 py-3 bg-warm-white border border-latte/25 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <span className="text-espresso/80 font-body text-xs">
@@ -205,15 +205,6 @@ export default async function Home() {
             >
               {(campaign.metadata as { cta_text?: string } | null)?.cta_text || 'View Campaigns'}
             </Link>
-          </div>
-        </section>
-      ) : (
-        <section className="px-4 z-10 w-full max-w-full overflow-x-hidden mt-2">
-          <div className="max-w-[1240px] mx-auto px-5 py-3 bg-warm-white border border-latte/20 rounded-xl flex items-center justify-center gap-2 text-center">
-            <span className="w-1 h-1 rounded-full bg-roasted/50 shrink-0" />
-            <span className="text-mocha/60 font-body text-xs">
-              Check back soon for our next seasonal reward events &amp; specials.
-            </span>
           </div>
         </section>
       )}
