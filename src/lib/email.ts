@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export interface VacancyEmailOptions {
   to: string;
@@ -31,10 +31,12 @@ export async function sendVacancyNotificationEmail(options: VacancyEmailOptions)
 
   const recipient = to.trim();
 
-  // 1. Check for Resend API Key first
+  // Primary: Resend Service
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
     try {
+      const resend = new Resend(resendApiKey);
+      const fromAddress = process.env.RESEND_FROM_EMAIL || process.env.SMTP_FROM || 'Hotcakes Nepal <onboarding@resend.dev>';
       const htmlContent = generateEmailHtml({
         vacancyTitle,
         applicantName,
@@ -44,89 +46,39 @@ export async function sendVacancyNotificationEmail(options: VacancyEmailOptions)
         isTest,
       });
 
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
-          from: process.env.SMTP_FROM || 'Hotcakes Nepal <onboarding@resend.dev>',
-          to: [recipient],
-          subject: isTest ? `🔔 [TEST] Hotcakes Nepal Vacancy Alert` : `🥞 New Application: ${vacancyTitle}`,
-          html: htmlContent,
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        return {
-          success: true,
-          message: `Email notification sent successfully via Resend to ${recipient}`,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Resend error: ${data.message || JSON.stringify(data)}`,
-          error: data.message || 'Resend API failure',
-        };
-      }
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Resend fetch error';
-      return { success: false, message: `Resend error: ${errorMsg}`, error: errorMsg };
-    }
-  }
-
-  // 2. Check for Nodemailer / SMTP environment variables
-  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-
-  if (smtpUser && smtpPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465, // true for 465, false for other ports
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-      });
-
-      const htmlContent = generateEmailHtml({
-        vacancyTitle,
-        applicantName,
-        applicantEmail,
-        submittedAt,
-        totalApplications,
-        isTest,
-      });
-
-      const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || `"Hotcakes Nepal" <${smtpUser}>`,
-        to: recipient,
+      const { data, error } = await resend.emails.send({
+        from: fromAddress,
+        to: [recipient],
         subject: isTest ? `🔔 [TEST] Hotcakes Nepal Vacancy Alert` : `🥞 New Application: ${vacancyTitle}`,
         html: htmlContent,
       });
 
+      if (error) {
+        console.error('Resend API error:', error);
+        return {
+          success: false,
+          message: `Resend error: ${error.message}`,
+          error: error.message,
+        };
+      }
+
       return {
         success: true,
-        message: `Email notification sent successfully to ${recipient} (Message ID: ${info.messageId})`,
+        message: `Email notification sent successfully via Resend to ${recipient} (ID: ${data?.id || 'OK'})`,
       };
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'SMTP send error';
-      return { success: false, message: `SMTP error: ${errorMsg}`, error: errorMsg };
+      const errorMsg = err instanceof Error ? err.message : 'Resend error';
+      console.error('Resend error:', err);
+      return { success: false, message: `Resend error: ${errorMsg}`, error: errorMsg };
     }
   }
 
-  // 3. Fallback: No credentials set in env
-  console.warn('⚠️ No SMTP or Resend credentials found in environment variables (SMTP_USER/SMTP_PASS or RESEND_API_KEY).');
+  // Fallback if RESEND_API_KEY is not configured
+  console.warn('⚠️ RESEND_API_KEY is missing in environment variables.');
   return {
     success: false,
-    message: `Recipient is ${recipient}, but no SMTP credentials (SMTP_USER, SMTP_PASS) or RESEND_API_KEY are configured in environment variables.`,
-    error: 'Missing SMTP or Resend credentials in environment variables.',
+    message: `Destination is ${recipient}, but RESEND_API_KEY is not configured in environment variables. Please add RESEND_API_KEY to .env.local or Vercel Environment Variables.`,
+    error: 'Missing RESEND_API_KEY in environment variables.',
   };
 }
 
@@ -163,7 +115,7 @@ function generateEmailHtml(data: {
           ${
             isTest
               ? `<div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; padding: 14px; border-radius: 8px; margin-bottom: 20px; color: #166534; font-weight: bold; font-size: 14px;">
-                  ✅ Test Email Verified! Your notification email setup is working correctly.
+                  ✅ Test Email Verified! Resend notification system is working correctly.
                 </div>`
               : `<h2 style="font-size: 18px; margin-top: 0; color: #4A2E1B;">New Applicant Received!</h2>`
           }
@@ -214,7 +166,7 @@ function generateEmailHtml(data: {
       <!-- Footer -->
       <tr style="background-color: #FAF8F5; border-top: 1px solid #E8DFD8;">
         <td style="padding: 16px; text-align: center; font-size: 11px; color: #8C5835;">
-          Hotcakes Nepal — Hattiban, Lalitpur, Nepal • Automated Notification System
+          Hotcakes Nepal — Hattiban, Lalitpur, Nepal • Powered by Resend
         </td>
       </tr>
     </table>
