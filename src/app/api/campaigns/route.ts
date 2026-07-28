@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -18,12 +19,9 @@ export async function GET() {
 
     const now = new Date();
     const activeCampaigns = (campaigns || []).filter(c => {
-      // Must be active
-      const isActive = c.is_active || c.status === 'active';
-      if (!isActive) return false;
-      // Start date check
+      const isExplicitlyActive = c.is_active === true && c.status !== 'paused' && c.status !== 'draft' && c.status !== 'ended';
+      if (!isExplicitlyActive) return false;
       if (c.start_date && new Date(c.start_date) > now) return false;
-      // End date check
       if (c.end_date && new Date(c.end_date) < now) return false;
       return true;
     });

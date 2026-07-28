@@ -79,11 +79,14 @@ export async function POST(request: NextRequest) {
         .or('name.eq.Brew Streak Rewards,type.eq.streak')
         .maybeSingle();
 
+      const isActive = campaign.is_active !== undefined ? Boolean(campaign.is_active) : true;
+      const status = campaign.status ? campaign.status : (isActive ? 'active' : 'paused');
+
       const updateData = {
         name: campaign.name || 'Brew Streak Rewards',
         tagline: campaign.tagline || null,
-        is_active: campaign.is_active !== undefined ? campaign.is_active : true,
-        status: campaign.status || 'active',
+        is_active: isActive,
+        status: isActive ? (status === 'paused' ? 'active' : status) : 'paused',
         type: 'streak',
         priority: 100,
         placement: 'hero_section',
