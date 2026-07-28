@@ -1391,7 +1391,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
                     onClick={handleTestNotification}
                     disabled={testingNotification}
                     className="px-4 py-2.5 border border-latte hover:bg-latte/20 text-espresso rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
-                    title="Send a manual test email via Resend to verify configuration"
+                    title="Send a manual test email via Nodemailer to verify configuration"
                   >
                     {testingNotification ? <Spinner /> : '📧 Send Test Email'}
                   </button>

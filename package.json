@@ -14,8 +14,7 @@
     "next": "14.2.35",
     "nodemailer": "^9.0.3",
     "react": "^18",
-    "react-dom": "^18",
-    "resend": "^6.18.1"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
