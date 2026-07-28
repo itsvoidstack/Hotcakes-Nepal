@@ -40,7 +40,7 @@ interface SiteSetting { key: string; value: unknown; }
 interface DashboardClientProps { token: string; onLogout: () => void; }
 
 export default function DashboardClient({ token, onLogout }: DashboardClientProps) {
-  const [activeTab, setActiveTab] = useState<'menu' | 'streak' | 'order' | 'vacancies' | 'campaigns' | 'settings'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'streak' | 'order' | 'vacancies' | 'campaigns' | 'location' | 'settings'>('menu');
 
   // Global loading / feedback
   const [loading, setLoading] = useState(false);
@@ -135,6 +135,9 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [contactDescription, setContactDescription] = useState('');
   const [orderDescription, setOrderDescription] = useState('');
   const [vacanciesDescription, setVacanciesDescription] = useState('');
+  const [locationDescription, setLocationDescription] = useState('');
+  const [amenitiesDescription, setAmenitiesDescription] = useState('');
+  const [savingLocationSettings, setSavingLocationSettings] = useState(false);
   const [uploadingMenu, setUploadingMenu] = useState(false);
   const [uploadingVacancy, setUploadingVacancy] = useState(false);
   const [uploadingLocation, setUploadingLocation] = useState(false);
@@ -146,7 +149,7 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
   const [savingVacancy, setSavingVacancy] = useState(false);
   const [savingMenu, setSavingMenu] = useState(false);
 
-  // â”€â”€ Data loaders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Data loaders ──────────────────────────────────────────────────────────
   const loadStreakData = async () => {
     setStreakLoading(true);
     try {
@@ -188,6 +191,8 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
         setContactDescription((get('contact_description') as { text?: string } | null)?.text || '');
         setOrderDescription((get('order_description') as { text?: string } | null)?.text || '');
         setVacanciesDescription((get('vacancies_description') as { text?: string } | null)?.text || '');
+        setLocationDescription((get('location_description') as { text?: string } | null)?.text || 'Located in Hattiban, Lalitpur — close to Little Angels School and Ekantakuna. Easily accessible with parking available for bikes and cars.');
+        setAmenitiesDescription((get('amenities_description') as { text?: string } | null)?.text || '• High-speed complimentary Wi-Fi\n• Comfortable seating for individuals\n• Power outlets at all seating areas\n• Friendly barista & warm hospitality');
         setContactShowcaseImages((get('contact_showcase_images') as string[]) || []);
         const hrs = get('opening_hours');
         setOpeningHours(hrs ? (hrs as OpeningHours) : DEFAULT_OPENING_HOURS);
@@ -351,7 +356,32 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
     }
   };
 
-  // â”€â”€ Vacancy handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const handleSaveLocationSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingLocationSettings(true);
+    try {
+      const res1 = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type: 'location_description', data: { text: locationDescription } })
+      });
+      if (!res1.ok) { const d1 = await res1.json(); throw new Error(d1.error || 'Save failed'); }
+
+      const res2 = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type: 'amenities_description', data: { text: amenitiesDescription } })
+      });
+      if (!res2.ok) { const d2 = await res2.json(); throw new Error(d2.error || 'Save failed'); }
+
+      showFeedback('Changes saved successfully!');
+    } catch (err: unknown) {
+      showFeedback(getErrorMessage(err) || 'Save failed', true);
+    } finally {
+      setSavingLocationSettings(false);
+    }
+  };
+
   const handleUploadVacancyImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file || uploadingVacancy) return;
     setUploadingVacancy(true);
@@ -510,12 +540,12 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
 
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-1.5 border-b border-latte pb-2 mb-6 -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {(['menu', 'streak', 'order', 'vacancies', 'campaigns', 'settings'] as const).map(tab => (
+        {(['menu', 'streak', 'order', 'vacancies', 'campaigns', 'location', 'settings'] as const).map(tab => (
           <button key={tab}
             className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold capitalize transition-all whitespace-nowrap ${activeTab === tab ? 'bg-roasted text-white shadow-sm' : 'text-mocha hover:bg-latte/10'}`}
             style={{ minHeight: 40 }}
             onClick={() => { setActiveTab(tab); setEditingItem(null); setEditingVacancy(null); setSettingsSubTab('overview'); }}>
-            {tab === 'order' ? 'Delivery' : tab === 'settings' ? 'Settings' : tab === 'campaigns' ? 'Campaigns' : tab}
+            {tab === 'order' ? 'Delivery' : tab === 'settings' ? 'Settings' : tab === 'campaigns' ? 'Campaigns' : tab === 'location' ? 'Location Settings' : tab}
           </button>
         ))}
       </div>
@@ -1673,6 +1703,96 @@ export default function DashboardClient({ token, onLogout }: DashboardClientProp
             </form>
           )}
 
+        </div>
+      )}
+
+      {/* ── LOCATION SETTINGS TAB ── */}
+      {activeTab === 'location' && !loading && (
+        <div className="max-w-3xl space-y-6 animate-fade-up">
+          <div>
+            <h2 className="font-heading font-bold text-2xl text-espresso">Location Settings</h2>
+            <p className="font-body text-xs text-mocha mt-1">Manage location page content</p>
+          </div>
+
+          <form onSubmit={handleSaveLocationSettings} className="space-y-6">
+            {/* Card 1: Location Description */}
+            <div className="bg-white border border-latte/70 rounded-2xl p-6 space-y-3 shadow-sm">
+              <div>
+                <h3 className="font-heading font-bold text-base text-espresso">Location Description</h3>
+                <p className="font-body text-xs text-mocha mt-0.5">This content will appear in the Location card on the Visit Us page.</p>
+              </div>
+
+              {/* Toolbar */}
+              <div className="border border-latte rounded-xl overflow-hidden bg-warm-white focus-within:ring-2 focus-within:ring-roasted">
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-latte bg-cream/40 text-xs font-semibold text-espresso">
+                  <span className="px-2 py-0.5 bg-white border border-latte rounded text-xs">Paragraph ▾</span>
+                  <span className="w-px h-4 bg-latte" />
+                  <button type="button" className="font-bold px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Bold">B</button>
+                  <button type="button" className="italic px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Italic">I</button>
+                  <button type="button" className="underline px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Underline">U</button>
+                  <span className="w-px h-4 bg-latte" />
+                  <button type="button" className="px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Unordered List">≡</button>
+                  <button type="button" className="px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Ordered List">1.</button>
+                  <button type="button" className="px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Link">🔗</button>
+                </div>
+                <textarea
+                  rows={4}
+                  value={locationDescription}
+                  onChange={e => setLocationDescription(e.target.value)}
+                  className="w-full p-3 bg-transparent border-none text-sm text-espresso font-body focus:outline-none resize-y"
+                  placeholder="Enter location description..."
+                />
+                <div className="px-3 py-1.5 text-right text-[10px] text-mocha border-t border-latte/40">
+                  {locationDescription.length}/500 characters
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Amenities Description */}
+            <div className="bg-white border border-latte/70 rounded-2xl p-6 space-y-3 shadow-sm">
+              <div>
+                <h3 className="font-heading font-bold text-base text-espresso">Amenities Description</h3>
+                <p className="font-body text-xs text-mocha mt-0.5">This content will appear in the Amenities card on the Visit Us page.</p>
+              </div>
+
+              {/* Toolbar */}
+              <div className="border border-latte rounded-xl overflow-hidden bg-warm-white focus-within:ring-2 focus-within:ring-roasted">
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-latte bg-cream/40 text-xs font-semibold text-espresso">
+                  <span className="px-2 py-0.5 bg-white border border-latte rounded text-xs">Paragraph ▾</span>
+                  <span className="w-px h-4 bg-latte" />
+                  <button type="button" className="font-bold px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Bold">B</button>
+                  <button type="button" className="italic px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Italic">I</button>
+                  <button type="button" className="underline px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Underline">U</button>
+                  <span className="w-px h-4 bg-latte" />
+                  <button type="button" className="px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Unordered List">≡</button>
+                  <button type="button" className="px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Ordered List">1.</button>
+                  <button type="button" className="px-1.5 py-0.5 hover:bg-latte/30 rounded" title="Link">🔗</button>
+                </div>
+                <textarea
+                  rows={5}
+                  value={amenitiesDescription}
+                  onChange={e => setAmenitiesDescription(e.target.value)}
+                  className="w-full p-3 bg-transparent border-none text-sm text-espresso font-body focus:outline-none resize-y"
+                  placeholder="Enter amenities list or paragraph..."
+                />
+                <div className="px-3 py-1.5 text-right text-[10px] text-mocha border-t border-latte/40">
+                  {amenitiesDescription.length}/500 characters
+                </div>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={savingLocationSettings}
+                className="px-8 py-3 bg-[#8C5835] hover:bg-[#724426] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm transition-all flex items-center gap-2"
+              >
+                {savingLocationSettings && <Spinner />}
+                SAVE CHANGES
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

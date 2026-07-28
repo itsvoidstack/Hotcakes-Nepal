@@ -7,7 +7,8 @@ import type { Metadata } from 'next';
 
 type ContactInfo = Database['public']['Tables']['contact_info']['Row'];
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Visit Us — Location, Directions & Opening Hours | Hattiban, Lalitpur",
@@ -40,14 +41,18 @@ export default async function LocationPage() {
     locPhotosResult,
     openingHoursResult,
     openStatusResult,
-    siteDescResult
+    siteDescResult,
+    locDescResult,
+    amenitiesDescResult
   ] = await Promise.all([
     supabase.from('contact_info').select('*'),
     supabase.from('site_settings').select('value').eq('key', 'google_maps').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'location_photos').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'opening_hours').maybeSingle(),
     supabase.from('site_settings').select('value').eq('key', 'open_status').maybeSingle(),
-    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle()
+    supabase.from('site_settings').select('value').eq('key', 'site_description').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'location_description').maybeSingle(),
+    supabase.from('site_settings').select('value').eq('key', 'amenities_description').maybeSingle()
   ]);
 
   const isOpen = (openStatusResult?.data?.value as { is_open?: boolean })?.is_open ?? true;
@@ -66,16 +71,17 @@ export default async function LocationPage() {
   
   const address = getContact('address') || 'Hattiban, Lalitpur, Nepal';
   const mapsValue = mapsResult?.data?.value as { url?: string } | null;
-  // Fallback maps link updated to user's provided Google Maps URL
   const mapsLink = mapsValue?.url ?? 'https://maps.app.goo.gl/Akbsp1cgDmTLDPy18';
   const phoneNumber = getContact('phone') || '+977 976-3687532';
   const email = getContact('email');
   const siteDescription = (siteDescResult?.data?.value as { text?: string })?.text ||
-    'Find Hotcakes Nepal in Hattiban, Lalitpur — a cozy café near Little Angels School and Jawalakhel.';
+    'A cozy café in Hattiban, Lalitpur — hard-stop specialty coffee, fluffy pancakes, and freshly baked desserts.';
 
-  const instagram = getContact('instagram');
-  const whatsapp = getContact('whatsapp');
-  const tiktok = getContact('tiktok');
+  const locationDescriptionText = (locDescResult?.data?.value as { text?: string })?.text ||
+    'Located in Hattiban, Lalitpur — close to Little Angels School and Ekantakuna. Easily accessible with parking available for bikes and cars.';
+
+  const amenitiesDescriptionText = (amenitiesDescResult?.data?.value as { text?: string })?.text ||
+    '• High-speed complimentary Wi-Fi\n• Comfortable seating for individuals\n• Power outlets at all seating areas\n• Friendly barista & warm hospitality';
 
   const savedPhotos = Array.isArray(locPhotosResult?.data?.value) ? (locPhotosResult.data.value as string[]) : [];
 
@@ -88,7 +94,7 @@ export default async function LocationPage() {
         { src: '/images/location/location-seating.jpg', alt: 'Quiet study corner at Hotcakes Nepal — study café in Lalitpur near Little Angels School' },
       ];
 
-  // Fill/pad photos array up to exactly 4 items to ensure our asymmetric layout works perfectly
+  // Fill/pad photos array up to exactly 4 items
   const finalPhotos = [...locationPhotos];
   while (finalPhotos.length < 4) {
     const fallbacks = [
@@ -102,6 +108,12 @@ export default async function LocationPage() {
       alt: `Hotcakes Nepal café space in Hattiban, Lalitpur — view ${finalPhotos.length + 1}`
     });
   }
+
+  // Parse amenities text into clean list items
+  const amenityItems = amenitiesDescriptionText
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
 
   return (
     <div className="bg-cream text-espresso min-h-screen">
@@ -121,18 +133,18 @@ export default async function LocationPage() {
 
           <div className="border-t border-latte/60 pt-6 space-y-4">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Our Café</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Location</span>
               <p className="font-heading font-bold text-lg text-espresso">Hotcakes Nepal</p>
             </div>
 
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Address</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Our Address</span>
               <p className="font-body text-sm md:text-base text-espresso font-medium">{address}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Opening Hours</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-mocha/60 block mb-0.5">Open Daily</span>
                 <p className="font-body text-sm md:text-base text-espresso font-medium">{statusInfo.todayHoursText}</p>
                 <p className="text-xs text-mocha">{statusInfo.statusText}</p>
               </div>
@@ -150,7 +162,7 @@ export default async function LocationPage() {
             )}
           </div>
 
-          {/* Section 5: Get Directions CTA */}
+          {/* Get Directions CTA */}
           <div className="pt-2">
             <Link
               href={mapsLink}
@@ -158,10 +170,6 @@ export default async function LocationPage() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-7 py-3.5 bg-roasted hover:bg-dark-roast text-white text-xs uppercase tracking-wider font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md"
             >
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0z" />
-              </svg>
               📍 Get Directions
             </Link>
           </div>
@@ -169,7 +177,6 @@ export default async function LocationPage() {
 
         {/* Right column: Visually dominant map card */}
         <div className="lg:col-span-7 w-full animate-fade-up">
-          {/* Reduced desktop map container height to 400px */}
           <div className="relative w-full aspect-[4/3] md:aspect-auto md:h-[380px] lg:h-[400px] rounded-[24px] overflow-hidden bg-latte/30 shadow-sm border border-latte/50">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3531.97382605196!2d85.3363342!3d27.647707!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb170066805b63%3A0x49daabdd55ed2655!2sHOT%20CAKES!5e0!3m2!1sen!2snp!4v1719112000000!5m2!1sen!2snp"
@@ -183,7 +190,7 @@ export default async function LocationPage() {
         </div>
       </section>
 
-      {/* 2. Detailed Info Grid Section */}
+      {/* 2. Detailed Info Grid Section (Visit Details) */}
       <section className="bg-warm-white border-y border-latte/40 py-16 md:py-20 px-4 md:px-6">
         <div className="max-w-[1280px] mx-auto">
           <div className="text-center max-w-xl mx-auto mb-12">
@@ -192,23 +199,23 @@ export default async function LocationPage() {
               Visit Details
             </h2>
             <p className="font-body text-mocha/80 text-sm">
-              A carefully designed space in Hattiban, Lalitpur — offering calm, warmth, and the perfect cup of specialty coffee alongside our famous fluffy pancakes and fresh baked goods.
+              A carefully designed space in Hattiban, Lalitpur — offering calm, warmth, and the perfect cup of specialty coffee alongside our famous fluffy pancakes and fresh-baked goods.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-8">
-            {/* Address Info */}
+            {/* Card 1: Location */}
             <div className="bg-cream rounded-[24px] border border-latte/50 p-7 space-y-3.5 shadow-sm">
               <div className="w-9 h-9 rounded-full bg-latte/40 flex items-center justify-center text-espresso text-base">
                 📍
               </div>
-              <h3 className="font-heading font-bold text-lg text-espresso">Address</h3>
-              <p className="font-body text-mocha/90 text-sm leading-relaxed">
-                {address}. Tucked away from the main streets in Hattiban, Lalitpur — close to Little Angels School, Ekantakuna, and Jawalakhel. A quiet, rustic spot for study, reading, or morning pancake stacks.
+              <h3 className="font-heading font-bold text-lg text-espresso">Location</h3>
+              <p className="font-body text-mocha/90 text-xs md:text-sm leading-relaxed whitespace-pre-line">
+                {locationDescriptionText}
               </p>
             </div>
 
-            {/* Hours Info */}
+            {/* Card 2: Opening Hours (Unchanged) */}
             <div className="bg-cream rounded-[24px] border border-latte/50 p-7 space-y-3.5 shadow-sm">
               <div className="w-9 h-9 rounded-full bg-latte/40 flex items-center justify-center text-espresso text-base">
                 ⏰
@@ -227,36 +234,41 @@ export default async function LocationPage() {
                 })}
               </div>
               <p className="text-[10px] text-mocha font-body mt-2 leading-relaxed">
-                Serving fluffy pancakes, hand-drip specialty coffee, and fresh baked desserts all day. Kitchen closes 15 mins prior to closing.
+                Open daily for dine-in, takeaway, and online orders. We recommend arriving early on weekends.
               </p>
             </div>
 
-            {/* Directions & Ambiance */}
+            {/* Card 3: Amenities */}
             <div className="bg-cream rounded-[24px] border border-latte/50 p-7 space-y-3.5 shadow-sm">
               <div className="w-9 h-9 rounded-full bg-latte/40 flex items-center justify-center text-espresso text-base">
                 ✨
               </div>
               <h3 className="font-heading font-bold text-lg text-espresso">Amenities</h3>
-              <ul className="list-disc list-inside font-body text-sm text-mocha/90 space-y-1 mt-0.5">
-                <li>High-speed complimentary Wi-Fi</li>
-                <li>Dedicated quiet zones for study/work</li>
-                <li>Power outlets at seating corners</li>
-                <li>Freshly baked desserts daily</li>
+              <ul className="space-y-2 font-body text-xs md:text-sm text-mocha/90 pt-1">
+                {amenityItems.map((item, idx) => {
+                  const cleanItem = item.replace(/^[•\-\*✓]\s*/, '').trim();
+                  return (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-[#8C5835] font-bold shrink-0">✓</span>
+                      <span>{cleanItem}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3. Elegant Boutique Gallery Section */}
+      {/* 3. Elegant Boutique Gallery Section (Final Section) */}
       <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-12 md:py-16">
         <div className="text-center max-w-xl mx-auto mb-10">
-          <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-1 block">Moments</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-roasted mb-1 block">Boutique</span>
           <h2 className="font-heading font-bold text-2xl md:text-3xl text-espresso mb-3">
             Boutique Gallery
           </h2>
           <p className="font-body text-mocha/80 text-sm">
-            Take a look inside our cozy corners, coffee bar, and fresh preparations at our Hattiban café in Lalitpur.
+            Take a look inside our cozy café — crafted for good coffee and even better moments.
           </p>
         </div>
 
@@ -278,70 +290,6 @@ export default async function LocationPage() {
               />
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* 4. Brand Story Block */}
-      <section className="bg-warm-white border-y border-latte/40 py-20 md:py-24 px-4 md:px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h2 className="font-heading font-medium italic text-3xl md:text-4xl text-roasted/95 leading-relaxed tracking-tight">
-            &ldquo;Fresh coffee,<br className="sm:hidden" /> fluffy hotcakes,<br className="sm:hidden" /> and warm moments.&rdquo;
-          </h2>
-          <div className="w-12 h-0.5 bg-roasted/30 mx-auto" />
-          <p className="font-heading font-light text-espresso text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-            A cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur — designed for slow mornings, quiet study sessions, and memorable afternoons near Little Angels School and Ekantakuna.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 pt-2 font-body text-xs text-mocha/60">
-            <Link href="/menu" className="hover:text-roasted transition-colors">Browse Menu →</Link>
-            <span>·</span>
-            <Link href="/order" className="hover:text-roasted transition-colors">Order Online →</Link>
-            <span>·</span>
-            <Link href="/contact" className="hover:text-roasted transition-colors">Contact Us →</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Social Connection Section */}
-      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-16 md:py-20 text-center space-y-6">
-        <div className="space-y-1.5">
-          <span className="text-xs font-semibold uppercase tracking-widest text-roasted block">Connect</span>
-          <h2 className="font-heading font-bold text-2xl md:text-3xl text-espresso">Follow Our Journey</h2>
-          <p className="font-body text-mocha/80 text-sm max-w-xs mx-auto">
-            Get updates on seasonal recipes, community events, and fresh stacks.
-          </p>
-        </div>
-
-        <div className="flex justify-center gap-8 md:gap-12 pt-2">
-          {instagram && (
-            <Link
-              href="/api/contact-info?redirect=instagram"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-body text-sm font-semibold tracking-wider uppercase text-espresso hover:text-roasted transition-all duration-300 hover:-translate-y-0.5"
-            >
-              Instagram
-            </Link>
-          )}
-          {whatsapp && (
-            <Link
-              href="/api/contact-info?redirect=whatsapp"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-body text-sm font-semibold tracking-wider uppercase text-espresso hover:text-roasted transition-all duration-300 hover:-translate-y-0.5"
-            >
-              WhatsApp
-            </Link>
-          )}
-          {tiktok && (
-            <Link
-              href="/api/contact-info?redirect=tiktok"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-body text-sm font-semibold tracking-wider uppercase text-espresso hover:text-roasted transition-all duration-300 hover:-translate-y-0.5"
-            >
-              TikTok
-            </Link>
-          )}
         </div>
       </section>
     </div>

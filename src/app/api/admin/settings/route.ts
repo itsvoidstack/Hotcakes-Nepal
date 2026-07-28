@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
     if (type === 'order_links') {
       // data is expected to be an array of { platform, display_name, url, is_active, metadata }
       for (const item of data) {
-        await supabase
+        const { error } = await supabase
           .from('order_links')
           .upsert({
             platform: item.platform,
@@ -182,6 +182,13 @@ export async function POST(request: NextRequest) {
             metadata: item.metadata || {},
             updated_at: new Date().toISOString()
           });
+        if (error) {
+          console.error('ROUTE ERROR:', {
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
       }
       return NextResponse.json({ success: true });
     }
@@ -307,6 +314,22 @@ export async function POST(request: NextRequest) {
       const { error } = await supabase
         .from('site_settings')
         .upsert({ key: 'vacancies_description', value: { text: data.text }, updated_at: new Date().toISOString() });
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === 'location_description') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'location_description', value: { text: data.text }, updated_at: new Date().toISOString() });
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === 'amenities_description') {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({ key: 'amenities_description', value: { text: data.text }, updated_at: new Date().toISOString() });
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ success: true });
     }
