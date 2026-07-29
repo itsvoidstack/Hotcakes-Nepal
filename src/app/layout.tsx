@@ -355,6 +355,19 @@ export default function RootLayout({
   return (
     <html lang="en" className="overflow-x-hidden">
       <head>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-91E8HRRDWE" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-91E8HRRDWE');
+`,
+          }}
+        />
         <style>{`*, *::before, *::after { box-sizing: border-box; }`}</style>
         <script
           type="application/ld+json"
