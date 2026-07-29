@@ -8,23 +8,8 @@ import type { Metadata } from 'next';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Hotcakes Nepal | Best Café in Hattiban, Lalitpur — Pancakes, Specialty Coffee & Desserts",
-  description: "Hotcakes Nepal is a cozy café in Hattiban, Lalitpur near Little Angels School. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, peanut butter cookies, and handcrafted desserts. Open daily 8 AM–8 PM — perfect for slow mornings, brunch, study sessions, and date spots in Lalitpur.",
   alternates: {
     canonical: "https://hotcakes-nepal.vercel.app"
-  },
-  openGraph: {
-    title: "Hotcakes Nepal | Best Café in Hattiban, Lalitpur — Pancakes, Specialty Coffee & Desserts",
-    description: "Cozy café in Hattiban, Lalitpur near Little Angels School. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins and cookies. Open daily 8 AM–8 PM.",
-    url: "https://hotcakes-nepal.vercel.app",
-    images: [
-      {
-        url: "https://hotcakes-nepal.vercel.app/images/hero/hero-main.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Hotcakes Nepal — cozy café in Hattiban, Lalitpur serving fluffy pancakes and specialty coffee",
-      },
-    ],
   },
 };
 

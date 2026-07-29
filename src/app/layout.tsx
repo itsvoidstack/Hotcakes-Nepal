@@ -22,18 +22,19 @@ const inter = Inter({
 });
 
 const BASE_URL = 'https://hotcakes-nepal.vercel.app';
-const OG_IMAGE = `${BASE_URL}/images/hero/hero-main.jpg`;
+const OG_IMAGE = '/og-image.jpg';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
+  applicationName: "Hotcakes Nepal",
   verification: {
     google: "FUggnaI0TbJr1Z5bUeK5oT3el1nkgxnQvn2zH1ijXnc",
   },
   title: {
-    default: "Hotcakes Nepal | Best Café in Hattiban, Lalitpur — Pancakes, Specialty Coffee & Desserts",
+    default: "Hotcakes Nepal",
     template: "%s | Hotcakes Nepal",
   },
-  description: "Hotcakes Nepal — cozy café in Hattiban, Lalitpur near Little Angels School. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, peanut butter cookies, and handcrafted desserts. Open daily 8 AM–8 PM. Great for slow mornings, study sessions, date spots, and brunch in Lalitpur.",
+  description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
   keywords: [
     "Hotcakes Nepal",
     "cafe in Hattiban",
@@ -88,6 +89,12 @@ export const metadata: Metadata = {
   authors: [{ name: "Hotcakes Nepal" }],
   creator: "Hotcakes Nepal",
   publisher: "Hotcakes Nepal",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/logo.png",
+  },
   robots: {
     index: true,
     follow: true,
@@ -100,8 +107,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Hotcakes Nepal | Best Café in Hattiban, Lalitpur — Pancakes, Specialty Coffee & Desserts",
-    description: "Cozy café in Hattiban, Lalitpur near Little Angels School. Fluffy pancakes, hand-drip specialty coffee, fresh baked cookies, muffins, and handcrafted desserts. Open daily 8 AM–8 PM — perfect for brunch, study sessions, and slow mornings.",
+    title: "Hotcakes Nepal",
+    description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
     type: "website",
     locale: "en_US",
     siteName: "Hotcakes Nepal",
@@ -111,14 +118,14 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Hotcakes Nepal — cozy café in Hattiban, Lalitpur serving fluffy pancakes and specialty coffee",
+        alt: "Hotcakes Nepal",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hotcakes Nepal | Best Café in Hattiban, Lalitpur — Pancakes, Coffee & Desserts",
-    description: "Cozy café in Hattiban, Lalitpur near Little Angels School. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins and cookies. Open daily 8 AM–8 PM.",
+    title: "Hotcakes Nepal",
+    description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
     images: [OG_IMAGE],
     creator: "@hotcakesnepal",
     site: "@hotcakesnepal",
@@ -132,21 +139,16 @@ const jsonLd = [
     "@id": `${BASE_URL}/#cafe`,
     "name": "Hotcakes Nepal",
     "alternateName": ["Hot Cakes Nepal", "Hotcakes Cafe Hattiban", "Hotcakes Lalitpur", "Hotcakes Coffee Shop Lalitpur"],
-    "description": "Hotcakes Nepal is a cozy café in Hattiban, Lalitpur — one of the best breakfast cafés near Little Angels School, Ekantakuna, and Jawalakhel. We serve fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, peanut butter cookies, chocolate muffins, and handcrafted desserts. A beloved study café, date spot, and aesthetic vibe space open daily for slow mornings and brunch.",
+    "description": "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
     "url": BASE_URL,
     "telephone": "+977-9763687532",
     "email": "hotcakesnepal@gmail.com",
     "image": [
-      OG_IMAGE,
+      `${BASE_URL}/og-image.jpg`,
       `${BASE_URL}/images/location/location-interior-1.jpg`,
       `${BASE_URL}/images/menu/Cappuccino.jpeg`
     ],
-    "logo": {
-      "@type": "ImageObject",
-      "url": OG_IMAGE,
-      "width": 512,
-      "height": 512
-    },
+    "logo": `${BASE_URL}/logo.png`,
     "priceRange": "$$",
     "currenciesAccepted": "NPR",
     "paymentAccepted": "Cash, Online Transfer, eSewa, Khalti",
