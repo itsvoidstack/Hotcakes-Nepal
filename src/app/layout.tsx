@@ -31,10 +31,10 @@ export const metadata: Metadata = {
     google: "FUggnaI0TbJr1Z5bUeK5oT3el1nkgxnQvn2zH1ijXnc",
   },
   title: {
-    default: "Hotcakes Nepal Café",
+    default: "Hotcakes Nepal Café | Fresh Breakfast & Specialty Coffee in Lalitpur",
     template: "%s | Hotcakes Nepal Café",
   },
-  description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
+  description: "Visit Hotcakes Nepal Café in Hattiban, Lalitpur for freshly prepared breakfast, daily specials, and specialty coffee. Order now and taste the best hotcakes in Nepal.",
   keywords: [
     "Hotcakes Nepal",
     "cafe in Hattiban",
@@ -121,7 +121,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Hotcakes Nepal Café",
-    description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
+    description: "Visit Hotcakes Nepal Café in Hattiban, Lalitpur for freshly prepared breakfast, daily specials, and specialty coffee. Order now and taste the best hotcakes in Nepal.",
     type: "website",
     locale: "en_US",
     siteName: "Hotcakes Nepal Café",
@@ -138,7 +138,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Hotcakes Nepal Café",
-    description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
+    description: "Visit Hotcakes Nepal Café in Hattiban, Lalitpur for freshly prepared breakfast, daily specials, and specialty coffee. Order now and taste the best hotcakes in Nepal.",
     images: [OG_IMAGE],
     creator: "@hotcakesnepal",
     site: "@hotcakesnepal",
@@ -152,7 +152,7 @@ const jsonLd = [
     "@id": `${BASE_URL}/#cafe`,
     "name": "Hotcakes Nepal Café",
     "alternateName": ["Hotcakes Nepal", "Hot Cakes Nepal", "Hotcakes Cafe Hattiban", "Hotcakes Lalitpur", "Hotcakes Coffee Shop Lalitpur"],
-    "description": "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
+    "description": "Visit Hotcakes Nepal Café in Hattiban, Lalitpur for freshly prepared breakfast, daily specials, and specialty coffee. Order now and taste the best hotcakes in Nepal.",
     "url": BASE_URL,
     "telephone": "+977-9763687532",
     "email": "hotcakesnepal@gmail.com",

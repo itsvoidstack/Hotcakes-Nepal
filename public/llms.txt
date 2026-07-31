@@ -1,0 +1,11 @@
+# Hotcakes Nepal Café
+> Freshly prepared breakfast and specialty coffee in Hattiban, Lalitpur, Nepal.
+
+## Menu
+- Daily fresh hotcakes and breakfast items
+- Specialty coffee and beverages
+- Seasonal and premium ingredient dishes
+
+## Contact
+- Location: Hattiban, Lalitpur, Nepal
+- Website: https://hotcakes-nepal.vercel.app
