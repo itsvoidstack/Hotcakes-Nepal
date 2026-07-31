@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 import { getOpeningHoursStatus, OpeningHours } from '@/lib/openingHours';
 
@@ -53,9 +54,18 @@ export default async function Footer() {
 
           {/* Column 1: Brand */}
           <div className="col-span-2 md:col-span-1">
-            <p className="font-heading font-semibold text-base text-cream mb-3 tracking-wide">
-              Hot Cakes Nepal
-            </p>
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-roasted rounded-md">
+              <Image
+                src="/logo.png"
+                alt="Hotcakes Nepal Logo"
+                width={120}
+                height={36}
+                className="h-8 w-auto object-contain max-h-[36px]"
+              />
+              <span className="font-heading font-semibold text-base text-cream tracking-wide group-hover:text-roasted transition-colors">
+                Hotcakes <span className="font-medium text-roasted">Nepal</span>
+              </span>
+            </Link>
             <p className="font-body text-xs text-cream/60 leading-relaxed max-w-[200px]">
               {siteDescription}
             </p>

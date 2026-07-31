@@ -4,14 +4,21 @@ import { getSupabaseAdmin } from '@/lib/supabase/client';
 export const revalidate = 60;
 
 export default async function SiteLogo() {
-  const supabase = getSupabaseAdmin();
-  const { data } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'logo_image')
-    .single();
-  
-  const logoUrl = (data?.value as { url?: string })?.url;
-  
-  return <Logo src={logoUrl} />;
+  let logoUrl: string | undefined = undefined;
+
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'logo_image')
+      .maybeSingle();
+    
+    logoUrl = (data?.value as { url?: string })?.url || undefined;
+  } catch (err) {
+    console.error('Error fetching dynamic site logo:', err);
+  }
+
+  return <Logo src={logoUrl || '/logo.png'} />;
 }
+

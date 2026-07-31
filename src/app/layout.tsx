@@ -26,13 +26,13 @@ const OG_IMAGE = '/og-image.jpg';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
-  applicationName: "Hotcakes Nepal",
+  applicationName: "Hotcakes Nepal Café",
   verification: {
     google: "FUggnaI0TbJr1Z5bUeK5oT3el1nkgxnQvn2zH1ijXnc",
   },
   title: {
-    default: "Hotcakes Nepal",
-    template: "%s | Hotcakes Nepal",
+    default: "Hotcakes Nepal Café",
+    template: "%s | Hotcakes Nepal Café",
   },
   description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
   keywords: [
@@ -89,11 +89,24 @@ export const metadata: Metadata = {
   authors: [{ name: "Hotcakes Nepal" }],
   creator: "Hotcakes Nepal",
   publisher: "Hotcakes Nepal",
-  manifest: "/manifest.webmanifest",
+  manifest: "/site.webmanifest",
   icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "apple-touch-icon-precomposed",
+        url: "/apple-touch-icon.png",
+      },
+    ],
   },
   robots: {
     index: true,
@@ -107,24 +120,24 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Hotcakes Nepal",
+    title: "Hotcakes Nepal Café",
     description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
     type: "website",
     locale: "en_US",
-    siteName: "Hotcakes Nepal",
+    siteName: "Hotcakes Nepal Café",
     url: BASE_URL,
     images: [
       {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Hotcakes Nepal",
+        alt: "Hotcakes Nepal Café",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hotcakes Nepal",
+    title: "Hotcakes Nepal Café",
     description: "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
     images: [OG_IMAGE],
     creator: "@hotcakesnepal",
@@ -137,8 +150,8 @@ const jsonLd = [
     "@context": "https://schema.org",
     "@type": "CafeOrCoffeeShop",
     "@id": `${BASE_URL}/#cafe`,
-    "name": "Hotcakes Nepal",
-    "alternateName": ["Hot Cakes Nepal", "Hotcakes Cafe Hattiban", "Hotcakes Lalitpur", "Hotcakes Coffee Shop Lalitpur"],
+    "name": "Hotcakes Nepal Café",
+    "alternateName": ["Hotcakes Nepal", "Hot Cakes Nepal", "Hotcakes Cafe Hattiban", "Hotcakes Lalitpur", "Hotcakes Coffee Shop Lalitpur"],
     "description": "Cozy breakfast café and specialty coffee shop in Hattiban, Lalitpur.",
     "url": BASE_URL,
     "telephone": "+977-9763687532",
@@ -298,7 +311,8 @@ const jsonLd = [
     "@type": "WebSite",
     "@id": `${BASE_URL}/#website`,
     "url": BASE_URL,
-    "name": "Hotcakes Nepal",
+    "name": "Hotcakes Nepal Café",
+    "alternateName": ["Hotcakes Nepal", "Hotcakes Cafe", "Hot Cakes Nepal"],
     "description": "Hotcakes Nepal — cozy café in Hattiban, Lalitpur. Fluffy pancakes, hand-drip specialty coffee, fresh baked muffins, cookies & desserts.",
     "publisher": {
       "@id": `${BASE_URL}/#cafe`
@@ -354,7 +368,9 @@ export default function RootLayout({
   
   return (
     <html lang="en" className="overflow-x-hidden">
-      <head>
+      <body
+        className={`${playfair.variable} ${inter.variable} font-body bg-cream text-espresso antialiased min-h-screen overflow-x-hidden w-full max-w-full`}
+      >
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-91E8HRRDWE" />
         <script
@@ -368,15 +384,10 @@ export default function RootLayout({
 `,
           }}
         />
-        <style>{`*, *::before, *::after { box-sizing: border-box; }`}</style>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-      </head>
-      <body
-        className={`${playfair.variable} ${inter.variable} font-body bg-cream text-espresso antialiased min-h-screen overflow-x-hidden w-full max-w-full`}
-      >
         <BodyPadding />
         {/* Skip to main content — hidden until focused, for keyboard/screen reader users */}
         <a
